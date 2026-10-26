@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+/* Paleta neutra inspirada en PayPal. Natalia: cambia aquí los colores y la
+   tipografía y se actualiza toda la app. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-brand-900: #001c64;
+  --color-brand-800: #003087;
+  --color-brand-600: #0070e0;
+  --color-brand-500: #1a85ff;
+  --color-brand-100: #e6f0fd;
+  --color-brand-50: #f2f7fe;
+
+  --color-surface: #ffffff;
+  --color-canvas: #f5f7fa;
+  --color-line: #e3e7ed;
+  --color-ink: #001435;
+  --color-ink-muted: #545d68;
+
+  --color-success: #017a3f;
+  --color-success-bg: #e6f4ec;
+  --color-warning: #a35d00;
+  --color-warning-bg: #fff4e0;
+  --color-danger: #c4002b;
+  --color-danger-bg: #fde8ec;
+}
+
+@layer base {
+  html {
+    @apply bg-canvas text-ink antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+}
