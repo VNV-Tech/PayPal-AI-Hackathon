@@ -1,0 +1,24 @@
+{
+  "name": "paypal-ai-hackathon",
+  "private": true,
+  "description": "Financial AI Copilot for freelancers — PayPal AI Hackathon (VNV-Tech)",
+  "license": "MIT",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client && npm run build -w server",
+    "start": "npm run start -w server",
+    "typecheck": "npm run typecheck -w server && npm run build -w client",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000",
+    "paypal:token": "node --env-file=.env scripts/paypal-mcp-token.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}

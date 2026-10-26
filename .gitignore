@@ -1,1 +1,15 @@
+# Dependencias y builds
+node_modules/
+dist/
+
+# Secretos: nunca subir
 .env
+.env.*
+!.env.example
+
+# Logs y sistema
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
