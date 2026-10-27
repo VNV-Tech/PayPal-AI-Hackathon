@@ -4,10 +4,6 @@
 import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 
-const BASE_URLS = {
-  sandbox: 'https://api-m.sandbox.paypal.com',
-  live: 'https://api-m.paypal.com',
-} as const;
 
 // Renovar 5 minutos antes de la expiración real para evitar carreras.
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
@@ -16,7 +12,8 @@ const MAX_RETRIES = 3;
 const BASE_RETRY_DELAY_MS = 500;
 const MAX_RETRY_DELAY_MS = 10_000;
 
-export const PAYPAL_BASE_URL = BASE_URLS[env.PAYPAL_ENV];
+// Solo Sandbox: la URL de live no existe en el código a propósito.
+export const PAYPAL_BASE_URL = 'https://api-m.sandbox.paypal.com';
 
 export class PayPalError extends Error {
   constructor(
