@@ -2,18 +2,39 @@
 // El SDK oficial de PayPal para servidor no cubre Invoicing, por eso se usa
 // la API REST con paypalFetch.
 // Docs: https://developer.paypal.com/docs/api/invoicing/v2/
+import { z } from 'zod';
 import { PayPalError, paypalFetch } from './client.js';
 
 export const PAYMENT_TERMS = ['DUE_ON_RECEIPT', 'NET_10', 'NET_15', 'NET_30', 'NET_45', 'NET_60'] as const;
 export const CURRENCIES = ['MXN', 'USD'] as const;
 
-export interface NewInvoice {
-  customer: { name: string; email: string; company?: string };
-  items: { name: string; quantity: number; unitAmount: number }[];
-  currency: (typeof CURRENCIES)[number];
-  terms: (typeof PAYMENT_TERMS)[number];
-  note?: string;
-}
+// Validación compartida por la ruta POST /api/invoices y por el copiloto.
+export const newInvoiceSchema = z.object({
+  customer: z.object({
+    name: z.string().trim().min(1).max(140),
+    email: z.email().max(254),
+    company: z.string().trim().max(120).optional(),
+  }),
+  items: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(200),
+        quantity: z.number().int().positive().max(9999),
+        unitAmount: z.number().positive().max(1_000_000),
+      }),
+    )
+    .min(1)
+    .max(20),
+  currency: z.enum(CURRENCIES).default('MXN'),
+  terms: z.enum(PAYMENT_TERMS).default('NET_15'),
+  note: z.string().trim().max(1000).optional(),
+});
+
+export type NewInvoice = z.infer<typeof newInvoiceSchema>;
+
+// Los IDs de PayPal tienen la forma INV2-XXXX-XXXX-XXXX-XXXX. Validarlos evita
+// que un ID manipulado altere la ruta de la petición a PayPal.
+export const invoiceIdSchema = z.string().regex(/^INV2(-[A-Z0-9]{4}){4}$/, 'Invalid invoice id');
 
 interface Money {
   currency_code: string;
