@@ -1,6 +1,7 @@
 // Cliente mínimo de la API REST de PayPal con caché de access token.
 // Los tokens de PayPal duran varias horas (campo expires_in); se renuevan
 // automáticamente un poco antes de caducar.
+import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 
 const BASE_URLS = {
@@ -11,6 +12,9 @@ const BASE_URLS = {
 // Renovar 5 minutos antes de la expiración real para evitar carreras.
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 3;
+const BASE_RETRY_DELAY_MS = 500;
+const MAX_RETRY_DELAY_MS = 10_000;
 
 export const PAYPAL_BASE_URL = BASE_URLS[env.PAYPAL_ENV];
 
@@ -75,22 +79,56 @@ export function getTokenStatus() {
   };
 }
 
-// fetch autenticado. Si PayPal responde 401 (token revocado o caducado antes
-// de tiempo), fuerza una renovación y reintenta una vez.
-export async function paypalFetch(path: string, init: RequestInit = {}, retried = false): Promise<Response> {
-  const token = await getAccessToken({ forceRefresh: retried });
-  const res = await fetch(`${PAYPAL_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...init.headers,
-    },
-    signal: init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+// fetch autenticado con reintentos:
+// - 401 (token revocado o caducado antes de tiempo): renueva el token y reintenta una vez.
+// - 429 (límite de peticiones) y 5xx: reintenta con espera creciente (0.5 s, 1 s, 2 s).
+// Los POST llevan un PayPal-Request-Id que se repite en cada reintento, para que
+// PayPal no duplique la operación (por ejemplo, crear dos veces la misma factura).
+export async function paypalFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method ?? 'GET').toUpperCase();
+  const requestId = method === 'POST' ? randomUUID() : undefined;
+  let tokenRefreshed = false;
+  let forceRefresh = false;
+  let attempt = 0;
 
-  if (res.status === 401 && !retried) {
-    return paypalFetch(path, init, true);
+  for (;;) {
+    const token = await getAccessToken({ forceRefresh });
+    forceRefresh = false;
+    const res = await fetch(`${PAYPAL_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...(requestId ? { 'PayPal-Request-Id': requestId } : {}),
+        ...init.headers,
+      },
+      signal: init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (res.status === 401 && !tokenRefreshed) {
+      tokenRefreshed = forceRefresh = true;
+      await res.body?.cancel();
+      continue;
+    }
+    const retryable = res.status === 429 || res.status >= 500;
+    if (!retryable || attempt >= MAX_RETRIES) {
+      return res;
+    }
+    await res.body?.cancel();
+    await sleep(retryDelayMs(res, attempt));
+    attempt++;
   }
-  return res;
+}
+
+function retryDelayMs(res: Response, attempt: number): number {
+  // Si PayPal indica cuánto esperar (Retry-After en segundos), se respeta.
+  const retryAfter = Number(res.headers.get('retry-after'));
+  if (Number.isFinite(retryAfter) && retryAfter > 0) {
+    return Math.min(retryAfter * 1000, MAX_RETRY_DELAY_MS);
+  }
+  return BASE_RETRY_DELAY_MS * 2 ** attempt;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
