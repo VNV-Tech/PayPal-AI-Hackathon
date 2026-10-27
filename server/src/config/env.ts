@@ -17,7 +17,11 @@ const envSchema = z.object({
   // cliente se sirve desde el mismo origen y no se necesita CORS.
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
 
-  PAYPAL_ENV: z.enum(['sandbox', 'live']).default('sandbox'),
+  // Salvaguarda: este proyecto es de hackathon y solo opera en Sandbox, en
+  // cualquier entorno (local o Render). No existe forma de apuntar a live.
+  PAYPAL_ENV: z
+    .literal('sandbox', { error: 'solo se permite "sandbox" (live está bloqueado en este proyecto)' })
+    .default('sandbox'),
   PAYPAL_CLIENT_ID: z.string().min(1, 'PAYPAL_CLIENT_ID es obligatorio'),
   PAYPAL_CLIENT_SECRET: z.string().min(1, 'PAYPAL_CLIENT_SECRET es obligatorio'),
   PAYPAL_WEBHOOK_ID: z.string().optional(),
@@ -41,12 +45,6 @@ if (!parsed.success) {
 
 if (parsed.data.NODE_ENV === 'production' && parsed.data.PAYPAL_SKIP_WEBHOOK_VERIFY) {
   console.error('PAYPAL_SKIP_WEBHOOK_VERIFY=true no está permitido en producción.');
-  process.exit(1);
-}
-
-if (parsed.data.NODE_ENV === 'production' && parsed.data.PAYPAL_ENV === 'live') {
-  // Salvaguarda: este proyecto es de hackathon y solo debe operar en Sandbox.
-  console.error('PAYPAL_ENV=live no está permitido en este proyecto.');
   process.exit(1);
 }
 
