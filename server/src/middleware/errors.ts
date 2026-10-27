@@ -16,7 +16,17 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (err instanceof PayPalError) {
-    console.error(`[paypal] ${err.message} (debug_id=${err.debugId ?? 'n/a'})`);
+    console.error(`[paypal] ${err.message} (debug_id=${err.debugId ?? 'n/a'})`, err.details);
+    if (err.status === 404) {
+      res.status(404).json({ error: 'Not found in PayPal', debugId: err.debugId });
+      return;
+    }
+    // 400/422: PayPal rechazó la petición (dato inválido o acción no permitida
+    // en ese estado). Su descripción es útil para el usuario y no es sensible.
+    if (err.status === 400 || err.status === 422) {
+      res.status(422).json({ error: err.details[0] ?? 'PayPal rejected the request', details: err.details, debugId: err.debugId });
+      return;
+    }
     res.status(502).json({ error: 'PayPal request failed', debugId: err.debugId });
     return;
   }

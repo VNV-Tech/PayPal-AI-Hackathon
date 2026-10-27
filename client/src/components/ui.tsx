@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
 
 // Componentes base reutilizables. Natalia: aquí se ajusta el estilo global
@@ -65,5 +65,45 @@ export function EmptyState({ title, description, action }: { title: string; desc
       <p className="mt-1 max-w-sm text-sm text-ink-muted">{description}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>
+  )
+}
+
+// Ventana modal sobre <dialog> nativo: atrapa el foco y se cierra con Esc.
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    if (open && !dialog.open) dialog.showModal()
+    if (!open && dialog.open) dialog.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      onClose={onClose}
+      aria-labelledby="modal-title"
+      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-line bg-surface p-0 text-ink shadow-xl backdrop:bg-ink/40"
+    >
+      {open && (
+        <div className="p-6">
+          <h2 id="modal-title" className="text-lg font-bold tracking-tight">
+            {title}
+          </h2>
+          <div className="mt-4">{children}</div>
+        </div>
+      )}
+    </dialog>
   )
 }
