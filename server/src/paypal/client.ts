@@ -20,6 +20,8 @@ export class PayPalError extends Error {
     message: string,
     readonly status: number,
     readonly debugId?: string,
+    // Descripciones legibles que PayPal incluye en errores 4xx.
+    readonly details: string[] = [],
   ) {
     super(message);
     this.name = 'PayPalError';

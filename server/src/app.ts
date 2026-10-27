@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { env, isProduction } from './config/env.js';
 import { errorHandler, notFound } from './middleware/errors.js';
 import healthRoutes from './routes/health.js';
+import invoiceRoutes from './routes/invoices.js';
 import webhookRoutes from './routes/webhooks.js';
 
 export function createApp() {
@@ -43,6 +44,7 @@ export function createApp() {
     express.json({ limit: '100kb' }),
   );
   app.use('/api', healthRoutes);
+  app.use('/api', invoiceRoutes);
   app.use('/api', notFound);
 
   // En producción Express sirve el build de React (un solo servicio en Render).
