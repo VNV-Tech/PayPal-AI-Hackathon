@@ -1,9 +1,24 @@
 import type { IncomingHttpHeaders } from 'node:http';
 import express, { Router } from 'express';
-import { env, isProduction } from '../config/env.js';
+import { env } from '../config/env.js';
 import { paypalFetch } from '../paypal/client.js';
 
 const router = Router();
+
+// IDs de eventos ya procesados. PayPal puede entregar el mismo evento más de
+// una vez; mientras no haya base de datos se recuerdan en memoria los últimos.
+const MAX_REMEMBERED_EVENTS = 1000;
+const processedEventIds = new Set<string>();
+
+function markProcessed(eventId: string): boolean {
+  if (processedEventIds.has(eventId)) return false;
+  processedEventIds.add(eventId);
+  if (processedEventIds.size > MAX_REMEMBERED_EVENTS) {
+    // Un Set conserva el orden de inserción: el primero es el más antiguo.
+    processedEventIds.delete(processedEventIds.values().next().value!);
+  }
+  return true;
+}
 
 interface PayPalWebhookEvent {
   id: string;
@@ -34,13 +49,16 @@ function header(headers: IncomingHttpHeaders, name: string): string {
 }
 
 async function verifySignature(rawBody: string, headers: IncomingHttpHeaders): Promise<boolean> {
-  if (!env.PAYPAL_WEBHOOK_ID) {
-    if (isProduction) {
-      console.error('[webhook] PAYPAL_WEBHOOK_ID no configurado; evento rechazado');
-      return false;
-    }
-    console.warn('[webhook] PAYPAL_WEBHOOK_ID no configurado; se omite la verificación (solo en desarrollo)');
+  // Saltarse la verificación solo si se pide de forma explícita (pruebas
+  // locales). No depende de NODE_ENV: si se olvidara configurarlo en Render,
+  // cualquiera podría enviar eventos falsos.
+  if (env.PAYPAL_SKIP_WEBHOOK_VERIFY) {
+    console.warn('[webhook] PAYPAL_SKIP_WEBHOOK_VERIFY=true; se omite la verificación de firma');
     return true;
+  }
+  if (!env.PAYPAL_WEBHOOK_ID) {
+    console.error('[webhook] PAYPAL_WEBHOOK_ID no configurado; evento rechazado');
+    return false;
   }
 
   // Se arma el body a mano para incrustar el evento crudo sin re-serializarlo.
@@ -80,10 +98,15 @@ async function processWebhook(rawBody: string, headers: IncomingHttpHeaders): Pr
     return;
   }
 
+  if (!markProcessed(event.id)) {
+    console.log(`[webhook] Evento ${event.id} repetido; ignorado`);
+    return;
+  }
+
   console.log(`[webhook] ${event.event_type} (${event.id})`);
 
-  // TODO: idempotencia — PayPal puede entregar el mismo evento más de una vez;
-  // guardar event.id procesados cuando haya base de datos.
+  // TODO: guardar los event.id en la base de datos cuando exista, para que
+  // la protección contra eventos repetidos sobreviva a reinicios.
   switch (event.event_type) {
     case 'INVOICING.INVOICE.PAID':
       // TODO: marcar factura del freelancer como cobrada.

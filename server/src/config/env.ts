@@ -21,6 +21,11 @@ const envSchema = z.object({
   PAYPAL_CLIENT_ID: z.string().min(1, 'PAYPAL_CLIENT_ID es obligatorio'),
   PAYPAL_CLIENT_SECRET: z.string().min(1, 'PAYPAL_CLIENT_SECRET es obligatorio'),
   PAYPAL_WEBHOOK_ID: z.string().optional(),
+  // Solo para pruebas locales sin webhook registrado. Nunca activarlo en Render.
+  PAYPAL_SKIP_WEBHOOK_VERIFY: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
 
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
 });
@@ -31,6 +36,11 @@ if (!parsed.success) {
   // Solo se muestran nombres de variables, nunca sus valores.
   const issues = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
   console.error(`Configuración inválida. Revisa tu .env (ver .env.example):\n${issues}`);
+  process.exit(1);
+}
+
+if (parsed.data.NODE_ENV === 'production' && parsed.data.PAYPAL_SKIP_WEBHOOK_VERIFY) {
+  console.error('PAYPAL_SKIP_WEBHOOK_VERIFY=true no está permitido en producción.');
   process.exit(1);
 }
 
