@@ -32,6 +32,11 @@ const envSchema = z.object({
     .transform((v) => v === 'true'),
 
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
+  // Modelo del chat. Cambiarlo aquí no requiere tocar código.
+  ANTHROPIC_MODEL: z.string().default('claude-opus-5-5'),
+  // Tope diario de llamadas a Claude para proteger los créditos (la demo
+  // queda pública para el jurado). Se reinicia cada día (UTC).
+  CHAT_DAILY_LIMIT: z.coerce.number().int().positive().default(200),
 });
 
 const parsed = envSchema.safeParse(process.env);
