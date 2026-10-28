@@ -243,15 +243,15 @@ function InvoiceTable({
 }) {
   return (
     <Card className="overflow-x-auto p-0">
-      <table className="w-full min-w-[860px] text-left text-sm">
+      <table className="w-full min-w-[820px] text-left text-sm">
         <thead className="border-b border-line text-xs font-semibold tracking-wide text-ink-muted uppercase">
           <tr>
-            <th className="px-6 py-3">Invoice</th>
-            <th className="px-6 py-3">Client</th>
-            <th className="px-6 py-3 text-right">Amount</th>
-            <th className="px-6 py-3">Due</th>
-            <th className="px-6 py-3">Status</th>
-            <th className="px-6 py-3 text-right">
+            <th className="px-4 py-3">Invoice</th>
+            <th className="px-4 py-3">Client</th>
+            <th className="px-4 py-3 text-right">Amount</th>
+            <th className="px-4 py-3">Due</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3 text-right">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -262,14 +262,14 @@ function InvoiceTable({
             const tax = taxRequests[inv.id]
             return (
               <tr key={inv.id}>
-                <td className="px-6 py-4 font-semibold tabular-nums">#{inv.number ?? '—'}</td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-4 font-semibold tabular-nums">#{inv.number ?? '—'}</td>
+                <td className="px-4 py-4">
                   <p className="font-medium">{inv.customer.company ?? inv.customer.name ?? '—'}</p>
                   <p className="text-xs text-ink-muted">{inv.customer.email}</p>
                 </td>
-                <td className="px-6 py-4 text-right font-semibold tabular-nums">{money(inv.amount)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-ink-muted">{formatDate(inv.dueDate)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-4 text-right font-semibold tabular-nums">{money(inv.amount)}</td>
+                <td className="px-4 py-4 whitespace-nowrap text-ink-muted">{formatDate(inv.dueDate)}</td>
+                <td className="px-4 py-4 whitespace-nowrap">
                   <Badge tone={status.tone}>{status.label}</Badge>
                   {tax && (
                     <p className="mt-1 text-xs text-ink-muted">
@@ -277,16 +277,18 @@ function InvoiceTable({
                     </p>
                   )}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-4">
                   <div className="flex justify-end gap-1 whitespace-nowrap">
                     {inv.status !== 'DRAFT' && (
                       <a
                         href={inv.payerViewUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50"
+                        title="Payment page"
+                        className="grid size-8 place-items-center rounded-full text-brand-600 hover:bg-brand-50"
                       >
-                        Payment page
+                        <ExternalLink aria-hidden className="size-4" />
+                        <span className="sr-only">Payment page</span>
                       </a>
                     )}
                     {inv.status !== 'DRAFT' && (

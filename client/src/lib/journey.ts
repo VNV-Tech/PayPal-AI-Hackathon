@@ -1,17 +1,24 @@
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { DATA_CHANGED } from './api'
 import { formatMoney } from './config'
-import type { Invoice } from './invoices'
-import type { Savings } from './savings'
-import type { TaxRequest } from './taxInfo'
+import { useLiveEvents } from './events'
+import { type Invoice, invoicesApi } from './invoices'
+import type { Mode } from './mode'
+import { type Savings, savingsApi } from './savings'
+import { type TaxRequest, taxInfoApi } from './taxInfo'
 import type { TourStep } from './tour'
 
-// Guía "Your next step": el camino de cada modo como lista de pasos que se
-// palomean solos según el estado de la cuenta. Son reglas fijas, sin IA: no
+// Guía: acompaña al usuario en todo el proceso. Son reglas fijas, sin IA: no
 // gasta créditos. Vanessa / Natalia: los textos se cambian aquí (en inglés).
 //
+// La guía sigue a la factura más reciente que todavía tiene algo pendiente
+// (enviarla, esperar el pago, pedir datos fiscales, emitir el CFDI). Así,
+// con cada factura nueva, te lleva paso a paso hasta el final.
+//
 // - done: el paso ya se hizo alguna vez (palomita en la lista).
-// - todo: hay algo concreto por hacer ahora en ese paso. Aunque el camino ya
-//   esté completo, la guía sigue mostrando lo pendiente ("Next up").
-// - hint: qué hacer ahora, con datos reales. Solo se muestra en el paso actual.
+// - todo: es el paso en el que va la factura que seguimos.
+// - hint: qué hacer ahora, con datos reales.
 // - showMe: a dónde lleva "Show me" y qué ilumina (un data-tour="..." de la pantalla).
 export interface JourneyStep {
   id: string
@@ -29,7 +36,8 @@ const UNPAID = ['SENT', 'UNPAID', 'PARTIALLY_PAID']
 const clientOf = (inv: Invoice) => inv.customer.company ?? inv.customer.name ?? inv.customer.email ?? 'your client'
 const amountOf = (inv: Invoice) => (inv.amount ? formatMoney(Number(inv.amount.value), inv.amount.currency_code) : '')
 
-// La lista llega con las más nuevas primero: find() da la más reciente.
+type Stage = 'send' | 'paid' | 'tax-info' | 'cfdi'
+
 export function businessJourney(invoices: Invoice[], taxRequests: TaxRequest[], knownClients: string[]): JourneyStep[] {
   const tax = new Map(taxRequests.map((r) => [r.invoiceId, r]))
   const known = new Set(knownClients)
@@ -37,11 +45,21 @@ export function businessJourney(invoices: Invoice[], taxRequests: TaxRequest[], 
   // guardamos de una anterior (al abrir Tax info se usan solos).
   const hasTaxInfo = (inv: Invoice) =>
     tax.get(inv.id)?.status === 'received' || known.has(inv.customer.email?.toLowerCase() ?? '')
-  const draft = invoices.find((inv) => inv.status === 'DRAFT')
-  const waiting = invoices.find((inv) => UNPAID.includes(inv.status))
-  const paidMxn = invoices.filter((inv) => PAID.includes(inv.status) && inv.amount?.currency_code === 'MXN')
-  const needsTaxInfo = paidMxn.find((inv) => !hasTaxInfo(inv))
-  const readyForCfdi = paidMxn.find((inv) => hasTaxInfo(inv) && !tax.get(inv.id)?.cfdi)
+
+  // En qué paso va cada factura. null: ya no le falta nada (o fue cancelada).
+  const stageOf = (inv: Invoice): Stage | null => {
+    if (inv.status === 'DRAFT') return 'send'
+    if (UNPAID.includes(inv.status)) return 'paid'
+    // El CFDI solo aplica a facturas en pesos.
+    if (!PAID.includes(inv.status) || inv.amount?.currency_code !== 'MXN') return null
+    if (!hasTaxInfo(inv)) return 'tax-info'
+    return tax.get(inv.id)?.cfdi ? null : 'cfdi'
+  }
+  // La lista llega con las más nuevas primero: seguimos la más reciente con algo pendiente.
+  const focus = invoices.find((inv) => stageOf(inv) !== null)
+  const stage = focus ? stageOf(focus) : null
+  const who = focus ? clientOf(focus) : ''
+  const num = focus ? `#${focus.number}` : ''
 
   return [
     {
@@ -49,7 +67,7 @@ export function businessJourney(invoices: Invoice[], taxRequests: TaxRequest[], 
       title: 'Create an invoice',
       why: 'PayPal emails it to your client with a button to pay by PayPal or card.',
       done: invoices.length > 0,
-      hint: 'Start with your first invoice. You can also ask the copilot to draft it for you.',
+      hint: "Let's start: create your first invoice. You can also ask the copilot to draft it for you.",
       showMe: {
         id: 'guide-create',
         route: '/invoices',
@@ -63,65 +81,72 @@ export function businessJourney(invoices: Invoice[], taxRequests: TaxRequest[], 
       title: 'Send it to your client',
       why: 'Until you send it, your client can’t see it or pay it.',
       done: invoices.some((inv) => inv.status !== 'DRAFT'),
-      todo: Boolean(draft),
-      hint: draft ? `Draft #${draft.number} for ${clientOf(draft)} is ready. Send it so they can pay.` : undefined,
-      showMe: draft && {
-        id: 'guide-send',
-        route: '/invoices',
-        target: `send-${draft.id}`,
-        title: 'Send it',
-        body: `Press Send on #${draft.number}. PayPal emails ${clientOf(draft)} a link to pay.`,
-      },
+      todo: stage === 'send',
+      hint: `Draft ${num} for ${who} is ready. Send it so they can pay.`,
+      showMe:
+        focus && stage === 'send'
+          ? {
+              id: 'guide-send',
+              route: '/invoices',
+              target: `send-${focus.id}`,
+              title: 'Send it',
+              body: `Press Send on ${num}. PayPal emails ${who} a link to pay.`,
+            }
+          : undefined,
     },
     {
       id: 'paid',
       title: 'Get paid',
       why: 'The app updates by itself the moment your client pays, and the copilot tells you what to do next.',
       done: invoices.some((inv) => PAID.includes(inv.status)),
-      hint: waiting
-        ? `${clientOf(waiting)} hasn't paid #${waiting.number} (${amountOf(waiting)}) yet. A friendly reminder can help.`
-        : 'Send an invoice and wait for your client to pay.',
-      showMe: waiting && {
-        id: 'guide-remind',
-        route: '/invoices',
-        target: `remind-${waiting.id}`,
-        title: 'Waiting for the payment',
-        body: 'You don’t have to do anything. If it takes long, press Remind and PayPal sends your client a reminder.',
-      },
+      todo: stage === 'paid',
+      hint: `Sent ✓ Now we wait for ${who} to pay ${num}${focus ? ` (${amountOf(focus)})` : ''}. I'll let you know the moment it arrives.`,
+      showMe:
+        focus && stage === 'paid'
+          ? {
+              id: 'guide-remind',
+              route: '/invoices',
+              target: `remind-${focus.id}`,
+              title: 'Waiting for the payment',
+              body: 'You don’t have to do anything. If it takes long, press Remind and PayPal sends your client a reminder.',
+            }
+          : undefined,
     },
     {
       id: 'tax-info',
       title: 'Get your client’s tax info',
       why: 'In Mexico, clients usually need an official tax invoice (CFDI). They fill in their details once; we remember them.',
       done: taxRequests.some((r) => r.status === 'received'),
-      todo: Boolean(needsTaxInfo),
-      hint: needsTaxInfo
-        ? `${clientOf(needsTaxInfo)} paid #${needsTaxInfo.number}. Share the tax info link so they can get their CFDI.`
-        : 'When a client in Mexico pays you, ask for their tax info.',
-      showMe: needsTaxInfo && {
-        id: 'guide-tax',
-        route: '/invoices',
-        target: `tax-${needsTaxInfo.id}`,
-        title: 'Ask for their tax info',
-        body: 'Press Tax info and copy the link for your client. New invoices already include it in the PayPal email.',
-      },
+      todo: stage === 'tax-info',
+      hint: `${who} paid ${num} 🎉 Now ask for their tax info so they can get their CFDI.`,
+      showMe:
+        focus && stage === 'tax-info'
+          ? {
+              id: 'guide-tax',
+              route: '/invoices',
+              target: `tax-${focus.id}`,
+              title: 'Ask for their tax info',
+              body: 'Press Tax info and copy the link for your client. New invoices already include it in the PayPal email.',
+            }
+          : undefined,
     },
     {
       id: 'cfdi',
       title: 'Send their tax invoice (CFDI)',
       why: 'One click: it is stamped with the SAT (test mode) and emailed to your client.',
       done: taxRequests.some((r) => r.cfdi),
-      todo: Boolean(readyForCfdi),
-      hint: readyForCfdi
-        ? `You have ${clientOf(readyForCfdi)}'s tax info. Issue the CFDI for #${readyForCfdi.number}.`
-        : 'As soon as you have a paid invoice and the client’s tax info, you can issue it.',
-      showMe: readyForCfdi && {
-        id: 'guide-cfdi',
-        route: '/invoices',
-        target: `tax-${readyForCfdi.id}`,
-        title: 'Issue the CFDI',
-        body: 'Press Tax info, then Issue CFDI. You confirm before anything is sent.',
-      },
+      todo: stage === 'cfdi',
+      hint: `${who} paid ${num} and you have their tax info. Issue the CFDI and it’s emailed to them.`,
+      showMe:
+        focus && stage === 'cfdi'
+          ? {
+              id: 'guide-cfdi',
+              route: '/invoices',
+              target: `tax-${focus.id}`,
+              title: 'Issue the CFDI',
+              body: 'Press Tax info, then Issue CFDI. You confirm before anything is sent.',
+            }
+          : undefined,
     },
   ]
 }
@@ -158,15 +183,81 @@ export function personalJourney(savings: Savings): JourneyStep[] {
       done: setAside,
       todo: Boolean(review),
       hint: review
-        ? `You got paid ${formatMoney(Number(review.amount.value), review.amount.currency_code)}. Decide how much to set aside.`
+        ? `You got paid ${formatMoney(Number(review.amount.value), review.amount.currency_code)} 🎉 Decide how much of it to set aside.`
         : undefined,
-      showMe: review && {
-        id: 'guide-review',
-        route: '/savings',
-        target: 'savings-review',
-        title: 'Decide on this payment',
-        body: 'Press Set aside to follow your plan, or Not this time to skip it. You can change the plan anytime.',
-      },
+      showMe: review
+        ? {
+            id: 'guide-review',
+            route: '/savings',
+            target: 'savings-review',
+            title: 'Decide on this payment',
+            body: 'Press Set aside to follow your plan, or Not this time to skip it. You can change the plan anytime.',
+          }
+        : undefined,
     },
   ]
+}
+
+// El paso que la guía muestra: lo que va la factura que seguimos; si no hay,
+// el primero que nunca se ha hecho. firstTime: el usuario va aprendiendo.
+export function currentStep(steps: JourneyStep[]): { step: JourneyStep; firstTime: boolean } | null {
+  const step = steps.find((s) => s.todo) ?? steps.find((s) => !s.done)
+  return step ? { step, firstTime: !step.done } : null
+}
+
+// Pasos del modo, actualizados al cambiar de pantalla, al hacer algo en la
+// app y cuando PayPal avisa de un cambio. null mientras cargan.
+export function useJourney(mode: Mode): JourneyStep[] | null {
+  const [loaded, setLoaded] = useState<{ mode: Mode; steps: JourneyStep[] } | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    let ignore = false
+    const load =
+      mode === 'business'
+        ? Promise.all([invoicesApi.list(1), taxInfoApi.list()]).then(([page, tax]) =>
+            businessJourney(page.invoices, tax.requests, tax.knownClients),
+          )
+        : savingsApi.get().then(personalJourney)
+    // Si falla, la guía simplemente no se muestra.
+    load.then(
+      (steps) => {
+        if (!ignore) setLoaded({ mode, steps })
+      },
+      () => {},
+    )
+    return () => {
+      ignore = true
+    }
+  }, [mode, pathname, reloadKey])
+
+  useLiveEvents(() => setReloadKey((k) => k + 1))
+  useEffect(() => {
+    const onChange = () => setReloadKey((k) => k + 1)
+    window.addEventListener(DATA_CHANGED, onChange)
+    return () => window.removeEventListener(DATA_CHANGED, onChange)
+  }, [])
+
+  return loaded?.mode === mode ? loaded.steps : null
+}
+
+const GUIDE_OFF_KEY = 'vnv-guide-off'
+
+// "I've got it": el usuario apaga la guía cuando ya se acostumbró.
+export function isGuideOff(): boolean {
+  try {
+    return localStorage.getItem(GUIDE_OFF_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function saveGuideOff(off: boolean) {
+  try {
+    if (off) localStorage.setItem(GUIDE_OFF_KEY, '1')
+    else localStorage.removeItem(GUIDE_OFF_KEY)
+  } catch {
+    // Se ignora: ver isGuideOff.
+  }
 }

@@ -22,5 +22,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     throw new ApiError(body?.error ?? `Request failed (${res.status})`, res.status)
   }
+  // Algo cambió (se creó o envió una factura, se apartó dinero...): la guía
+  // escucha este aviso para actualizarse sola.
+  if (init.method && init.method !== 'GET') window.dispatchEvent(new Event(DATA_CHANGED))
   return body as T
 }
+
+export const DATA_CHANGED = 'vnv:data-changed'
