@@ -6,8 +6,8 @@
 main      ← versión estable: lo que ve el jurado. Solo recibe merges desde dev.
  └─ dev   ← integración: aquí se junta el trabajo de todos.
      ├─ victor    backend, PayPal, IA, despliegue
-     ├─ natalia   UI/UX y componentes de React (client/)
-     └─ vanessa   investigación, diseño, textos y pitch (docs/)
+     ├─ vanessa   UI/UX y componentes de React (client/)
+     └─ natalia   investigación, textos y pitch (docs/)
 ```
 
 **Reglas:**
@@ -21,7 +21,7 @@ main      ← versión estable: lo que ve el jurado. Solo recibe merges desde de
 
 ```bash
 # 1. Cambiarte a tu rama y traer lo último de dev
-git switch natalia            # tu nombre
+git switch vanessa            # tu nombre
 git pull origin dev
 
 # 2. Trabajar y guardar cambios
@@ -29,20 +29,20 @@ git add client/src/pages/Invoices.tsx   # agrega archivos concretos, no "git add
 git commit -m "Diseño de la tabla de facturas"
 
 # 3. Subir tu rama
-git push origin natalia
+git push origin vanessa
 
-# 4. En GitHub: abrir Pull Request  natalia → dev
+# 4. En GitHub: abrir Pull Request  vanessa → dev
 ```
 
 ## Dónde toca cada quien
 
 | Carpeta / archivo           | Quién        | Qué hay                                   |
 | --------------------------- | ------------ | ----------------------------------------- |
-| `client/src/index.css`      | Natalia      | Colores y tipografía (variables `@theme`) |
-| `client/src/components/`    | Natalia      | Botones, tarjetas, layout                 |
-| `client/src/pages/`         | Natalia/Víctor | Pantallas                               |
+| `client/src/index.css`      | Vanessa      | Colores y tipografía (variables `@theme`) |
+| `client/src/components/`    | Vanessa      | Botones, tarjetas, layout                 |
+| `client/src/pages/`         | Vanessa/Víctor | Pantallas                               |
 | `server/`                   | Víctor       | API, PayPal, IA                           |
-| `docs/`                     | Vanessa      | Investigación, pitch, guion del video     |
+| `docs/`                     | Natalia      | Investigación, pitch, guion del video     |
 | `README.md`                 | Todos        | Debe estar en **inglés** (regla del hackathon) |
 
 ## Seguridad

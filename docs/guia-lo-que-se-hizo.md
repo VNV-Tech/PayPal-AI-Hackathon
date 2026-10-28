@@ -58,8 +58,8 @@ Solo se revisó que las dos claves estuvieran puestas. **Nunca se leyeron ni se 
 main      🏠 La sala: lo que verá el jurado. Siempre debe funcionar.
  └─ dev   🛋️ La mesa: aquí se junta el trabajo de los tres antes de pasarlo a la sala.
      ├─ victor    🚪 Tu cuarto: backend, PayPal, IA.
-     ├─ natalia   🚪 Cuarto de Natalia: diseño y pantallas.
-     └─ vanessa   🚪 Cuarto de Vanessa: investigación, textos y pitch.
+     ├─ natalia   🚪 Cuarto de Natalia: investigación, textos y pitch.
+     └─ vanessa   🚪 Cuarto de Vanessa: diseño y pantallas.
 ```
 
 A cada uno de estos "cuartos" se le llama **rama**. Una rama es una copia del proyecto donde puedes trabajar sin afectar a los demás.

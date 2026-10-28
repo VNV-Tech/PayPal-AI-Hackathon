@@ -1,6 +1,6 @@
 # docs/
 
-Material de investigación, diseño y pitch (principalmente Vanessa).
+Material de investigación, diseño y pitch (principalmente Natalia).
 
 Ideas de archivos:
 

@@ -1,7 +1,7 @@
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
 
-// Componentes base reutilizables. Natalia: aquí se ajusta el estilo global
+// Componentes base reutilizables. Vanessa: aquí se ajusta el estilo global
 // de botones, tarjetas y etiquetas.
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
