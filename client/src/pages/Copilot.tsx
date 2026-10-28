@@ -148,7 +148,7 @@ export function Copilot() {
         <li ref={endRef} aria-hidden />
       </ol>
 
-      <form onSubmit={send} className="flex gap-2 rounded-full border border-line bg-surface p-2 shadow-sm">
+      <form data-tour="copilot-input" onSubmit={send} className="flex gap-2 rounded-full border border-line bg-surface p-2 shadow-sm">
         <label htmlFor="chat-input" className="sr-only">
           Message
         </label>

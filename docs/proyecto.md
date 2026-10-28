@@ -3,7 +3,7 @@
 > Documento vivo del equipo. Explica **qué estamos haciendo, por qué, cómo funciona y qué falta**, y sobre todo **qué se puede cambiar del diseño**.
 > Cada tema va dos veces: primero simple (🍎) y luego técnico (🔧), para que cualquiera del equipo lo entienda.
 >
-> Última actualización: 27 de octubre de 2026.
+> Última actualización: 27 de octubre de 2026 (tutorial de bienvenida).
 
 ## Índice
 
@@ -29,6 +29,7 @@ Con la app puedes:
 - **Saber cómo vas:** cuánto te deben, cuánto cobraste este mes y quién ya se pasó de la fecha de pago.
 - **Platicar con una IA** que hace todo eso por ti. La regla de oro: **la IA nunca hace nada sin que tú lo apruebes.**
 - **Apartar dinero:** cada vez que te pagan, la app te pregunta si quieres guardar una parte, por ejemplo para impuestos.
+- **Aprender a usarla en un minuto:** la primera vez, un tutorial con el copiloto te enseña cada pantalla.
 
 ### Por qué
 
@@ -123,8 +124,16 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 
 ### Barra de arriba (en todas las pantallas)
 - **Archivo:** `client/src/components/Layout.tsx`
-- **Qué tiene:** logo y nombre ("VNV Copilot"), menú (Overview, Copilot, Invoices, Savings) y la etiqueta **Sandbox**.
+- **Qué tiene:** logo y nombre ("VNV Copilot"), menú (Overview, Copilot, Invoices, Savings), el botón **Tour** y la etiqueta **Sandbox**.
 - El nombre de la app se cambia en un solo lugar: `client/src/lib/config.ts` (`APP_NAME`).
+
+### Tutorial de bienvenida
+- **Archivos:** los textos en `client/src/lib/tour.ts`; cómo se ve, en `client/src/components/Tour.tsx`.
+- **Para qué:** que alguien que entra por primera vez entienda la app sin explicación.
+- **Cómo funciona:** sale solo la primera vez (el navegador lo recuerda). Oscurece la pantalla, ilumina una parte y el copiloto explica qué es, en 6 pasos: bienvenida → Inicio → Facturas → Savings → Chat → listo.
+- Botones **Next**, **Back** y **Skip tour**. Con el teclado: flechas para avanzar o regresar, y `Esc` para salir.
+- Se vuelve a ver con el botón **Tour** de la barra de arriba.
+- **No usa la IA ni gasta créditos:** todos los mensajes están escritos a mano.
 
 ### Overview (Inicio)
 - **Archivo:** `client/src/pages/Overview.tsx`
@@ -196,6 +205,7 @@ Esto es solo visual. Si algo sale mal, se regresa con un clic.
 | **Íconos, ilustraciones, imágenes** | Nuevas, en `client/public/` | Ilustración para pantallas vacías |
 | **Pantallas vacías, de carga y de error** | En cada pantalla | Un dibujo cuando no hay facturas |
 | **Los ejemplos** de "Try saying" y las sugerencias del chat | `Overview.tsx` y `Copilot.tsx` (`suggestions`) | Ejemplos nuevos |
+| **El tutorial**: textos, orden, cuántos pasos, cómo se ve | Textos en `client/src/lib/tour.ts`, aspecto en `client/src/components/Tour.tsx` | Otro tono, otro personaje, más o menos pasos |
 | **Modo oscuro**, animaciones, transiciones | `index.css` y componentes | Agregar modo oscuro |
 | **Versión para celular** | Todas las pantallas | Menú hamburguesa |
 
@@ -209,6 +219,7 @@ Se ve como diseño, pero está conectado con cómo funciona la app.
 | **Quitar o mover botones de acción** (Send, Remind, Cancel, Delete, Set aside, Approve) | Cada uno hace algo real en PayPal o en los apartados |
 | **Cambiar los nombres de los estados** (Paid, Overdue…) | Se puede: los textos están en `client/src/lib/invoices.ts` (`displayStatus`). Pero cada estado tiene que seguir siendo distinto de los demás |
 | **Agregar una pantalla o sección nueva con datos** | Si muestra datos nuevos, hay que programarlos en el servidor |
+| **Qué parte ilumina cada paso del tutorial** | Cada `target` en `tour.ts` debe coincidir con un `data-tour="..."` en la pantalla; si se borra ese `data-tour`, el paso sale al centro sin iluminar nada |
 | **Lo que dice la IA y cómo habla** | Vive en el servidor (`server/src/ai/copilot.ts`), no en la pantalla |
 | **Las monedas** (MXN, USD) y los plazos de pago | Están ligados a lo que acepta PayPal |
 | **Cualquier cosa en `client/src/lib/`** | Ahí está la conexión con el servidor, no el diseño |
@@ -277,7 +288,7 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta para empezar. Vanessa decide cuáles se arreglan y cómo.
 
 **Generales**
-- **No explica qué es la app.** Alguien que entra por primera vez no sabe para qué sirve ni por dónde empezar. No hay bienvenida ni guía.
+- **Explica poco qué es la app.** Ya hay un tutorial de bienvenida (primera versión), pero las pantallas por sí solas todavía no se explican.
 - **No está pensada para celular.** El menú de arriba no se acomoda en pantallas chicas.
 - **La tipografía no se carga:** el código pide **Inter**, pero no se descarga, así que se ve la letra del sistema.
 - **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores son de ejemplo, inspirados en PayPal.
@@ -316,6 +327,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 3 | Webhooks: todo se actualiza solo | 3–4 nov | Víctor | ✅ Hecho (adelantado) |
 | 4 | Modo personal (apartados) | 5–7 nov | Víctor | ✅ Hecho (adelantado) |
 | 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ⏳ Por empezar |
+| 5b | Tutorial de bienvenida (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide textos y aspecto |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -355,6 +367,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #11 | Webhooks: facturas y números se actualizan solos cuando alguien paga |
 | #12 | Modo personal: apartados que preguntan con cada pago, también desde el chat |
 | #13 | Corrección de los papeles del equipo en la documentación |
+| #14 | Este documento |
+| #15 | Tutorial de bienvenida con el copiloto (sin IA, no gasta créditos) |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
@@ -378,3 +392,4 @@ Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal)
 | Tool use | La IA usando "herramientas" para leer o proponer | `tools` de la Messages API de Claude |
 | SSE | Línea abierta para avisos en vivo | Server-Sent Events, `GET /api/events` |
 | Token de diseño | Un color o tamaño con nombre | Variables `@theme` en `index.css` |
+| Tour / onboarding | El tutorial de la primera vez | `Tour.tsx` + `tour.ts`, recuerda en `localStorage` si ya se vio |
