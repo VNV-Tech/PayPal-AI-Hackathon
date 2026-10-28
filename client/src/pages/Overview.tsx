@@ -1,23 +1,80 @@
-import { ButtonLink, Card, PageHeader } from '../components/ui'
-import { formatMoney } from '../lib/config'
-
-// Datos de ejemplo mientras se conecta el backend.
-const stats = [
-  { label: 'Outstanding', value: formatMoney(0), hint: 'Unpaid invoices' },
-  { label: 'Paid this month', value: formatMoney(0), hint: 'Collected via PayPal' },
-  { label: 'Overdue', value: '0', hint: 'Invoices past due date' },
-]
+import { useEffect, useState } from 'react'
+import { Button, ButtonLink, Card, PageHeader } from '../components/ui'
+import { type Overview as OverviewData, formatTotals, overviewApi, plural } from '../lib/overview'
 
 export function Overview() {
+  const [data, setData] = useState<OverviewData | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Cambiar reloadKey vuelve a pedir los números (botones Refresh / Try again).
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = () => setReloadKey((k) => k + 1)
+
+  useEffect(() => {
+    let ignore = false
+    overviewApi.get().then(
+      (overview) => {
+        if (ignore) return
+        setData(overview)
+        setLoadError(null)
+      },
+      (err: unknown) => {
+        if (!ignore) setLoadError(err instanceof Error ? err.message : 'Could not load your numbers')
+      },
+    )
+    return () => {
+      ignore = true
+    }
+  }, [reloadKey])
+
+  const loading = '…'
+  const paid = data?.paidThisMonth
+  const stats = [
+    {
+      label: 'Outstanding',
+      value: data ? formatTotals(data.outstanding) : loading,
+      hint: data ? plural(data.outstandingCount, 'unpaid invoice') : 'Unpaid invoices',
+    },
+    {
+      label: 'Paid this month',
+      value: !data ? loading : paid ? formatTotals(paid.totals) : '—',
+      // PayPal tarda hasta 3 horas en mostrar un pago nuevo en esta búsqueda.
+      hint: !data
+        ? 'Collected via PayPal'
+        : paid
+          ? `${plural(paid.count, 'payment')} via PayPal · new ones can take a few hours`
+          : "Couldn't load payments from PayPal",
+    },
+    {
+      label: 'Overdue',
+      value: data ? String(data.overdueCount) : loading,
+      hint: 'Invoices past due date',
+    },
+  ]
+
   return (
     <>
       <PageHeader
         title="Good to see you"
         description="Your freelance finances at a glance."
         actions={
-          <ButtonLink to="/copilot">Ask the copilot</ButtonLink>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={reload}>
+              Refresh
+            </Button>
+            <ButtonLink to="/copilot">Ask the copilot</ButtonLink>
+          </div>
         }
       />
+
+      {loadError && (
+        <p role="alert" className="mb-4 flex items-center justify-between gap-4 rounded-xl bg-danger-bg px-4 py-3 text-sm text-danger">
+          Couldn't load your numbers: {loadError}
+          <Button variant="secondary" onClick={reload}>
+            Try again
+          </Button>
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((s) => (
