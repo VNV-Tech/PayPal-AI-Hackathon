@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import {
   cancelInvoice,
@@ -13,6 +14,14 @@ import {
 } from '../paypal/invoices.js';
 
 const router = Router();
+
+// La demo es pública y no tiene login: las acciones que cambian facturas
+// tienen un límite más estricto para que nadie pueda borrar o cancelar todo
+// con un script. Ver facturas no se limita aparte.
+const writeLimit = rateLimit({ windowMs: 60_000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false });
+router.post('/invoices', writeLimit);
+router.post('/invoices/:id/:action', writeLimit);
+router.delete('/invoices/:id', writeLimit);
 
 const listQuery = z.object({ page: z.coerce.number().int().min(1).max(1000).default(1) });
 
