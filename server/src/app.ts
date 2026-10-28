@@ -36,8 +36,14 @@ export function createApp() {
     app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
   }
 
-  // Webhooks antes de express.json(): necesitan el body crudo.
-  app.use('/webhooks', webhookRoutes);
+  // Webhooks antes de express.json(): necesitan el body crudo. Cada evento
+  // provoca una llamada a PayPal para verificar la firma; el límite evita que
+  // eventos falsos agoten las peticiones permitidas de la cuenta.
+  app.use(
+    '/webhooks',
+    rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false }),
+    webhookRoutes,
+  );
 
   app.use(
     '/api',

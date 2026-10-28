@@ -122,7 +122,14 @@ function toSummary(inv: PayPalInvoice): InvoiceSummary {
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await paypalFetch(path, init);
   const text = await res.text();
-  const body = text ? JSON.parse(text) : undefined;
+  let body;
+  try {
+    body = text ? JSON.parse(text) : undefined;
+  } catch {
+    // PayPal respondió algo que no es JSON (por ejemplo, una página de error
+    // 502). Sin esto se perdería el debug_id que viene en los headers.
+    body = undefined;
+  }
   if (!res.ok) {
     const details: string[] = (body?.details ?? [])
       .map((d: { description?: string; issue?: string }) => d.description ?? d.issue)
