@@ -90,7 +90,8 @@ export interface PublicTaxRequest {
 
 export const taxInfoApi = {
   // cfdiEnabled: false si el servidor no tiene las credenciales de Facturama.
-  list: () => api<{ requests: TaxRequest[]; cfdiEnabled: boolean }>('/tax-info'),
+  // knownClients: correos de clientes cuyos datos fiscales ya tenemos.
+  list: () => api<{ requests: TaxRequest[]; knownClients: string[]; cfdiEnabled: boolean }>('/tax-info'),
   issue: (invoiceId: string) => api<TaxRequest>('/tax-info/cfdi', { method: 'POST', body: JSON.stringify({ invoiceId }) }),
   fileUrl: (invoiceId: string, format: 'pdf' | 'xml') => `/api/tax-info/cfdi/${invoiceId}/${format}`,
   publicFileUrl: (token: string, format: 'pdf' | 'xml') => `/api/tax-info/public/${encodeURIComponent(token)}/${format}`,

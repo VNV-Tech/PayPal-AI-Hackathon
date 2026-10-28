@@ -13,6 +13,7 @@ import {
   getOrCreateTaxRequest,
   issueCfdi,
   getPublicTaxRequest,
+  listKnownClients,
   listTaxRequests,
   submitTaxInfo,
   tokenSchema,
@@ -24,7 +25,8 @@ const router = Router();
 const writeLimit = rateLimit({ windowMs: 60_000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false });
 
 router.get('/tax-info', async (_req, res) => {
-  res.json({ requests: await listTaxRequests(), cfdiEnabled: isFacturamaConfigured() });
+  const [requests, knownClients] = await Promise.all([listTaxRequests(), listKnownClients()]);
+  res.json({ requests, knownClients, cfdiEnabled: isFacturamaConfigured() });
 });
 
 const createSchema = z.object({ invoiceId: invoiceIdSchema });

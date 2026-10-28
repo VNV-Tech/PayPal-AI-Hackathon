@@ -121,8 +121,11 @@ function SavingsView({
             New payments · set aside part of them?
           </h2>
           <div className="space-y-3">
-            {data.pending.map((p) => (
-              <ReviewCard key={p.id} payment={p} onDecided={onChange} onEditPlan={onEdit} />
+            {data.pending.map((p, i) => (
+              // La guía ilumina el primer pago por revisar.
+              <div key={p.id} data-tour={i === 0 ? 'savings-review' : undefined}>
+                <ReviewCard payment={p} onDecided={onChange} onEditPlan={onEdit} />
+              </div>
             ))}
           </div>
         </section>

@@ -3,8 +3,10 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, Sparkles, UserRound, X } from 'lucide-react'
 import { APP_NAME } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
+import { isGuideOff, saveGuideOff, useJourney } from '../lib/journey'
 import { MODES, type Mode, loadMode, saveMode } from '../lib/mode'
-import { isTourDone } from '../lib/tour'
+import { type TourStep, isTourDone, markTourDone } from '../lib/tour'
+import { GuideBubble } from './Guide'
 import { Tour } from './Tour'
 
 const NAV_ICONS: Record<string, LucideIcon> = {
@@ -20,6 +22,15 @@ export function Layout() {
   const [mode, setMode] = useState<Mode>(loadMode)
   // El tutorial se abre solo la primera vez; después, con el botón Tour.
   const [tourOpen, setTourOpen] = useState(() => !isTourDone())
+  // Paso que ilumina el botón "Show me" de la guía.
+  const [spotlight, setSpotlight] = useState<TourStep | null>(null)
+  // Guía: acompaña en todas las pantallas hasta que el usuario la apaga.
+  const journey = useJourney(mode)
+  const [guideOff, setGuideOffState] = useState(isGuideOff)
+  const setGuideOff = (off: boolean) => {
+    setGuideOffState(off)
+    saveGuideOff(off)
+  }
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const nav = MODES[mode].nav
@@ -112,7 +123,7 @@ export function Layout() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <Outlet context={{ mode }} />
+        <Outlet context={{ mode, showMe: setSpotlight, journey, guideOff, setGuideOff }} />
       </main>
 
       {/* En celular el menú va abajo, como en las apps. */}
@@ -139,6 +150,11 @@ export function Layout() {
           )
         })}
       </nav>
+
+      {/* En Home la guía es una tarjeta; en el chat estorbaría la caja de texto. */}
+      {journey && !guideOff && !tourOpen && !spotlight && !suggestion && pathname !== '/' && pathname !== '/copilot' && (
+        <GuideBubble steps={journey} onShowMe={setSpotlight} onTurnOff={() => setGuideOff(true)} />
+      )}
 
       {suggestion && (
         <div
@@ -168,7 +184,16 @@ export function Layout() {
         </div>
       )}
 
-      {tourOpen && <Tour onClose={() => setTourOpen(false)} onModeChange={setMode} />}
+      {tourOpen && (
+        <Tour
+          onClose={() => {
+            markTourDone()
+            setTourOpen(false)
+          }}
+          onModeChange={setMode}
+        />
+      )}
+      {spotlight && <Tour steps={[spotlight]} onClose={() => setSpotlight(null)} onModeChange={setMode} />}
     </div>
   )
 }

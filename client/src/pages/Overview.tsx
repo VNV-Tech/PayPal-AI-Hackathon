@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, RefreshCw, Sparkles, Wallet } from 'lucide-react'
+import { Guide } from '../components/Guide'
 import { Badge, Button, Card, Notice, Skeleton } from '../components/ui'
 import { type Suggestion, chatApi } from '../lib/chat'
 import { currentMonthName, formatDate, formatMoney } from '../lib/config'
@@ -78,6 +79,7 @@ function BusinessHome() {
       />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
+      <Guide title="Bill, get paid and send the CFDI" />
 
       <Hero
         label={`Collected in ${currentMonthName()}`}
@@ -150,6 +152,7 @@ function PersonalHome() {
       />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
+      <Guide title="Keep part of every payment" />
 
       <Notice className="mb-4">
         Set-asides are <strong>virtual</strong>: your money stays in your PayPal account. They're a plan to help you budget.

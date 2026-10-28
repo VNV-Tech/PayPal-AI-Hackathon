@@ -1,28 +1,38 @@
 import { type CSSProperties, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { Mode } from '../lib/mode'
-import { TOUR_STEPS, markTourDone } from '../lib/tour'
+import { TOUR_STEPS, type TourStep } from '../lib/tour'
 import { Button } from './ui'
 
 // Tutorial de bienvenida: oscurece la pantalla, ilumina una parte y muestra
 // un mensaje del copiloto. Los textos están en client/src/lib/tour.ts.
 // Se monta solo mientras está abierto, así siempre empieza en el paso 1.
+// La guía ("Your next step") lo usa con un solo paso para el botón "Show me".
 
 const PAD = 8 // margen alrededor de lo iluminado
 const GAP = 12 // separación entre lo iluminado y el mensaje
 const CARD_WIDTH = 360
 const CARD_HEIGHT_ESTIMATE = 260 // para decidir si el mensaje cabe abajo
 
-export function Tour({ onClose, onModeChange }: { onClose: () => void; onModeChange: (mode: Mode) => void }) {
+export function Tour({
+  steps = TOUR_STEPS,
+  onClose,
+  onModeChange,
+}: {
+  steps?: TourStep[]
+  onClose: () => void
+  onModeChange: (mode: Mode) => void
+}) {
   const [index, setIndex] = useState(0)
   // Posición de lo iluminado, junto con el paso al que pertenece.
   const [found, setFound] = useState<{ stepId: string; rect: DOMRect } | null>(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
-  const step = TOUR_STEPS[index]
+  const step = steps[index]
+  const single = steps.length === 1
   const isFirst = index === 0
-  const isLast = index === TOUR_STEPS.length - 1
+  const isLast = index === steps.length - 1
   const rect = found?.stepId === step.id ? found.rect : null
 
   // Cada paso puede cambiar de modo y llevar a otra pantalla.
@@ -63,17 +73,12 @@ export function Tour({ onClose, onModeChange }: { onClose: () => void; onModeCha
     }
   }, [step, pathname])
 
-  function finish() {
-    markTourDone()
-    onClose()
-  }
-
-  const next = () => (isLast ? finish() : setIndex((i) => i + 1))
+  const next = () => (isLast ? onClose() : setIndex((i) => i + 1))
   const back = () => setIndex((i) => Math.max(0, i - 1))
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') finish()
+      if (e.key === 'Escape') onClose()
       else if (e.key === 'ArrowRight') next()
       else if (e.key === 'ArrowLeft') back()
     }
@@ -107,7 +112,7 @@ export function Tour({ onClose, onModeChange }: { onClose: () => void; onModeCha
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" className="size-10 rounded-full" />
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            Step {index + 1} of {TOUR_STEPS.length}
+            {single ? 'Your next step' : `Step ${index + 1} of ${steps.length}`}
           </p>
         </div>
         <h2 id="tour-title" className="mt-3 text-lg font-bold text-ink">
@@ -117,17 +122,19 @@ export function Tour({ onClose, onModeChange }: { onClose: () => void; onModeCha
           {step.body}
         </p>
 
-        <div className="mt-4 flex gap-1.5" aria-hidden="true">
-          {TOUR_STEPS.map((s, i) => (
-            <span key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= index ? 'bg-brand-600' : 'bg-line'}`} />
-          ))}
-        </div>
+        {!single && (
+          <div className="mt-4 flex gap-1.5" aria-hidden="true">
+            {steps.map((s, i) => (
+              <span key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= index ? 'bg-brand-600' : 'bg-line'}`} />
+            ))}
+          </div>
+        )}
 
         <div className="mt-4 flex items-center justify-between gap-2">
           {isLast ? (
             <span />
           ) : (
-            <Button variant="ghost" onClick={finish} className="px-3">
+            <Button variant="ghost" onClick={onClose} className="px-3">
               Skip tour
             </Button>
           )}
@@ -139,7 +146,7 @@ export function Tour({ onClose, onModeChange }: { onClose: () => void; onModeCha
             )}
             {/* key + autoFocus: el botón recibe el foco en cada paso (teclado y lectores de pantalla). */}
             <Button key={index} autoFocus onClick={next}>
-              {isFirst ? 'Show me' : isLast ? 'Start' : 'Next'}
+              {single ? 'Got it' : isFirst ? 'Show me' : isLast ? 'Start' : 'Next'}
             </Button>
           </div>
         </div>

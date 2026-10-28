@@ -1,4 +1,6 @@
 import { useOutletContext } from 'react-router-dom'
+import type { JourneyStep } from './journey'
+import type { TourStep } from './tour'
 
 // La app tiene dos modos que no se mezclan:
 // - business: cobrar a clientes (facturas).
@@ -44,7 +46,21 @@ export function saveMode(mode: Mode) {
   }
 }
 
+interface LayoutContext {
+  mode: Mode
+  // Lleva a una pantalla e ilumina un botón (lo usa la guía).
+  showMe: (step: TourStep) => void
+  // Pasos de la guía del modo actual (null mientras cargan) y si está apagada.
+  journey: JourneyStep[] | null
+  guideOff: boolean
+  setGuideOff: (off: boolean) => void
+}
+
 // Layout comparte el modo con las pantallas a través del <Outlet>.
 export function useMode(): Mode {
-  return useOutletContext<{ mode: Mode }>().mode
+  return useOutletContext<LayoutContext>().mode
+}
+
+export function useLayout(): LayoutContext {
+  return useOutletContext<LayoutContext>()
 }
