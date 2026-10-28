@@ -5,6 +5,7 @@ const navItems = [
   { to: '/', label: 'Overview', end: true },
   { to: '/copilot', label: 'Copilot' },
   { to: '/invoices', label: 'Invoices' },
+  { to: '/savings', label: 'Savings' },
 ]
 
 export function Layout() {

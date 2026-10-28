@@ -4,6 +4,7 @@ import { EmptyState } from './components/ui'
 import { Copilot } from './pages/Copilot'
 import { Invoices } from './pages/Invoices'
 import { Overview } from './pages/Overview'
+import { Savings } from './pages/Savings'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route index element={<Overview />} />
           <Route path="copilot" element={<Copilot />} />
           <Route path="invoices" element={<Invoices />} />
+          <Route path="savings" element={<Savings />} />
           <Route path="*" element={<EmptyState title="Page not found" description="This page doesn't exist." />} />
         </Route>
       </Routes>

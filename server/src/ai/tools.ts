@@ -1,6 +1,7 @@
 // Herramientas que Claude puede usar en el chat.
-// - Lectura (list_invoices, get_invoice): se ejecutan al momento.
-// - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice):
+// - Lectura (list_invoices, get_invoice, get_savings): se ejecutan al momento.
+// - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
+//   update_savings_plan, review_payment):
 //   NUNCA se ejecutan directo. Se convierten en una propuesta que el usuario
 //   aprueba o rechaza desde una tarjeta en el chat.
 import type Anthropic from '@anthropic-ai/sdk';
@@ -17,6 +18,7 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
+import { decidePayment, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
 
 const invoiceIdInput = {
   type: 'object',
@@ -101,9 +103,63 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     strict: true,
     input_schema: invoiceIdInput,
   },
+  {
+    name: 'get_savings',
+    description:
+      "Get the user's savings for this month: their plan (percent per set-aside, e.g. taxes), what they collected via PayPal, payments still waiting for a set-aside decision, how much they set aside and what is left to spend. Set-asides are virtual: no money moves.",
+    strict: true,
+    input_schema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'review_payment',
+    description:
+      'Propose answering a pending payment from get_savings: set_aside applies the current plan to it, skip sets nothing aside this time. Requires user approval.',
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
+        decision: { type: 'string', enum: ['set_aside', 'skip'] },
+      },
+      required: ['payment_id', 'decision'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'update_savings_plan',
+    description:
+      'Propose replacing the whole savings plan (max 6 set-asides, percentages add up to 100 or less). Include every set-aside to keep, not only the changed one. It applies to payments answered from now on. Requires user approval.',
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        buckets: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Short name, e.g. Taxes' },
+              percent: { type: 'number', description: 'Percent of each payment collected, 0 to 100' },
+            },
+            required: ['name', 'percent'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['buckets'],
+      additionalProperties: false,
+    },
+  },
 ];
 
-const ACTION_TOOLS = new Set(['create_invoice', 'send_invoice', 'send_reminder', 'cancel_invoice']);
+const ACTION_TOOLS = new Set([
+  'create_invoice',
+  'send_invoice',
+  'send_reminder',
+  'cancel_invoice',
+  'update_savings_plan',
+  'review_payment',
+]);
 
 export function isActionTool(name: string): boolean {
   return ACTION_TOOLS.has(name);
@@ -149,6 +205,24 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
   if (name === 'get_invoice') {
     const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
     return JSON.stringify(forModel(await getInvoice(id)));
+  }
+  if (name === 'get_savings') {
+    const s = await getSavings();
+    const fmt = (list: { value: string; currency_code: string }[]) => list.map((m) => money(m.value, m.currency_code));
+    return JSON.stringify({
+      month: s.month,
+      plan: s.plan.map((b) => ({ name: b.name, percent: b.percent })),
+      collected: s.paid ? fmt(s.paid) : 'unavailable (PayPal did not return payments)',
+      pending_payments: s.pending.map((p) => ({
+        payment_id: p.id,
+        date: p.date,
+        invoice_number: p.invoiceNumber,
+        amount: money(p.amount.value, p.amount.currency_code),
+        would_set_aside: p.proposal.map((a) => `${a.name}: ${money(a.amount.value, a.amount.currency_code)}`),
+      })),
+      set_aside_this_month: s.buckets.map((b) => ({ name: b.name, amount: fmt(b.amounts) })),
+      left_to_spend: fmt(s.available),
+    });
   }
   throw new Error(`Unknown tool ${name}`);
 }
@@ -221,6 +295,48 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         if (!raw.send_now) return `Draft invoice #${draft.number} created (id ${draft.id}). Not sent yet.`;
         const sent = await sendInvoice(draft.id);
         return `Invoice #${sent.number} created and emailed to ${sent.customer.email} (id ${sent.id}, status ${sent.status}).`;
+      },
+    };
+  }
+
+  if (name === 'update_savings_plan') {
+    const parsed = savingsPlanSchema.safeParse((input as { buckets: unknown }).buckets);
+    if (!parsed.success) throw new Error(`Invalid savings plan: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    const buckets = parsed.data;
+    const total = buckets.reduce((sum, b) => sum + b.percent, 0);
+    return {
+      title: 'Update savings plan',
+      details: [
+        ...buckets.map((b): [string, string] => [b.name, `${b.percent}%`]),
+        ['Left to spend', `${100 - total}%`],
+      ],
+      execute: async () => {
+        const saved = await savePlan(buckets);
+        return `Savings plan updated: ${saved.map((b) => `${b.name} ${b.percent}%`).join(', ')}.`;
+      },
+    };
+  }
+
+  if (name === 'review_payment') {
+    const { payment_id, decision } = input as { payment_id: string; decision: 'set_aside' | 'skip' };
+    const payment = await findPendingPayment(payment_id);
+    const setAside = decision === 'set_aside';
+    const amount = money(payment.amount.value, payment.amount.currency_code);
+    const allocations = payment.proposal.map((a) => `${a.name} ${money(a.amount.value, a.amount.currency_code)}`);
+    return {
+      title: setAside ? 'Set aside from this payment' : 'Skip set-asides for this payment',
+      details: [
+        ['Payment', `${amount} · ${payment.date}`],
+        ...(payment.invoiceNumber ? [['Invoice', `#${payment.invoiceNumber}`] as [string, string]] : []),
+        ...(setAside
+          ? payment.proposal.map((a): [string, string] => [a.name, money(a.amount.value, a.amount.currency_code)])
+          : [['Set aside', 'Nothing this time'] as [string, string]]),
+      ],
+      execute: async () => {
+        await decidePayment(payment_id, setAside);
+        return setAside
+          ? `Set aside from the ${amount} payment: ${allocations.join(', ')}.`
+          : `Nothing set aside from the ${amount} payment.`;
       },
     };
   }
