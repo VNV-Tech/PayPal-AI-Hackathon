@@ -1,6 +1,6 @@
 # Guía: qué se configuró, para qué sirve y qué te toca hacer
 
-> Escrita el 26 de octubre de 2026. Explica todo lo que se hizo en la sesión de configuración, sin tecnicismos.
+> Empezó el 26 de octubre de 2026 con la configuración inicial y **se actualiza al final de cada día** con una bitácora (sección 7). Última actualización: **28 de octubre de 2026**. Todo explicado sin tecnicismos.
 >
 > Para el estado actual del proyecto (qué hace la app, cómo funciona, qué falta y qué se puede cambiar del diseño), ver [`proyecto.md`](proyecto.md).
 
@@ -8,10 +8,23 @@
 
 ## Resumen en 30 segundos
 
-1. **Claude Code ya puede hablar con PayPal** (en modo de pruebas, sin dinero real).
-2. **El proyecto en GitHub quedó ordenado:** cada integrante tiene su propio espacio y las versiones importantes tienen candado.
-3. **Se instaló el plugin de APIMatic**, un "manual oficial" de PayPal que usa la IA al programar y que nos permite concursar por su premio.
-4. **Falta:** subir la app a internet con Render (más adelante) y esperar el correo del mes gratis de APIMatic.
+**Cómo vamos (28 oct):** la app ya hace todo el camino de punta a punta:
+1. Creas una factura de PayPal y tu cliente paga.
+2. El **copiloto con IA** te avisa solo y te propone qué hacer.
+3. Tu cliente deja sus datos fiscales **una vez**.
+4. Le llega su **factura del SAT (CFDI)** por correo.
+5. Tú apartas tus impuestos.
+
+Además, hay una **guía** que te acompaña paso a paso, sin gastar créditos de IA.
+
+**Lo que falta:**
+- que la guía y el copiloto no hablen al mismo tiempo;
+- el diseño de Vanessa;
+- publicar en **Render**;
+- el README en inglés, el video y Devpost;
+- pasar todo a `main`.
+
+Vamos **adelantados** al calendario.
 
 ---
 
@@ -27,6 +40,11 @@ Se revisó que la conexión funcionara. Resultado: **conectado, con 46 herramien
 
 ### ¿Por qué importa?
 El hackathon pide usar PayPal "de forma significativa". Con esta conexión podemos crear datos de prueba (facturas, pagos) rápido y comprobar que todo funciona.
+
+### ⚠️ Estado al 28 de octubre: el conector falla, pero no nos afecta
+Desde el 27 de octubre, cada consulta del conector responde `Unsupported cache mode: default`. **Tu llave está bien**: la probamos directo con PayPal y responde 200. El problema es del servidor de PayPal. Víctor lo reportó en el Discord del hackathon y nadie ha respondido.
+
+**La app no depende de este conector:** habla con PayPal por su cuenta, y todo funciona.
 
 ### ⚠️ Lo que debes saber
 - La conexión usa una **"llave temporal"** (se llama *token*) que **caduca en unas 8 horas**.
@@ -112,8 +130,10 @@ Un servicio para **publicar la app en internet**, para que el jurado la abra con
 - Las reglas piden que la demo **siga en línea y gratis hasta el 15 de diciembre**.
 - Render es patrocinador del hackathon y da premios en créditos ($1,000, $750 o $500).
 
-### Estado: ⏳ pendiente
-Lo haremos cuando la app esté más avanzada. **Tú tendrás que crear una cuenta en [render.com](https://render.com)** (puedes entrar con tu GitHub). Te guiaré cuando llegue el momento.
+### Estado: ⏳ es lo siguiente (después de arreglar la guía y el copiloto)
+**Tú tendrás que crear una cuenta en [render.com](https://render.com)**; lo más fácil es entrar con tu GitHub. Te guiaré paso a paso. Dos cosas a cuidar cuando lo hagamos:
+- **Los datos no deben borrarse** cada vez que se actualiza la app (los apartados y los datos fiscales hoy viven en un archivo).
+- **En la versión pública no se usan correos reales:** cualquiera la puede ver.
 
 ---
 
@@ -139,25 +159,81 @@ APIMatic hizo un plugin llamado **`acp-paypal`** que le da a la IA la documentac
 
 ## 6. Algo importante sobre los premios
 
-Según las reglas que leímos, **solo se puede ganar un premio de patrocinador** (Render, APIMatic, etc.) además de uno de los premios generales. Conviene usar ambos, pero en la entrega destacaremos el que más luzca en el proyecto.
+Según las reglas que leímos, **solo se puede ganar un premio de patrocinador** (Render, APIMatic, AG Grid, etc.) además de uno de los premios generales.
+
+- **Premios generales que nos quedan bien:** Best Use of PayPal + AI, Most Impactful y Best Demo Delivery.
+- **Patrocinador con más potencial: AG Grid** (hasta $5,000; 5 ganadores). Uno de sus ejemplos es casi nuestra app: *"un agente que lee las facturas sin pagar y muestra quién debe qué"*. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **Ya usamos:** APIMatic (el SDK de PayPal en el Inicio) y pronto Render.
 
 **Fecha límite de entrega:** 12 de noviembre de 2026, 2:00 p. m. hora de CDMX.
 
 ---
 
+## 7. Bitácora: lo que se hizo cada día
+
+> Una entrada por día, al final de la jornada. Primero lo simple (🍎) y luego el detalle técnico (🔧). Las solicitudes (PR) están en GitHub, y el detalle de cada pantalla está en [`proyecto.md`](proyecto.md).
+
+### 📅 27 de octubre de 2026
+
+**🍎 En simple:** la app pasó de "maqueta" a **funcionar de verdad con PayPal**.
+
+- **Facturas reales de PayPal** (PR #7): creas una factura, PayPal se la manda por correo a tu cliente, y él paga con PayPal o tarjeta. Lo probaste con un pago de prueba. ✅
+- **El chat con IA** (PR #8): le dices *"cóbrale 12,500 a Acme"* y te prepara la factura, pero **solo la crea si aprietas Approve**.
+- **Revisión de seguridad** (PR #9): límites para que nadie abuse de la demo pública.
+- **Números reales en el Inicio** (PR #10): cuánto te deben y cuánto cobraste este mes. Aquí se usó por primera vez el **SDK oficial de PayPal** (el de APIMatic), que cuenta para su premio.
+- **Webhooks: todo se actualiza solo** (PR #11): en cuanto alguien paga, la pantalla cambia a "Paid" sin recargar. Para eso se instaló el **túnel** (cloudflared).
+- **Modo personal: apartados** (PR #12): cada vez que te pagan, la app te pregunta *"¿apartas X para impuestos?"*. Es una cuenta virtual: no se mueve dinero.
+- **Documentos del equipo** (PR #13 y #14): se corrigieron los papeles (Vanessa: diseño; Natalia: estrategia y pitch) y nació `proyecto.md`.
+- **Tutorial de bienvenida** (PR #15): la primera vez que entras, el copiloto te enseña la app en 6 pasos, sin gastar créditos.
+
+**Decisiones del día:**
+- Primero lo del plan original; las ideas nuevas se guardan para después.
+- Los apartados **preguntan con cada pago** (opción B), en vez de apartar solos.
+- El tutorial va escrito a mano y no con IA, para ahorrar créditos.
+
+### 📅 28 de octubre de 2026
+
+**🍎 En simple:** la app se ve **terminada**, hace **facturas del SAT** y la IA ahora **da el primer paso**.
+
+- **Diseño más terminado y dos modos** (PR #16): un interruptor arriba para **Business (morado)**, que es cobrar a clientes, y **Personal (naranja)**, que es organizar lo que te pagan. El Inicio es nuevo: el número grande, botones rápidos, las últimas facturas y ejemplos que se pueden presionar. También hay letra nueva (Inter), íconos y un menú abajo en celular. Víctor llevó el diseño este día con permiso de Vanessa; desde el 29 de octubre vuelve a ella.
+- **Facturas del SAT, nivel 1** (PR #17): cada factura tiene un **link** para que tu cliente deje sus datos fiscales **una sola vez**.
+- **Facturas del SAT, nivel 2** (PR #18): con un clic, **Facturama** (en modo prueba) sella la factura y **le llega al cliente por correo**, con PDF y XML. La cuenta de Facturama la configuró Claude por la API, porque su formulario no aceptaba el código postal de prueba. **Lo probaste y te llegó la factura a tu correo** (no a spam). ✅
+- **El link va dentro del correo de PayPal** (PR #19): al crear una factura en pesos, la nota dice *"¿Necesitas factura? Deja tus datos aquí"*. La página dice **quién** pide los datos (`BUSINESS_NAME`) y trae un aviso de privacidad.
+- **El copiloto da el primer paso** (PR #20): cuando te pagan, la IA se da cuenta sola y te propone emitir la factura y apartar tus impuestos. Tú solo apruebas. Tarda unos 5 segundos.
+- **La guía que te acompaña** (PR #21): un "GPS" sin IA que sigue a tu factura más reciente (envíala → espera el pago → pide datos → emite el CFDI). Va en todas las pantallas, tiene **"Show me"**, que ilumina el botón exacto, y se puede apagar cuando ya te acostumbraste.
+
+**Decisiones del día:**
+- **No copiar a PayPal:** las reglas lo prohíben. Usamos un estilo parecido, con marca propia.
+- **Facturama en vez de Facturapi:** su prueba no vence y no hay que esperar respuesta de nadie.
+- **El perfil fiscal compartido** (cada quien inicia sesión y comparte sus datos) queda **para después**: se sale del tiempo y del video.
+- **Historia del proyecto:** *"el copiloto que ayuda a los freelancers a cobrar y cumplir con el SAT"*. La IA tiene que tomar la iniciativa, no solo esperar.
+
+**Lo aprendido:**
+- Tu observación fue clave: la IA "pasaba a segundo plano" porque solo esperaba. Ahora habla primero.
+- Pendiente para el 29 de octubre: justo después de un pago **hablan la guía y el copiloto al mismo tiempo**, y puede abrumar. Hay que hacer que solo hable uno.
+
+**🔧 En técnico:** `server/src/facturama.ts` (PAC sandbox), `server/src/taxInfo.ts` (datos fiscales y CFDI), `server/src/ai/proactive.ts` (sugerencias al pagar), `client/src/lib/journey.ts` (reglas de la guía) y `client/src/lib/mode.ts` (modos). Hay variables nuevas en el `.env`: `FACTURAMA_USER`, `FACTURAMA_PASSWORD` y `BUSINESS_NAME` (ver `.env.example`).
+
+---
+
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Ahora:**
-- [ ] Mandarle este mensaje a Natalia y Vanessa:
-  > Ya está listo el proyecto en GitHub. Cada una tiene su rama. Para entrar a la suya, abran la terminal en la carpeta del proyecto y escriban:
-  > `git fetch`
-  > `git switch natalia` (o `git switch vanessa`)
-- [ ] Revisar spam y "Promociones" por el correo de APIMatic.
+**En la reunión del 29 de octubre:**
+- [ ] Enseñarle a Vanessa los modos Business / Personal, el Home nuevo y la guía. **Desde ahí, el diseño lo decide ella.**
+- [ ] Pedirle a Natalia una frase para la historia, por ejemplo: *"el copiloto que ayuda a los freelancers mexicanos a cobrar y cumplir con el SAT"*. También que empiece a pensar el video.
+- [ ] Decidir juntos si vamos por el premio de **AG Grid**.
+- [ ] Preguntarles si quieren aparecer en el aviso de autoría del código (`LICENSE`).
 
-**Más adelante:**
-- [ ] Crear tu cuenta en Render (cuando te avise).
+**Con Claude:**
+- [ ] Arreglar que la guía y el copiloto no hablen al mismo tiempo.
+- [ ] Crear tu cuenta en **Render** (te guío).
+- [ ] Del 1 al 5 de noviembre: activar la prueba de AG Grid, si el equipo dijo que sí.
+
+**Siempre:**
 - [ ] Dar clic en **Merge** cuando te pida aceptar una solicitud.
-- [ ] Renovar la llave de PayPal cuando caduque (`npm run paypal:token` y reiniciar Claude Code).
+- [ ] Para prender la app: `npm run dev`. Para que los pagos se actualicen solos también hace falta el túnel; dile a Claude *"prende todo"*.
+
+**Para la asesoría de finanzas:** las preguntas están en [`proyecto.md`](proyecto.md), sección 6. Por ejemplo, si el IVA va incluido en el precio y cuándo hay retenciones.
 
 ---
 
@@ -165,6 +241,10 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 
 | Si pasa esto... | Haz esto |
 |---|---|
+| Una pantalla dice "Not found" o no carga después de cambios grandes | Detén la app (Ctrl+C) y vuelve a correr `npm run dev` |
+| Pagas en Sandbox, pero la app no se actualiza sola | El túnel está apagado o cambió de link. Dile a Claude *"prende todo"*: vuelve a registrar el webhook |
+| El link de datos fiscales empieza con `localhost` | Es normal mientras la app corre en tu computadora. En Render tendrá la dirección real |
+| No te llega el correo de la factura del SAT | Revisa que en el formulario se haya puesto un correo real (el de prueba, `facturas@example.com`, no existe) y revisa spam |
 | Claude dice "401" o "no autorizado" con PayPal | La llave caducó: `npm run paypal:token` y reinicia Claude Code |
 | GitHub no te deja subir cambios a `main` o `dev` | Es normal, son los candados. Trabaja en tu rama y abre una solicitud |
 | Un error que no entiendes | Pégalo en el chat (¡sin claves!) y lo revisamos juntos |
@@ -185,3 +265,10 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 | **MCP** | La forma técnica en que Claude Code se conecta con servicios como PayPal o APIMatic. |
 | **Render** | Servicio para publicar la app en internet. |
 | **APIMatic** | Empresa que hizo el "manual oficial" de PayPal para la IA. |
+| **Webhook** | El "timbre": PayPal le avisa a la app cuando alguien paga. |
+| **Túnel (cloudflared)** | Un puente temporal para que PayPal pueda tocar ese timbre en tu computadora. Su link cambia cada vez. |
+| **CFDI** | La factura oficial del SAT en México. |
+| **RFC** | La "CURP" de impuestos: identifica a quien paga impuestos. |
+| **PAC / Facturama** | La "oficina" autorizada por el SAT que sella las facturas. Usamos Facturama en modo prueba. |
+| **Copiloto proactivo** | La IA que te habla primero cuando pasa algo importante (te pagaron), siempre pidiendo permiso. |
+| **Guía** | El "GPS" de la app: te dice el siguiente paso con reglas fijas, sin gastar créditos de IA. |

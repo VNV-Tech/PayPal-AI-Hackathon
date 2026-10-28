@@ -406,9 +406,22 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ✅ Hecho |
 | 5g | El copiloto da el primer paso cuando te pagan (proactivo) | — | Víctor | ✅ Hecho |
 | 5h | Guía que acompaña en todo el proceso (sin IA) | — | Víctor | ✅ Primera versión; Vanessa decide cómo se ve |
+| 5i | Que la guía y el copiloto no hablen al mismo tiempo justo después de un pago | 29 oct | Víctor | ⏳ Siguiente |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
+
+### Calendario hasta la entrega
+
+| Fechas | Qué |
+|---|---|
+| 29 oct – 1 nov | Guía + copiloto sin encimarse, Render y diseño de Vanessa |
+| 1 – 5 nov | AG Grid (si el equipo va por ese premio) y pulir |
+| 6 – 10 nov | README en inglés, video y Devpost |
+| 11 nov | Pasar todo a `main` y entregar con un día de margen |
+| **12 nov, 14:00 CDMX** | **Cierre** |
+
+**Lo que más pesa ahora** no son funciones nuevas: es **diseño** (Vanessa), **historia** (una frase clara) y **presentación** (el video).
 
 ### Preguntas abiertas para la asesoría
 
