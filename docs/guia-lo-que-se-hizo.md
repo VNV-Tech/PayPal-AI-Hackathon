@@ -1,6 +1,8 @@
 # Guía: qué se configuró, para qué sirve y qué te toca hacer
 
 > Escrita el 26 de octubre de 2026. Explica todo lo que se hizo en la sesión de configuración, sin tecnicismos.
+>
+> Para el estado actual del proyecto (qué hace la app, cómo funciona, qué falta y qué se puede cambiar del diseño), ver [`proyecto.md`](proyecto.md).
 
 ---
 
