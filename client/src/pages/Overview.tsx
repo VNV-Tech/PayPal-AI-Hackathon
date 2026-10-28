@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, ButtonLink, Card, PageHeader } from '../components/ui'
+import { useLiveEvents } from '../lib/events'
 import { type Overview as OverviewData, formatTotals, overviewApi, plural } from '../lib/overview'
 
 export function Overview() {
@@ -27,6 +28,9 @@ export function Overview() {
     }
   }, [reloadKey])
 
+  // Cuando PayPal avisa de un pago o un cambio en una factura, se recargan los números.
+  useLiveEvents(reload)
+
   const loading = '…'
   const paid = data?.paidThisMonth
   const stats = [
@@ -38,11 +42,10 @@ export function Overview() {
     {
       label: 'Paid this month',
       value: !data ? loading : paid ? formatTotals(paid.totals) : '—',
-      // PayPal tarda hasta 3 horas en mostrar un pago nuevo en esta búsqueda.
       hint: !data
         ? 'Collected via PayPal'
         : paid
-          ? `${plural(paid.count, 'payment')} via PayPal · new ones can take a few hours`
+          ? `${plural(paid.count, 'payment')} via PayPal`
           : "Couldn't load payments from PayPal",
     },
     {

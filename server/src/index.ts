@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { env } from './config/env.js';
+import { endAllStreams } from './events.js';
 
 const app = createApp();
 
@@ -11,6 +12,7 @@ const server = app.listen(env.PORT, () => {
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, () => {
     server.close(() => process.exit(0));
+    endAllStreams();
     setTimeout(() => process.exit(1), 10_000).unref();
   });
 }

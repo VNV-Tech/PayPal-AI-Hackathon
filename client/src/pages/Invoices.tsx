@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader } from '../components/ui'
 import { formatMoney } from '../lib/config'
+import { useLiveEvents } from '../lib/events'
 import {
   CURRENCIES,
   type Invoice,
@@ -39,6 +40,15 @@ export function Invoices() {
       ignore = true
     }
   }, [reloadKey])
+
+  // Webhooks de PayPal: la lista se actualiza sola cuando una factura cambia.
+  useLiveEvents((event) => {
+    if (event.type !== 'invoice.updated') return
+    reload()
+    if (event.paypalEvent === 'INVOICING.INVOICE.PAID' && event.invoiceNumber) {
+      setNotice(`Invoice #${event.invoiceNumber} was just paid. 🎉`)
+    }
+  })
 
   function onCreated(inv: Invoice) {
     setCreating(false)
