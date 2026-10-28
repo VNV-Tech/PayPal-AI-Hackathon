@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import type { Mode } from '../lib/mode'
 import { TOUR_STEPS, markTourDone } from '../lib/tour'
 import { Button } from './ui'
 
@@ -12,7 +13,7 @@ const GAP = 12 // separación entre lo iluminado y el mensaje
 const CARD_WIDTH = 360
 const CARD_HEIGHT_ESTIMATE = 260 // para decidir si el mensaje cabe abajo
 
-export function Tour({ onClose }: { onClose: () => void }) {
+export function Tour({ onClose, onModeChange }: { onClose: () => void; onModeChange: (mode: Mode) => void }) {
   const [index, setIndex] = useState(0)
   // Posición de lo iluminado, junto con el paso al que pertenece.
   const [found, setFound] = useState<{ stepId: string; rect: DOMRect } | null>(null)
@@ -24,7 +25,11 @@ export function Tour({ onClose }: { onClose: () => void }) {
   const isLast = index === TOUR_STEPS.length - 1
   const rect = found?.stepId === step.id ? found.rect : null
 
-  // Cada paso puede llevar a otra pantalla.
+  // Cada paso puede cambiar de modo y llevar a otra pantalla.
+  useEffect(() => {
+    if (step.mode) onModeChange(step.mode)
+  }, [step, onModeChange])
+
   useEffect(() => {
     if (step.route && pathname !== step.route) navigate(step.route)
   }, [step, pathname, navigate])

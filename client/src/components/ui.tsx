@@ -1,5 +1,6 @@
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
+import { Info } from 'lucide-react'
 
 // Componentes base reutilizables. Vanessa: aquí se ajusta el estilo global
 // de botones, tarjetas y etiquetas.
@@ -44,6 +45,21 @@ const toneStyles: Record<Tone, string> = {
 
 export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${toneStyles[tone]}`}>{children}</span>
+}
+
+// Bloque gris animado mientras llegan los datos.
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <span aria-hidden className={`block animate-pulse rounded-lg bg-line ${className}`} />
+}
+
+// Aviso informativo con ícono, por ejemplo para explicar qué es una pantalla.
+export function Notice({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={`flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-900 ${className}`}>
+      <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <span>{children}</span>
+    </p>
+  )
 }
 
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {

@@ -10,6 +10,8 @@ export interface Overview {
   overdueCount: number;
   // null si la búsqueda de pagos falló; el resto de la pantalla se muestra igual.
   paidThisMonth: { totals: Money[]; count: number } | null;
+  // Últimos pagos del mes, para la "actividad reciente" de la pantalla de inicio.
+  recentPayments: ReceivedPayment[];
 }
 
 // Mismos criterios que displayStatus en client/src/lib/invoices.ts.
@@ -19,6 +21,7 @@ const WITH_PAYMENTS = new Set(['PAID', 'PARTIALLY_PAID']);
 const MAX_PAGES = 10; // 200 facturas; de sobra para la demo
 // Facturas pagadas (las más recientes) cuyos pagos se revisan una por una.
 const MAX_PAID_INVOICES = 25;
+const RECENT_PAYMENTS = 5;
 
 // Los pagos de una factura PAID ya no cambian: se guardan para no volver a
 // pedirlos cada vez que se recarga la pantalla.
@@ -97,5 +100,6 @@ export async function getOverview(now = new Date()): Promise<Overview> {
       (inv) => OVERDUE_STATUSES.has(inv.status) && inv.dueDate !== null && inv.dueDate < today,
     ).length,
     paidThisMonth: payments ? { totals: sumByCurrency(payments.map((p) => p.amount)), count: payments.length } : null,
+    recentPayments: payments?.slice(0, RECENT_PAYMENTS) ?? [],
   };
 }

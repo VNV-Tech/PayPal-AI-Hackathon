@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { Badge, Button, Card, EmptyState, Modal, PageHeader } from '../components/ui'
+import { Pencil, RefreshCw } from 'lucide-react'
+import { Badge, Button, Card, EmptyState, Modal, Notice, PageHeader, Skeleton } from '../components/ui'
 import { useLiveEvents } from '../lib/events'
 import { formatTotals } from '../lib/overview'
 import { formatMoney } from '../lib/config'
@@ -45,18 +46,26 @@ export function Savings() {
     <>
       <PageHeader
         title="Savings"
-        description="Set aside part of what you collect. These are virtual set-asides: no money moves in PayPal."
+        description="Keep part of every payment for later: taxes, emergencies, anything you want."
         actions={
           <div className="flex gap-2">
             <Button variant="ghost" onClick={reload}>
+              <RefreshCw aria-hidden className="size-4" />
               Refresh
             </Button>
             <Button data-tour="savings-plan" onClick={() => setEditing(true)} disabled={!data}>
+              <Pencil aria-hidden className="size-4" />
               Edit plan
             </Button>
           </div>
         }
       />
+
+      <Notice className="mb-6">
+        These set-asides are <strong>virtual</strong>: no money moves and nothing leaves your PayPal account. Every
+        time you get paid, you decide whether to set part of it aside. The percentages are just a starting point:
+        change them with Edit plan.
+      </Notice>
 
       {loadError ? (
         <EmptyState
@@ -65,7 +74,11 @@ export function Savings() {
           action={<Button variant="secondary" onClick={reload}>Try again</Button>}
         />
       ) : !data ? (
-        <p className="py-12 text-center text-sm text-ink-muted">Loading savings…</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <span className="sr-only">Loading savings…</span>
+          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-32 rounded-2xl" />
+        </div>
       ) : (
         <SavingsView data={data} onChange={setData} onEdit={() => setEditing(true)} />
       )}
