@@ -36,7 +36,7 @@ export type NewInvoice = z.infer<typeof newInvoiceSchema>;
 // que un ID manipulado altere la ruta de la petición a PayPal.
 export const invoiceIdSchema = z.string().regex(/^INV2(-[A-Z0-9]{4}){4}$/, 'Invalid invoice id');
 
-interface Money {
+export interface Money {
   currency_code: string;
   value: string;
 }
