@@ -1,6 +1,7 @@
 import type { IncomingHttpHeaders } from 'node:http';
 import express, { Router } from 'express';
 import { env } from '../config/env.js';
+import { publish } from '../events.js';
 import { paypalFetch } from '../paypal/client.js';
 
 const router = Router();
@@ -107,19 +108,32 @@ async function processWebhook(rawBody: string, headers: IncomingHttpHeaders): Pr
 
   // TODO: guardar los event.id en la base de datos cuando exista, para que
   // la protección contra eventos repetidos sobreviva a reinicios.
-  switch (event.event_type) {
-    case 'INVOICING.INVOICE.PAID':
-      // TODO: marcar factura del freelancer como cobrada.
-      break;
-    case 'INVOICING.INVOICE.CANCELLED':
-      // TODO: marcar factura como cancelada.
-      break;
-    case 'PAYMENT.CAPTURE.COMPLETED':
-      // TODO: registrar ingreso.
-      break;
-    default:
-      break;
+  // No hay base de datos: las facturas se leen siempre de PayPal. Basta con
+  // avisar a las pantallas abiertas para que vuelvan a pedir los datos.
+  if (event.event_type.startsWith('INVOICING.INVOICE.')) {
+    const invoice = invoiceFrom(event.resource);
+    publish({
+      type: 'invoice.updated',
+      paypalEvent: event.event_type,
+      invoiceId: invoice?.id,
+      invoiceNumber: invoice?.detail?.invoice_number,
+      status: invoice?.status,
+    });
+  } else if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+    publish({ type: 'payment.received', paypalEvent: event.event_type });
   }
+}
+
+interface InvoiceResource {
+  id?: string;
+  status?: string;
+  detail?: { invoice_number?: string };
+}
+
+// En los eventos de Invoicing v2 la factura viene dentro de resource.invoice.
+function invoiceFrom(resource: Record<string, unknown> | undefined): InvoiceResource | undefined {
+  if (!resource) return undefined;
+  return (resource.invoice ?? resource) as InvoiceResource;
 }
 
 export default router;

@@ -63,6 +63,16 @@ interface PayPalInvoice {
   items?: { name: string; quantity: string; unit_amount: Money }[];
   amount?: Money;
   due_amount?: Money;
+  // Solo viene en la factura completa (GET /invoices/:id), no en el listado.
+  payments?: {
+    transactions?: { payment_id?: string; payment_date?: string; method?: string; amount?: Money }[];
+  };
+}
+
+export interface InvoicePayment {
+  id: string; // mismo ID que la transacción en Transaction Search
+  date: string; // AAAA-MM-DD
+  amount: Money;
 }
 
 // Forma simplificada que recibe el cliente (y más adelante la IA).
@@ -162,6 +172,17 @@ export async function listInvoices(page = 1): Promise<InvoicePage> {
 
 export async function getInvoice(id: string): Promise<InvoiceSummary> {
   return toSummary(await call<PayPalInvoice>(`/v2/invoicing/invoices/${id}`));
+}
+
+// Pagos hechos con PayPal o tarjeta (method PAYPAL). Los registrados a mano
+// (efectivo, transferencia) no cuentan como "cobrado vía PayPal".
+export async function getInvoicePayments(id: string): Promise<InvoicePayment[]> {
+  const inv = await call<PayPalInvoice>(`/v2/invoicing/invoices/${id}`);
+  return (inv.payments?.transactions ?? []).flatMap((p) =>
+    p.method === 'PAYPAL' && p.payment_id && p.payment_date && p.amount
+      ? [{ id: p.payment_id, date: p.payment_date, amount: { currency_code: p.amount.currency_code, value: p.amount.value } }]
+      : [],
+  );
 }
 
 // Crea la factura como borrador: no se le envía nada al cliente hasta que el

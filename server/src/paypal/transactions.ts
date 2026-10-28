@@ -18,9 +18,9 @@ const sdkClient = new Client({
 
 const transactionSearch = new TransactionSearchController(sdkClient);
 
-export interface PaymentsReceived {
-  totals: Money[]; // un total por moneda
-  count: number;
+export interface ReceivedPayment {
+  id: string; // ID de la transacción; es el mismo payment_id que guarda la factura
+  amount: Money;
 }
 
 // Los códigos T00xx son pagos recibidos (por ejemplo T0006, pago de factura).
@@ -35,10 +35,10 @@ function toPayPalDate(d: Date): string {
   return `${d.toISOString().slice(0, 19)}Z`;
 }
 
-// Nota: PayPal tarda hasta 3 horas en mostrar un pago nuevo en esta búsqueda.
-export async function getPaymentsReceived(start: Date, end: Date): Promise<PaymentsReceived> {
-  const sums = new Map<string, number>();
-  let count = 0;
+// Nota: PayPal tarda hasta 3 horas en mostrar un pago nuevo en esta búsqueda;
+// overview.ts completa el hueco con los pagos que guarda cada factura.
+export async function listPaymentsReceived(start: Date, end: Date): Promise<ReceivedPayment[]> {
+  const payments: ReceivedPayment[] = [];
 
   try {
     for (let page = 1; ; page++) {
@@ -54,10 +54,8 @@ export async function getPaymentsReceived(start: Date, end: Date): Promise<Payme
       for (const { transactionInfo: info } of result.transactionDetails ?? []) {
         const amount = info?.transactionAmount;
         const value = Number(amount?.value);
-        if (!amount || !isPaymentReceived(info?.transactionEventCode, value)) continue;
-        // Se suma en centavos para evitar errores de redondeo con decimales.
-        sums.set(amount.currencyCode, (sums.get(amount.currencyCode) ?? 0) + Math.round(value * 100));
-        count++;
+        if (!amount || !info?.transactionId || !isPaymentReceived(info.transactionEventCode, value)) continue;
+        payments.push({ id: info.transactionId, amount: { currency_code: amount.currencyCode, value: amount.value } });
       }
 
       // Tope de 10 páginas (1,000 movimientos) para no colgar la pantalla.
@@ -73,8 +71,5 @@ export async function getPaymentsReceived(start: Date, end: Date): Promise<Payme
     throw err;
   }
 
-  return {
-    totals: [...sums].map(([currency_code, cents]) => ({ currency_code, value: (cents / 100).toFixed(2) })),
-    count,
-  };
+  return payments;
 }

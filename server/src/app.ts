@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { env, isProduction } from './config/env.js';
 import { errorHandler, notFound } from './middleware/errors.js';
 import chatRoutes from './routes/chat.js';
+import eventRoutes from './routes/events.js';
 import healthRoutes from './routes/health.js';
 import invoiceRoutes from './routes/invoices.js';
 import overviewRoutes from './routes/overview.js';
@@ -54,6 +55,7 @@ export function createApp() {
   app.use('/api', healthRoutes);
   app.use('/api', invoiceRoutes);
   app.use('/api', overviewRoutes);
+  app.use('/api', eventRoutes);
   app.use('/api', chatRoutes);
   app.use('/api', notFound);
 
