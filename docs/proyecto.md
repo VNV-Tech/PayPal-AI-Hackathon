@@ -156,6 +156,20 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Personal:** aviso de que los apartados son virtuales, **lo que te queda para gastar** (número grande), aviso si hay pagos por revisar, **lo apartado** este mes y los **últimos pagos** recibidos.
 - **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 
+### El copiloto da el primer paso (proactivo)
+- **Archivos:** `server/src/ai/proactive.ts` (cuándo y con qué datos), `createSuggestion` en `server/src/ai/copilot.ts`, el aviso en `client/src/components/Layout.tsx` y la tarjeta "From your copilot" en `client/src/pages/Overview.tsx`.
+- **🍎 En simple:** antes, la IA solo trabajaba si tú le escribías. Ahora, **cuando un cliente te paga**, el copiloto se da cuenta solo y te prepara lo que sigue:
+  - *"Juan te pagó $1,000, que incluyen $137.93 de IVA. Ya tengo sus datos fiscales: ¿emito su factura? ¿Aparto $300 para impuestos?"*
+  - Te sale un aviso abajo a la derecha, **"Your copilot has a suggestion"**, y una tarjeta en Home. Con **Review** se abre en el chat con las tarjetas para aprobar.
+- **Nunca hace nada solo:** sigue pidiendo tu aprobación para todo. La diferencia es que él da el primer paso.
+- **🔧 En técnico:**
+  - El webhook `INVOICING.INVOICE.PAID` llama a `onInvoicePaid`, que **no bloquea** la respuesta a PayPal.
+  - `paidInvoiceFacts` junta los datos: la factura, el IVA, si ya hay datos fiscales o CFDI, y si el pago espera decisión de apartado.
+  - Claude recibe un mensaje `[App event]` con esos datos y propone solo lo de esa factura (`issue_cfdi`, `review_payment`). Usa `effort: low`: unos 5 segundos y una o dos llamadas.
+  - Se guarda como sugerencia (`GET /api/copilot/suggestions`) y se avisa en vivo (`copilot.suggestion`).
+  - Una sugerencia por factura, aunque PayPal repita el aviso. Si se acaba el límite diario del chat, no pasa nada: los avisos normales siguen.
+- **Ideas para más momentos proactivos:** factura vencida → "¿le mando un recordatorio amable?"; cliente nuevo sin datos fiscales → "¿le pido sus datos?".
+
 ### Copilot (el chat)
 - **Archivo:** `client/src/pages/Copilot.tsx`
 - **Para qué:** pedir cosas en lenguaje normal.
@@ -373,6 +387,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5d | Facturas fiscales nivel 1: pedir los datos (link + chat) | — | Víctor | ✅ Hecho |
 | 5e | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba) y mandarlo por correo | — | Víctor | ✅ Hecho |
 | 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ✅ Hecho |
+| 5g | El copiloto da el primer paso cuando te pagan (proactivo) | — | Víctor | ✅ Hecho |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -420,6 +435,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #17 | Facturas fiscales nivel 1: link para que el cliente deje sus datos fiscales, y el copiloto también los puede guardar |
 | #18 | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba), mandarlo por correo y descargar PDF/XML |
 | #19 | El link de datos fiscales va dentro del correo de PayPal; la página dice quién pide los datos y trae aviso de privacidad |
+| #20 | El copiloto da el primer paso: cuando te pagan, te propone emitir la factura y apartar parte del pago |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

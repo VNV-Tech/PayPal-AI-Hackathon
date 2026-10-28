@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react'
 
 // Mismo tipo que server/src/events.ts (LiveEvent).
 export interface LiveEvent {
-  type: 'invoice.updated' | 'payment.received' | 'tax.updated'
+  type: 'invoice.updated' | 'payment.received' | 'tax.updated' | 'copilot.suggestion'
   paypalEvent: string
   invoiceId?: string
   invoiceNumber?: string
   status?: string
+  suggestionId?: string
 }
 
 // Escucha los avisos en vivo del servidor (webhooks de PayPal). Si la conexión

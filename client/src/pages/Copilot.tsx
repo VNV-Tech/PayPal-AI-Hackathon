@@ -64,6 +64,33 @@ export function Copilot() {
     setParams({}, { replace: true })
   }, [params, setParams])
 
+  // Sugerencia que el copiloto preparó por su cuenta (?suggestion=<id>): se
+  // abre como una conversación normal, con sus tarjetas para aprobar.
+  const suggestionId = params.get('suggestion')
+  useEffect(() => {
+    if (!suggestionId) return
+    let ignore = false
+    chatApi.suggestions().then(
+      ({ suggestions }) => {
+        if (ignore) return
+        const found = suggestions.find((sg) => sg.id === suggestionId)
+        if (found) {
+          setMessages(toMessages(found.items))
+          setConversationId(found.id)
+        } else {
+          setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'error', text: 'That suggestion expired.' }])
+        }
+        setParams({}, { replace: true })
+      },
+      (err: unknown) => {
+        if (!ignore) fail(err)
+      },
+    )
+    return () => {
+      ignore = true
+    }
+  }, [suggestionId, setParams])
+
   function fail(err: unknown) {
     const text = err instanceof Error ? err.message : 'Something went wrong'
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'error', text }])

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, Sparkles, UserRound } from 'lucide-react'
+import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, Sparkles, UserRound, X } from 'lucide-react'
 import { APP_NAME } from '../lib/config'
+import { useLiveEvents } from '../lib/events'
 import { MODES, type Mode, loadMode, saveMode } from '../lib/mode'
 import { isTourDone } from '../lib/tour'
 import { Tour } from './Tour'
@@ -22,6 +23,19 @@ export function Layout() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const nav = MODES[mode].nav
+  // Aviso cuando el copiloto prepara algo por su cuenta (por ejemplo, al llegar un pago).
+  const [suggestion, setSuggestion] = useState<{ id: string; invoiceNumber?: string } | null>(null)
+
+  useLiveEvents((event) => {
+    if (event.type === 'copilot.suggestion' && event.suggestionId) {
+      setSuggestion({ id: event.suggestionId, invoiceNumber: event.invoiceNumber })
+    }
+  })
+
+  function openSuggestion(id: string) {
+    setSuggestion(null)
+    navigate(`/copilot?suggestion=${id}`)
+  }
 
   function changeMode(next: Mode) {
     setMode(next)
@@ -125,6 +139,34 @@ export function Layout() {
           )
         })}
       </nav>
+
+      {suggestion && (
+        <div
+          role="status"
+          className="fixed right-4 bottom-24 left-4 z-20 flex items-center gap-3 rounded-2xl bg-navy-900 p-4 text-white shadow-xl sm:bottom-6 sm:left-auto sm:w-96"
+        >
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600">
+            <Sparkles aria-hidden className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Your copilot has a suggestion</p>
+            <p className="text-xs text-white/70">
+              {suggestion.invoiceNumber ? `Invoice #${suggestion.invoiceNumber} was just paid.` : 'Something new happened.'} Take a
+              look?
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => openSuggestion(suggestion.id)}
+            className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-brand-50"
+          >
+            Review
+          </button>
+          <button type="button" onClick={() => setSuggestion(null)} aria-label="Dismiss" className="text-white/60 hover:text-white">
+            <X aria-hidden className="size-4" />
+          </button>
+        </div>
+      )}
 
       {tourOpen && <Tour onClose={() => setTourOpen(false)} onModeChange={setMode} />}
     </div>

@@ -4,12 +4,14 @@ import { EventEmitter } from 'node:events';
 
 export interface LiveEvent {
   // tax.updated: un cliente mandó sus datos fiscales (no viene de PayPal).
-  type: 'invoice.updated' | 'payment.received' | 'tax.updated';
+  // copilot.suggestion: el copiloto preparó propuestas por su cuenta.
+  type: 'invoice.updated' | 'payment.received' | 'tax.updated' | 'copilot.suggestion';
   // Evento original de PayPal, por ejemplo INVOICING.INVOICE.PAID.
   paypalEvent: string;
   invoiceId?: string;
   invoiceNumber?: string;
   status?: string;
+  suggestionId?: string;
 }
 
 const bus = new EventEmitter();
