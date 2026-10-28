@@ -182,6 +182,8 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 ### Facturas fiscales (CFDI)
 - **Archivos:** la ventana **Tax info** en `client/src/pages/Invoices.tsx`, la página del cliente en `client/src/pages/TaxForm.tsx`, y el servidor en `server/src/taxInfo.ts`.
 - **🍎 En simple:** en México, muchos clientes necesitan factura del SAT. Ahora cada factura de PayPal tiene un **link** que le mandas a tu cliente. Ahí llena su RFC, razón social, régimen fiscal, código postal, uso del CFDI y correo. Cuando lo manda, en tu pantalla de facturas aparece "Tax info ✓" al momento.
+- **El link llega dentro del correo de PayPal:** al crear una factura en **MXN**, la casilla **"Let my client request a CFDI"** (activada por defecto) agrega a la nota de la factura: *"¿Necesitas factura (CFDI)? Deja tus datos fiscales aquí: …"*. Así el cliente lo recibe en el correo oficial de PayPal, que ya conoce, y no en un mensaje suelto. No es copiar a PayPal: es usar el campo de nota que su API ofrece.
+- **La página dice quién pide los datos** (el nombre de `BUSINESS_NAME` en el `.env`, que también sale en la factura de PayPal) y trae un **aviso de privacidad** corto. En México es obligatorio al pedir datos personales; el texto completo queda pendiente de revisar si el proyecto sigue.
 - **También desde el chat:** le dices al copiloto los datos de tu cliente y te muestra una tarjeta para aprobarlos. O le pides "dame el link de datos fiscales de la factura 0007".
 - Los datos se **guardan por cliente**: en su siguiente factura ya no se le vuelven a pedir.
 - **La página del cliente va en español** (el CFDI solo existe en México) y no tiene el menú de la app.
@@ -370,7 +372,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5c | Modos Business / Personal y Home nuevo (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide desde el 28 oct |
 | 5d | Facturas fiscales nivel 1: pedir los datos (link + chat) | — | Víctor | ✅ Hecho |
 | 5e | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba) y mandarlo por correo | — | Víctor | ✅ Hecho |
-| 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ⏳ Siguiente |
+| 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ✅ Hecho |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -417,6 +419,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #16 | Modos Business (morado) y Personal (naranja), Home nuevo, letra Inter, íconos, menú para celular y avisos de "virtual" en Savings |
 | #17 | Facturas fiscales nivel 1: link para que el cliente deje sus datos fiscales, y el copiloto también los puede guardar |
 | #18 | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba), mandarlo por correo y descargar PDF/XML |
+| #19 | El link de datos fiscales va dentro del correo de PayPal; la página dice quién pide los datos y trae aviso de privacidad |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

@@ -35,6 +35,11 @@ const envSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
 
+  // Nombre del negocio del usuario: sale en sus facturas de PayPal y en la
+  // página donde su cliente deja sus datos fiscales (para que sepa quién se
+  // los pide). Opcional.
+  BUSINESS_NAME: z.string().trim().min(1).max(100).optional(),
+
   // Facturama (sandbox) para sellar las facturas fiscales (CFDI). Opcionales:
   // sin ellas la app funciona igual y solo se desactiva "Issue CFDI".
   FACTURAMA_USER: z.string().optional(),

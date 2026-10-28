@@ -12,6 +12,7 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
+import { createInvoiceWithTaxLink } from '../taxInfo.js';
 
 const router = Router();
 
@@ -36,7 +37,8 @@ router.get('/invoices/:id', async (req, res) => {
 
 // Crea un borrador. Enviarlo al cliente es un paso aparte y explícito.
 router.post('/invoices', async (req, res) => {
-  res.status(201).json(await createDraftInvoice(newInvoiceSchema.parse(req.body)));
+  const input = newInvoiceSchema.parse(req.body);
+  res.status(201).json(await (input.taxLink ? createInvoiceWithTaxLink(input) : createDraftInvoice(input)));
 });
 
 router.post('/invoices/:id/send', async (req, res) => {
