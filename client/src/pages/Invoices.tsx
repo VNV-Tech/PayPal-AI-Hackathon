@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, RefreshCw } from 'lucide-react'
+import { Check, Copy, ExternalLink, Plus, Receipt, RefreshCw } from 'lucide-react'
 import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader, Skeleton } from '../components/ui'
 import { formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
@@ -14,6 +14,7 @@ import {
   displayStatus,
   invoicesApi,
 } from '../lib/invoices'
+import { CFDI_USES, TAX_REGIMES, type TaxRequest, taxInfoApi, taxLink } from '../lib/taxInfo'
 
 export function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[] | null>(null)
@@ -23,6 +24,9 @@ export function Invoices() {
   const [params, setParams] = useSearchParams()
   const [creating, setCreating] = useState(() => params.get('new') === '1')
   const [pending, setPending] = useState<{ invoice: Invoice; action: InvoiceAction } | null>(null)
+  // Datos fiscales (CFDI) por factura, y la factura cuyo link se está viendo.
+  const [taxRequests, setTaxRequests] = useState<Record<string, TaxRequest>>({})
+  const [taxFor, setTaxFor] = useState<Invoice | null>(null)
 
   // Cambiar reloadKey vuelve a pedir la lista (botones Refresh / Try again).
   const [reloadKey, setReloadKey] = useState(0)
@@ -40,6 +44,13 @@ export function Invoices() {
         if (!ignore) setLoadError(err instanceof Error ? err.message : 'Could not load invoices')
       },
     )
+    // Si fallan, la tabla se muestra igual, solo sin el estado de los datos fiscales.
+    taxInfoApi.list().then(
+      ({ requests }) => {
+        if (!ignore) setTaxRequests(Object.fromEntries(requests.map((r) => [r.invoiceId, r])))
+      },
+      () => {},
+    )
     return () => {
       ignore = true
     }
@@ -51,6 +62,11 @@ export function Invoices() {
 
   // Webhooks de PayPal: la lista se actualiza sola cuando una factura cambia.
   useLiveEvents((event) => {
+    if (event.type === 'tax.updated') {
+      reload()
+      setNotice(`Your client sent their tax info for invoice #${event.invoiceNumber ?? '—'}. ✅`)
+      return
+    }
     if (event.type !== 'invoice.updated') return
     reload()
     if (event.paypalEvent === 'INVOICING.INVOICE.PAID' && event.invoiceNumber) {
@@ -127,11 +143,26 @@ export function Invoices() {
           }
         />
       ) : (
-        <InvoiceTable invoices={invoices} onAction={(invoice, action) => setPending({ invoice, action })} />
+        <InvoiceTable
+          invoices={invoices}
+          taxRequests={taxRequests}
+          onAction={(invoice, action) => setPending({ invoice, action })}
+          onTaxInfo={setTaxFor}
+        />
       )}
 
       <Modal open={creating} onClose={() => setCreating(false)} title="New invoice">
         <NewInvoiceForm onCancel={() => setCreating(false)} onCreated={onCreated} />
+      </Modal>
+
+      <Modal open={taxFor !== null} onClose={() => setTaxFor(null)} title="Tax invoice (CFDI)">
+        {taxFor && (
+          <TaxInfoPanel
+            invoice={taxFor}
+            onLoaded={(r) => setTaxRequests((all) => ({ ...all, [r.invoiceId]: r }))}
+            onClose={() => setTaxFor(null)}
+          />
+        )}
       </Modal>
 
       <Modal
@@ -185,10 +216,20 @@ function money(m: { currency_code: string; value: string } | null) {
   return m ? formatMoney(Number(m.value), m.currency_code) : '—'
 }
 
-function InvoiceTable({ invoices, onAction }: { invoices: Invoice[]; onAction: (inv: Invoice, action: InvoiceAction) => void }) {
+function InvoiceTable({
+  invoices,
+  taxRequests,
+  onAction,
+  onTaxInfo,
+}: {
+  invoices: Invoice[]
+  taxRequests: Record<string, TaxRequest>
+  onAction: (inv: Invoice, action: InvoiceAction) => void
+  onTaxInfo: (inv: Invoice) => void
+}) {
   return (
     <Card className="overflow-x-auto p-0">
-      <table className="w-full min-w-[720px] text-left text-sm">
+      <table className="w-full min-w-[860px] text-left text-sm">
         <thead className="border-b border-line text-xs font-semibold tracking-wide text-ink-muted uppercase">
           <tr>
             <th className="px-6 py-3">Invoice</th>
@@ -204,6 +245,7 @@ function InvoiceTable({ invoices, onAction }: { invoices: Invoice[]; onAction: (
         <tbody className="divide-y divide-line">
           {invoices.map((inv) => {
             const status = displayStatus(inv)
+            const tax = taxRequests[inv.id]
             return (
               <tr key={inv.id}>
                 <td className="px-6 py-4 font-semibold tabular-nums">#{inv.number ?? '—'}</td>
@@ -212,12 +254,17 @@ function InvoiceTable({ invoices, onAction }: { invoices: Invoice[]; onAction: (
                   <p className="text-xs text-ink-muted">{inv.customer.email}</p>
                 </td>
                 <td className="px-6 py-4 text-right font-semibold tabular-nums">{money(inv.amount)}</td>
-                <td className="px-6 py-4 text-ink-muted">{formatDate(inv.dueDate)}</td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 whitespace-nowrap text-ink-muted">{formatDate(inv.dueDate)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <Badge tone={status.tone}>{status.label}</Badge>
+                  {tax && (
+                    <p className="mt-1 text-xs text-ink-muted">
+                      {tax.status === 'received' ? 'Tax info ✓' : 'Tax info pending'}
+                    </p>
+                  )}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex justify-end gap-1 whitespace-nowrap">
                     {inv.status !== 'DRAFT' && (
                       <a
                         href={inv.payerViewUrl}
@@ -227,6 +274,12 @@ function InvoiceTable({ invoices, onAction }: { invoices: Invoice[]; onAction: (
                       >
                         Payment page
                       </a>
+                    )}
+                    {inv.status !== 'DRAFT' && (
+                      <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => onTaxInfo(inv)}>
+                        <Receipt aria-hidden className="size-3.5" />
+                        Tax info
+                      </Button>
                     )}
                     {availableActions(inv.status).map((action) => (
                       <Button
@@ -246,6 +299,128 @@ function InvoiceTable({ invoices, onAction }: { invoices: Invoice[]; onAction: (
         </tbody>
       </table>
     </Card>
+  )
+}
+
+// Link para que el cliente deje sus datos fiscales. Abrir esta ventana crea el
+// link la primera vez (no le avisa nada al cliente).
+function TaxInfoPanel({
+  invoice,
+  onLoaded,
+  onClose,
+}: {
+  invoice: Invoice
+  onLoaded: (request: TaxRequest) => void
+  onClose: () => void
+}) {
+  const [request, setRequest] = useState<TaxRequest | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    let ignore = false
+    taxInfoApi.link(invoice.id).then(
+      (r) => {
+        if (ignore) return
+        setRequest(r)
+        onLoaded(r)
+      },
+      (err: unknown) => {
+        if (!ignore) setError(err instanceof Error ? err.message : 'Could not create the link')
+      },
+    )
+    return () => {
+      ignore = true
+    }
+    // Solo al abrir la ventana de esta factura (onLoaded cambia en cada render).
+  }, [invoice.id])
+
+  async function copy(link: string) {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+    } catch {
+      // Sin permiso para copiar: el link sigue visible para copiarlo a mano.
+    }
+  }
+
+  const info = request?.taxInfo
+  return (
+    <>
+      <p className="text-sm text-ink-muted">
+        In Mexico, clients often need an official tax invoice (CFDI). Send this link to your client so they can fill in
+        their tax details. We save them for their next invoices too.
+      </p>
+
+      {error ? (
+        <p role="alert" className="mt-4 rounded-xl bg-danger-bg px-4 py-3 text-sm text-danger">{error}</p>
+      ) : !request ? (
+        <Skeleton className="mt-4 h-24 rounded-xl" />
+      ) : (
+        <>
+          <div className="mt-4 flex gap-2">
+            <label htmlFor="tax-link" className="sr-only">
+              Link for your client
+            </label>
+            <input
+              id="tax-link"
+              readOnly
+              value={taxLink(request.token)}
+              onFocus={(e) => e.target.select()}
+              className="min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 py-2 text-sm"
+            />
+            <Button variant="secondary" onClick={() => copy(taxLink(request.token))}>
+              {copied ? <Check aria-hidden className="size-4" /> : <Copy aria-hidden className="size-4" />}
+              {copied ? 'Copied' : 'Copy'}
+            </Button>
+          </div>
+          <a
+            href={taxLink(request.token)}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:underline"
+          >
+            Open the client's page
+            <ExternalLink aria-hidden className="size-3.5" />
+          </a>
+
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold">Client's tax info</p>
+            <Badge tone={request.status === 'received' ? 'success' : 'warning'}>
+              {request.status === 'received' ? 'Received' : 'Waiting for your client'}
+            </Badge>
+          </div>
+          {info ? (
+            <dl className="mt-2 divide-y divide-line rounded-xl border border-line px-4 text-sm">
+              {[
+                ['RFC', info.rfc],
+                ['Legal name', info.name],
+                ['Tax regime', `${info.regime} · ${TAX_REGIMES[info.regime] ?? ''}`],
+                ['ZIP code', info.zip],
+                ['CFDI use', `${info.use} · ${CFDI_USES[info.use] ?? ''}`],
+                ['Send CFDI to', info.email],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-4 py-2">
+                  <dt className="text-ink-muted">{k}</dt>
+                  <dd className="text-right font-medium">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="mt-2 text-sm text-ink-muted">
+              As soon as your client sends it, it shows up here. You can also give it to the copilot in the chat.
+            </p>
+          )}
+          <p className="mt-4 text-xs text-ink-muted">Coming next: issue the CFDI with the SAT in one click.</p>
+        </>
+      )}
+
+      <div className="mt-6 flex justify-end">
+        <Button variant="ghost" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+    </>
   )
 }
 

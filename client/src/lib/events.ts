@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 // Mismo tipo que server/src/events.ts (LiveEvent).
 export interface LiveEvent {
-  type: 'invoice.updated' | 'payment.received'
+  type: 'invoice.updated' | 'payment.received' | 'tax.updated'
   paypalEvent: string
   invoiceId?: string
   invoiceNumber?: string

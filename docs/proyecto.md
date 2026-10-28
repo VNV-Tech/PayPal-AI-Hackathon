@@ -176,7 +176,17 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - Botón **New invoice**, que abre un formulario en una ventana.
   - Antes de enviar, recordar, cancelar o borrar, sale una ventana de confirmación.
   - Mensaje verde cuando algo sale bien (por ejemplo, "Invoice sent").
+  - Botón **Tax info** en cada factura (menos borradores): abre el link de datos fiscales para el cliente (ver abajo).
 - **Estados de factura que ve el usuario:** Draft, Sent, Overdue, Scheduled, Payment pending, Partially paid, Paid, Cancelled, Refunded.
+
+### Facturas fiscales (CFDI), nivel 1: pedir los datos
+- **Archivos:** la ventana **Tax info** en `client/src/pages/Invoices.tsx`, la página del cliente en `client/src/pages/TaxForm.tsx`, y el servidor en `server/src/taxInfo.ts`.
+- **🍎 En simple:** en México, muchos clientes necesitan factura del SAT. Ahora cada factura de PayPal tiene un **link** que le mandas a tu cliente. Ahí llena su RFC, razón social, régimen fiscal, código postal, uso del CFDI y correo. Cuando lo manda, en tu pantalla de facturas aparece "Tax info ✓" al momento.
+- **También desde el chat:** le dices al copiloto los datos de tu cliente y te muestra una tarjeta para aprobarlos. O le pides "dame el link de datos fiscales de la factura 0007".
+- Los datos se **guardan por cliente**: en su siguiente factura ya no se le vuelven a pedir.
+- **La página del cliente va en español** (el CFDI solo existe en México) y no tiene el menú de la app.
+- **Todavía no se genera la factura del SAT.** Eso es el **nivel 2**, con Facturama en modo prueba.
+- **🔧 En técnico:** el link es `/factura/<token>` (un token aleatorio de 24 caracteres). Rutas: `GET /api/tax-info`, `POST /api/tax-info/requests`, `GET` y `POST /api/tax-info/public/:token`. Se guarda en `server/data/tax-info.json`. Cuando el cliente manda sus datos, se avisa en vivo (evento `tax.updated`). Herramientas del copiloto: `get_tax_info_link` (se ejecuta sola, no cambia nada en PayPal) y `save_tax_info` (pide aprobación).
 
 ### Savings (Apartados)
 - **Archivo:** `client/src/pages/Savings.tsx`
@@ -254,7 +264,7 @@ Son reglas del proyecto, no gustos.
 | **La etiqueta "Sandbox"** (o algo equivalente) | Deja claro que es una demo con dinero de prueba |
 | **Que todo sea Sandbox** | Ni por error se usa PayPal real |
 | **La carpeta `server/`** y el archivo **`.env`** | Ahí están la lógica y las llaves secretas |
-| **Pedir datos personales reales** | La demo es pública |
+| **Pedir datos personales reales** | La demo es pública. Por eso la página de datos fiscales avisa "usa datos de prueba" y tiene un botón que llena datos de prueba del SAT |
 
 ### 🔧 Cómo leer el código de diseño (Tailwind en 2 minutos)
 
@@ -348,6 +358,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ⏳ Por empezar |
 | 5b | Tutorial de bienvenida (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide textos y aspecto |
 | 5c | Modos Business / Personal y Home nuevo (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide desde el 28 oct |
+| 5d | Facturas fiscales nivel 1: pedir los datos (link + chat) | — | Víctor | ✅ Hecho |
+| 5e | Facturas fiscales nivel 2: generar el CFDI con Facturama (prueba) | — | Víctor | ⏳ Falta la cuenta sandbox en Facturama |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -365,7 +377,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ¿Nombre final, logo y colores?
 
 ### Ideas guardadas para después (si sobra tiempo)
-- Autofacturación del SAT (CFDI) con Facturapi: investigado, **en pausa** hasta que el equipo decida.
+- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
 - Base de datos para que nada se pierda al reiniciar.
 - Login real, si el proyecto sigue después del hackathon.
 
@@ -389,6 +401,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #14 | Este documento |
 | #15 | Tutorial de bienvenida con el copiloto (sin IA, no gasta créditos) |
 | #16 | Modos Business (morado) y Personal (naranja), Home nuevo, letra Inter, íconos, menú para celular y avisos de "virtual" en Savings |
+| #17 | Facturas fiscales nivel 1: link para que el cliente deje sus datos fiscales, y el copiloto también los puede guardar |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
@@ -402,6 +415,9 @@ Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal)
 | Backend / servidor | La cocina: hace el trabajo y guarda secretos | `server/`: Express + Node |
 | API | La ventanilla para pedirle cosas a otro sistema | Peticiones HTTP con JSON |
 | Sandbox | El PayPal de mentira para probar | `api-m.sandbox.paypal.com` |
+| CFDI | La factura oficial del SAT en México | XML timbrado por un PAC |
+| RFC | La "CURP" de impuestos: identifica a quien paga impuestos | 12 caracteres (empresa) o 13 (persona) |
+| PAC | La "oficina" autorizada por el SAT que sella las facturas | Facturama, Facturapi, etc.; se usa por API |
 | Modo | Dos caras de la app: Business (cobrar) y Personal (organizar lo cobrado) | `data-mode` en `Layout.tsx`, configurado en `lib/mode.ts` |
 | Webhook | El timbre: PayPal avisa cuando pasa algo | `POST /webhooks/paypal` con firma verificada |
 | Token | Un pase temporal para hablar con PayPal | OAuth 2.0 *client credentials*, dura horas |

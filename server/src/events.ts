@@ -3,7 +3,8 @@
 import { EventEmitter } from 'node:events';
 
 export interface LiveEvent {
-  type: 'invoice.updated' | 'payment.received';
+  // tax.updated: un cliente mandó sus datos fiscales (no viene de PayPal).
+  type: 'invoice.updated' | 'payment.received' | 'tax.updated';
   // Evento original de PayPal, por ejemplo INVOICING.INVOICE.PAID.
   paypalEvent: string;
   invoiceId?: string;

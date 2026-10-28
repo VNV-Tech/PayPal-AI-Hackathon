@@ -5,11 +5,14 @@ import { Copilot } from './pages/Copilot'
 import { Invoices } from './pages/Invoices'
 import { Overview } from './pages/Overview'
 import { Savings } from './pages/Savings'
+import { TaxForm } from './pages/TaxForm'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Página pública para el cliente: sin el menú de la app. */}
+        <Route path="factura/:token" element={<TaxForm />} />
         <Route element={<Layout />}>
           <Route index element={<Overview />} />
           <Route path="copilot" element={<Copilot />} />
