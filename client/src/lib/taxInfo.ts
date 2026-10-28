@@ -47,14 +47,23 @@ export interface TaxInfo {
 }
 
 // Datos de prueba del SAT para la demo (la página es pública: nadie debe
-// escribir datos reales). Verificarlos con el sandbox de Facturama en el nivel 2.
+// escribir datos reales). Probados con el sandbox de Facturama.
 export const TEST_TAX_INFO: TaxInfo = {
-  rfc: 'EKU9003173C9',
-  name: 'ESCUELA KEMPER URGATE',
+  rfc: 'URE180429TM6',
+  name: 'UNIVERSIDAD ROBOTICA ESPAÑOLA',
   regime: '601',
-  zip: '42501',
+  zip: '86991',
   use: 'G03',
   email: 'facturas@example.com',
+}
+
+export interface IssuedTaxInvoice {
+  id: string
+  uuid: string // folio fiscal del SAT
+  folio: string
+  total: Money
+  issuedAt: string
+  emailedTo: string | null
 }
 
 export interface TaxRequest {
@@ -68,16 +77,22 @@ export interface TaxRequest {
   receivedAt?: string
   source?: 'client' | 'user' | 'saved'
   taxInfo?: TaxInfo
+  cfdi?: IssuedTaxInvoice
 }
 
 export interface PublicTaxRequest {
   invoiceNumber: string | null
   amount: Money | null
   status: 'waiting' | 'received'
+  cfdi: { folio: string; uuid: string } | null
 }
 
 export const taxInfoApi = {
-  list: () => api<{ requests: TaxRequest[] }>('/tax-info'),
+  // cfdiEnabled: false si el servidor no tiene las credenciales de Facturama.
+  list: () => api<{ requests: TaxRequest[]; cfdiEnabled: boolean }>('/tax-info'),
+  issue: (invoiceId: string) => api<TaxRequest>('/tax-info/cfdi', { method: 'POST', body: JSON.stringify({ invoiceId }) }),
+  fileUrl: (invoiceId: string, format: 'pdf' | 'xml') => `/api/tax-info/cfdi/${invoiceId}/${format}`,
+  publicFileUrl: (token: string, format: 'pdf' | 'xml') => `/api/tax-info/public/${encodeURIComponent(token)}/${format}`,
   link: (invoiceId: string) => api<TaxRequest>('/tax-info/requests', { method: 'POST', body: JSON.stringify({ invoiceId }) }),
   getPublic: (token: string) => api<PublicTaxRequest>(`/tax-info/public/${encodeURIComponent(token)}`),
   submit: (token: string, info: TaxInfo) =>

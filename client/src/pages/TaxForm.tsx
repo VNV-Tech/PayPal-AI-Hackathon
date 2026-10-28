@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CircleCheck, FlaskConical, Receipt } from 'lucide-react'
+import { CircleCheck, Download, FlaskConical, Receipt } from 'lucide-react'
 import { Button, Card, Skeleton } from '../components/ui'
 import { APP_NAME, formatMoney } from '../lib/config'
 import { CFDI_USES, type PublicTaxRequest, RFC_PATTERN, TAX_REGIMES, TEST_TAX_INFO, type TaxInfo, taxInfoApi } from '../lib/taxInfo'
@@ -74,7 +74,29 @@ export function TaxForm() {
               </p>
             </Card>
 
-            {done ? (
+            {request.cfdi ? (
+              <Card className="mt-4 text-center">
+                <CircleCheck aria-hidden className="mx-auto size-10 text-success" />
+                <p className="mt-2 text-lg font-bold">Tu factura ya está lista</p>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Folio {request.cfdi.folio} · te la enviamos a tu correo. También puedes descargarla aquí.
+                </p>
+                <p className="mt-1 text-xs break-all text-ink-muted">Folio fiscal: {request.cfdi.uuid}</p>
+                <div className="mt-4 flex justify-center gap-2">
+                  {(['pdf', 'xml'] as const).map((format) => (
+                    <a
+                      key={format}
+                      href={taxInfoApi.publicFileUrl(token, format)}
+                      className="inline-flex items-center gap-2 rounded-full border border-brand-600 px-5 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
+                    >
+                      <Download aria-hidden className="size-4" />
+                      {format.toUpperCase()}
+                    </a>
+                  ))}
+                </div>
+                <p className="mt-4 text-xs text-ink-muted">Demo: esta factura es de prueba y no tiene validez fiscal.</p>
+              </Card>
+            ) : done ? (
               <Card className="mt-4 text-center">
                 <CircleCheck aria-hidden className="mx-auto size-10 text-success" />
                 <p className="mt-2 text-lg font-bold">¡Listo! Ya tenemos tus datos</p>

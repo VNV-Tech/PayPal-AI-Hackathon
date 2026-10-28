@@ -1,6 +1,9 @@
-// Datos fiscales para facturar en México (CFDI). Nivel 1: el cliente llena sus
-// datos con un link, o el usuario se los dicta al copiloto. Todavía no se
-// timbra la factura: eso será el nivel 2, con Facturama (sandbox).
+// Facturas fiscales de México (CFDI).
+// - Nivel 1: el cliente llena sus datos fiscales con un link, o el usuario se
+//   los dicta al copiloto.
+// - Nivel 2: con esos datos, cuando la factura de PayPal ya está pagada, se
+//   emite el CFDI con Facturama (sandbox) y se le manda por correo al cliente.
+//   Siempre lo aprueba el usuario (botón o tarjeta del copiloto).
 //
 // Se guarda en server/data/tax-info.json:
 // - requests: un link por factura de PayPal.
@@ -8,8 +11,10 @@
 //   pedirlos en su siguiente factura.
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
+import { env } from './config/env.js';
 import { publish } from './events.js';
-import { type Money, getInvoice } from './paypal/invoices.js';
+import { type CfdiRequest, createCfdi, emailCfdi, isFacturamaConfigured } from './facturama.js';
+import { type Money, getInvoice, getInvoiceWithItems } from './paypal/invoices.js';
 import { jsonStore } from './store.js';
 
 // Catálogo c_RegimenFiscal del SAT (CFDI 4.0).
@@ -76,6 +81,16 @@ export interface TaxRequest {
   // saved: ya teníamos los datos de este cliente de una factura anterior.
   source?: 'client' | 'user' | 'saved';
   taxInfo?: TaxInfo;
+  cfdi?: IssuedTaxInvoice;
+}
+
+export interface IssuedTaxInvoice {
+  id: string; // ID de Facturama
+  uuid: string; // folio fiscal del SAT
+  folio: string;
+  total: Money;
+  issuedAt: string;
+  emailedTo: string | null; // null si el correo falló
 }
 
 interface TaxData {
@@ -88,6 +103,8 @@ const MAX_REQUESTS = 500; // se olvidan los más viejos
 export const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{24}$/, 'Invalid link');
 
 export class TaxRequestNotFoundError extends Error {}
+// No se puede emitir (factura sin pagar, sin datos, ya emitida...). El mensaje es para el usuario.
+export class CfdiNotReadyError extends Error {}
 
 const store = jsonStore<TaxData>('tax-info.json', (raw) => (raw as TaxData | undefined) ?? { requests: [], clients: {} });
 
@@ -136,7 +153,12 @@ export async function getOrCreateTaxRequest(invoiceId: string): Promise<TaxReque
 export async function getPublicTaxRequest(token: string) {
   const request = (await store.load()).requests.find((r) => r.token === token);
   if (!request) throw new TaxRequestNotFoundError('This link does not exist or has expired');
-  return { invoiceNumber: request.invoiceNumber, amount: request.amount, status: request.status };
+  return {
+    invoiceNumber: request.invoiceNumber,
+    amount: request.amount,
+    status: request.status,
+    cfdi: request.cfdi ? { folio: request.cfdi.folio, uuid: request.cfdi.uuid } : null,
+  };
 }
 
 export async function submitTaxInfo(token: string, input: unknown): Promise<TaxRequest> {
@@ -185,3 +207,122 @@ export function describeTaxInfo(info: TaxInfo): [string, string][] {
     ['Email', info.email],
   ];
 }
+
+// Reglas fiscales de la demo. Pendientes de revisar con la asesoría de finanzas:
+// - El precio cobrado en PayPal ya incluye IVA del 16%.
+// - Sin retenciones (aplican, por ejemplo, cuando una persona física le
+//   factura servicios a una empresa).
+// - Una clave de producto genérica de servicios profesionales.
+const IVA_RATE = 0.16;
+const PRODUCT_CODE = '80101500'; // Servicios de consultoría de negocios y administración corporativa
+const UNIT_CODE = 'E48'; // Unidad de servicio
+const PAYMENT_FORM = '31'; // Intermediario pagos: el cliente pagó por PayPal
+const PAID_STATUSES = new Set(['PAID', 'MARKED_AS_PAID']);
+
+const round = (n: number, decimals = 2) => Number(n.toFixed(decimals));
+
+export interface CfdiPreview {
+  request: TaxRequest & { taxInfo: TaxInfo };
+  cfdi: CfdiRequest;
+  subtotal: number;
+  iva: number;
+  total: Money;
+}
+
+// Revisa que se pueda emitir y arma el CFDI, sin emitir nada. La usan el
+// botón de la pantalla y la tarjeta del copiloto.
+export async function prepareCfdi(invoiceId: string): Promise<CfdiPreview> {
+  if (!isFacturamaConfigured()) throw new CfdiNotReadyError('Tax invoices are not set up on this server yet.');
+  const request = (await store.load()).requests.find((r) => r.invoiceId === invoiceId);
+  if (request?.cfdi) throw new CfdiNotReadyError(`The CFDI for invoice #${request.invoiceNumber} was already issued (folio ${request.cfdi.folio}).`);
+  if (!request?.taxInfo) throw new CfdiNotReadyError("We don't have the client's tax info yet. Send them the Tax info link first.");
+
+  const { invoice, items } = await getInvoiceWithItems(invoiceId);
+  if (!PAID_STATUSES.has(invoice.status)) throw new CfdiNotReadyError(`Invoice #${invoice.number} isn't paid yet. The CFDI is issued once it's paid.`);
+  const currency = invoice.amount?.currency_code ?? items[0]?.unitAmount.currency_code;
+  // Un CFDI en dólares necesita el tipo de cambio del día: queda para después.
+  if (currency !== 'MXN') throw new CfdiNotReadyError('For now, CFDIs can only be issued for invoices in MXN.');
+  if (items.length === 0) throw new CfdiNotReadyError(`Invoice #${invoice.number} has no items.`);
+
+  const lines = items.map((item) => {
+    const gross = round(Number(item.unitAmount.value) * item.quantity);
+    const subtotal = round(gross / (1 + IVA_RATE));
+    const iva = round(gross - subtotal);
+    return {
+      ProductCode: PRODUCT_CODE,
+      Description: item.name,
+      UnitCode: UNIT_CODE,
+      Unit: 'Servicio',
+      UnitPrice: round(subtotal / item.quantity, 6),
+      Quantity: item.quantity,
+      Subtotal: subtotal,
+      TaxObject: '02', // sí objeto de impuesto
+      Taxes: [{ Total: iva, Name: 'IVA', Base: subtotal, Rate: IVA_RATE, IsRetention: false }],
+      Total: round(subtotal + iva),
+    };
+  });
+  const info = request.taxInfo;
+  const subtotal = round(lines.reduce((sum, l) => sum + l.Subtotal, 0));
+  const iva = round(lines.reduce((sum, l) => sum + (l.Taxes[0]?.Total ?? 0), 0));
+  return {
+    request: { ...request, taxInfo: info },
+    cfdi: {
+      Currency: 'MXN',
+      ExpeditionPlace: env.FACTURAMA_EXPEDITION_PLACE,
+      CfdiType: 'I',
+      PaymentForm: PAYMENT_FORM,
+      PaymentMethod: 'PUE',
+      // El SAT compara el nombre con el que tiene registrado, en mayúsculas.
+      Receiver: { Rfc: info.rfc, Name: info.name.toUpperCase(), CfdiUse: info.use, FiscalRegime: info.regime, TaxZipCode: info.zip },
+      Items: lines,
+    },
+    subtotal,
+    iva,
+    total: { currency_code: 'MXN', value: round(subtotal + iva).toFixed(2) },
+  };
+}
+
+// Facturas que se están emitiendo ahora: evita dos CFDI por un doble clic.
+const issuing = new Set<string>();
+
+export async function issueCfdi(invoiceId: string): Promise<TaxRequest> {
+  if (issuing.has(invoiceId)) throw new CfdiNotReadyError('This CFDI is already being issued.');
+  issuing.add(invoiceId);
+  try {
+    const preview = await prepareCfdi(invoiceId);
+    const created = await createCfdi(preview.cfdi);
+    const email = preview.request.taxInfo.email;
+    // Si el correo falla, el CFDI ya existe: se guarda igual y se puede reenviar.
+    const emailedTo = await emailCfdi(created.id, email).then(
+      () => email,
+      (err: unknown) => {
+        console.error('[cfdi] No se pudo enviar el correo:', err instanceof Error ? err.message : err);
+        return null;
+      },
+    );
+    const cfdi: IssuedTaxInvoice = {
+      id: created.id,
+      uuid: created.uuid,
+      folio: created.folio,
+      total: { currency_code: 'MXN', value: created.total.toFixed(2) },
+      issuedAt: new Date().toISOString(),
+      emailedTo,
+    };
+    const data = await store.load();
+    const updated: TaxRequest = { ...preview.request, cfdi };
+    await store.save({ ...data, requests: data.requests.map((r) => (r.invoiceId === invoiceId ? updated : r)) });
+    publish({ type: 'tax.updated', paypalEvent: 'CFDI.ISSUED', invoiceId, invoiceNumber: updated.invoiceNumber ?? undefined });
+    return updated;
+  } finally {
+    issuing.delete(invoiceId);
+  }
+}
+
+export async function findTaxRequest(invoiceId: string): Promise<TaxRequest | undefined> {
+  return (await store.load()).requests.find((r) => r.invoiceId === invoiceId);
+}
+
+export async function findTaxRequestByToken(token: string): Promise<TaxRequest | undefined> {
+  return (await store.load()).requests.find((r) => r.token === token);
+}
+

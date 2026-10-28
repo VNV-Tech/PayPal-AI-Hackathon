@@ -179,14 +179,24 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - Botón **Tax info** en cada factura (menos borradores): abre el link de datos fiscales para el cliente (ver abajo).
 - **Estados de factura que ve el usuario:** Draft, Sent, Overdue, Scheduled, Payment pending, Partially paid, Paid, Cancelled, Refunded.
 
-### Facturas fiscales (CFDI), nivel 1: pedir los datos
+### Facturas fiscales (CFDI)
 - **Archivos:** la ventana **Tax info** en `client/src/pages/Invoices.tsx`, la página del cliente en `client/src/pages/TaxForm.tsx`, y el servidor en `server/src/taxInfo.ts`.
 - **🍎 En simple:** en México, muchos clientes necesitan factura del SAT. Ahora cada factura de PayPal tiene un **link** que le mandas a tu cliente. Ahí llena su RFC, razón social, régimen fiscal, código postal, uso del CFDI y correo. Cuando lo manda, en tu pantalla de facturas aparece "Tax info ✓" al momento.
 - **También desde el chat:** le dices al copiloto los datos de tu cliente y te muestra una tarjeta para aprobarlos. O le pides "dame el link de datos fiscales de la factura 0007".
 - Los datos se **guardan por cliente**: en su siguiente factura ya no se le vuelven a pedir.
 - **La página del cliente va en español** (el CFDI solo existe en México) y no tiene el menú de la app.
-- **Todavía no se genera la factura del SAT.** Eso es el **nivel 2**, con Facturama en modo prueba.
-- **🔧 En técnico:** el link es `/factura/<token>` (un token aleatorio de 24 caracteres). Rutas: `GET /api/tax-info`, `POST /api/tax-info/requests`, `GET` y `POST /api/tax-info/public/:token`. Se guarda en `server/data/tax-info.json`. Cuando el cliente manda sus datos, se avisa en vivo (evento `tax.updated`). Herramientas del copiloto: `get_tax_info_link` (se ejecuta sola, no cambia nada en PayPal) y `save_tax_info` (pide aprobación).
+- **Nivel 2: emitir la factura.** Cuando la factura de PayPal ya está **pagada** y tenemos los datos del cliente, en la ventana **Tax info** aparece **Issue CFDI**. Pide confirmación, Facturama la sella y **le llega al cliente por correo** (PDF y XML). Tú la puedes descargar ahí mismo, y el cliente desde su link. El copiloto también la puede proponer, con tarjeta de aprobación.
+- **Nunca se emite sola:** siempre la aprueba el usuario, igual que todo lo demás.
+- **Es de prueba:** Facturama Sandbox con datos de prueba del SAT. Las facturas se ven reales (folio fiscal, sellos, QR), pero **no tienen validez fiscal**.
+- **Reglas fiscales de la demo (pendientes de revisar con la asesoría de finanzas):**
+  - El monto cobrado en PayPal **ya incluye IVA del 16%** (por ejemplo, $500 = $431.03 + $68.97 de IVA).
+  - **Sin retenciones** de ISR o IVA (aplican, por ejemplo, cuando una persona física le factura a una empresa).
+  - Una sola **clave de producto genérica** (`80101500`, servicios de consultoría) para todo.
+  - Solo facturas en **MXN** (en dólares hace falta el tipo de cambio del día).
+  - Forma de pago `31` (intermediario de pagos, porque se pagó por PayPal) y método `PUE` (en una sola exhibición).
+- **🔧 En técnico:** el link es `/factura/<token>` (un token aleatorio de 24 caracteres). Rutas: `GET /api/tax-info`, `POST /api/tax-info/requests`, `GET` y `POST /api/tax-info/public/:token`. Se guarda en `server/data/tax-info.json`. Cuando el cliente manda sus datos, se avisa en vivo (evento `tax.updated`). Herramientas del copiloto: `get_tax_info_link` (se ejecuta sola, no cambia nada en PayPal), `save_tax_info` e `issue_cfdi` (las dos piden aprobación).
+- **🔧 Nivel 2 en técnico:** `server/src/facturama.ts` habla con `apisandbox.facturama.mx` (Basic auth con `FACTURAMA_USER` y `FACTURAMA_PASSWORD` del `.env`). `POST /api/tax-info/cfdi` emite; `GET /api/tax-info/cfdi/:invoiceId/pdf|xml` descarga. Si faltan las credenciales, la app funciona igual y solo se esconde el botón.
+- **🔧 La cuenta de Facturama ya está configurada** (se hizo por API porque su formulario web no acepta el código postal de prueba): perfil fiscal `EKU9003173C9` / ESCUELA KEMPER URGATE / régimen 601, lugar de expedición `42501` (Hidalgo) y los sellos (CSD) de prueba, que vencen en mayo de 2027. Para probar como cliente, el botón "Usar datos de prueba" usa `URE180429TM6` / UNIVERSIDAD ROBOTICA ESPAÑOLA / 601 / CP 86991.
 
 ### Savings (Apartados)
 - **Archivo:** `client/src/pages/Savings.tsx`
@@ -359,7 +369,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5b | Tutorial de bienvenida (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide textos y aspecto |
 | 5c | Modos Business / Personal y Home nuevo (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide desde el 28 oct |
 | 5d | Facturas fiscales nivel 1: pedir los datos (link + chat) | — | Víctor | ✅ Hecho |
-| 5e | Facturas fiscales nivel 2: generar el CFDI con Facturama (prueba) | — | Víctor | ⏳ Falta la cuenta sandbox en Facturama |
+| 5e | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba) y mandarlo por correo | — | Víctor | ✅ Hecho |
+| 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ⏳ Siguiente |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -367,6 +378,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 ### Preguntas abiertas para la asesoría
 
 **Finanzas**
+- ¿Las facturas deben llevar IVA incluido en el precio, o sumarse aparte? ¿Cuándo aplican retenciones?
+- ¿Qué clave de producto/servicio del SAT conviene para un freelancer?
 - ¿Qué porcentajes tienen sentido para un freelancer en México? (impuestos, emergencias, otros)
 - ¿Los apartados deben reiniciarse cada mes o acumularse?
 - ¿Qué más le serviría a un freelancer ver en Inicio?
@@ -378,6 +391,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 ### Ideas guardadas para después (si sobra tiempo)
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
 - Base de datos para que nada se pierda al reiniciar.
 - Login real, si el proyecto sigue después del hackathon.
 
@@ -402,6 +416,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #15 | Tutorial de bienvenida con el copiloto (sin IA, no gasta créditos) |
 | #16 | Modos Business (morado) y Personal (naranja), Home nuevo, letra Inter, íconos, menú para celular y avisos de "virtual" en Savings |
 | #17 | Facturas fiscales nivel 1: link para que el cliente deje sus datos fiscales, y el copiloto también los puede guardar |
+| #18 | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba), mandarlo por correo y descargar PDF/XML |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

@@ -35,6 +35,13 @@ const envSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
 
+  // Facturama (sandbox) para sellar las facturas fiscales (CFDI). Opcionales:
+  // sin ellas la app funciona igual y solo se desactiva "Issue CFDI".
+  FACTURAMA_USER: z.string().optional(),
+  FACTURAMA_PASSWORD: z.string().optional(),
+  // Código postal del lugar de expedición dado de alta en Facturama.
+  FACTURAMA_EXPEDITION_PLACE: z.string().regex(/^\d{5}$/).default('42501'),
+
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
   // Modelo del chat. Cambiarlo aquí no requiere tocar código.
   ANTHROPIC_MODEL: z.string().default('claude-opus-5-5'),
