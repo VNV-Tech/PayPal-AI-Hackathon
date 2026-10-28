@@ -1,6 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader } from '../components/ui'
-import { formatMoney } from '../lib/config'
+import { useSearchParams } from 'react-router-dom'
+import { Plus, RefreshCw } from 'lucide-react'
+import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader, Skeleton } from '../components/ui'
+import { formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import {
   CURRENCIES,
@@ -17,7 +19,9 @@ export function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [creating, setCreating] = useState(false)
+  // El botón "New invoice" de la pantalla de inicio llega como ?new=1.
+  const [params, setParams] = useSearchParams()
+  const [creating, setCreating] = useState(() => params.get('new') === '1')
   const [pending, setPending] = useState<{ invoice: Invoice; action: InvoiceAction } | null>(null)
 
   // Cambiar reloadKey vuelve a pedir la lista (botones Refresh / Try again).
@@ -40,6 +44,10 @@ export function Invoices() {
       ignore = true
     }
   }, [reloadKey])
+
+  useEffect(() => {
+    if (params.has('new')) setParams({}, { replace: true })
+  }, [params, setParams])
 
   // Webhooks de PayPal: la lista se actualiza sola cuando una factura cambia.
   useLiveEvents((event) => {
@@ -72,9 +80,11 @@ export function Invoices() {
         actions={
           <div className="flex gap-2">
             <Button variant="ghost" onClick={reload}>
+              <RefreshCw aria-hidden className="size-4" />
               Refresh
             </Button>
             <Button data-tour="invoices-new" onClick={() => setCreating(true)}>
+              <Plus aria-hidden className="size-4" />
               New invoice
             </Button>
           </div>
@@ -97,7 +107,12 @@ export function Invoices() {
           action={<Button variant="secondary" onClick={reload}>Try again</Button>}
         />
       ) : invoices === null ? (
-        <p className="py-12 text-center text-sm text-ink-muted">Loading invoices…</p>
+        <Card className="space-y-4">
+          <span className="sr-only">Loading invoices…</span>
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-8" />
+          ))}
+        </Card>
       ) : invoices.length === 0 ? (
         <EmptyState
           title="No invoices yet"
@@ -168,12 +183,6 @@ const ACTION_COPY: Record<InvoiceAction, { button: string; title: string; explai
 
 function money(m: { currency_code: string; value: string } | null) {
   return m ? formatMoney(Number(m.value), m.currency_code) : '—'
-}
-
-function formatDate(isoDate: string | null) {
-  if (!isoDate) return '—'
-  // Fecha sin hora (YYYY-MM-DD): se interpreta como local para no mostrar el día anterior.
-  return new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function InvoiceTable({ invoices, onAction }: { invoices: Invoice[]; onAction: (inv: Invoice, action: InvoiceAction) => void }) {

@@ -1,7 +1,10 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { SendHorizontal, SquarePen } from 'lucide-react'
 import { Badge, Button, Card } from '../components/ui'
 import { APP_NAME } from '../lib/config'
 import { type ActionView, type ChatItem, chatApi } from '../lib/chat'
+import { type Mode, useMode } from '../lib/mode'
 
 type Message =
   | { id: string; role: 'user' | 'assistant'; text: string }
@@ -9,17 +12,27 @@ type Message =
   // Acción propuesta por la IA: nunca se ejecuta sin que el usuario la apruebe.
   | { id: string; role: 'action'; action: ActionView }
 
-const welcome: Message = {
-  id: 'welcome',
-  role: 'assistant',
-  text: `Hi! I'm ${APP_NAME}. I can draft and send PayPal invoices, check who owes you money and send reminders. I'll always ask before doing anything on your PayPal account.`,
+// El saludo y las sugerencias cambian según el modo. La IA puede hacer todo en
+// ambos modos; esto solo orienta al usuario.
+const WELCOME: Record<Mode, string> = {
+  business: `Hi! I'm ${APP_NAME}. I can draft and send PayPal invoices, check who owes you money and send reminders. I'll always ask before doing anything on your PayPal account.`,
+  personal: `Hi! I'm ${APP_NAME}. I can tell you how much you got paid, help you set part of it aside and change your savings plan. I'll always ask before changing anything.`,
 }
 
-const suggestions = [
-  'Who still owes me money?',
-  'Invoice Acme Corp 12,500 MXN for the website redesign, billing@acme.example',
-  'Send a reminder for my overdue invoices',
-]
+const SUGGESTIONS: Record<Mode, string[]> = {
+  business: [
+    'Who still owes me money?',
+    'Invoice Acme Corp 12,500 MXN for the website redesign, billing@acme.example',
+    'Send a reminder for my overdue invoices',
+  ],
+  personal: [
+    'How much have I set aside this month?',
+    'Set aside 25% of every payment for taxes',
+    'How much can I spend this month?',
+  ],
+}
+
+const welcomeMessage = (mode: Mode): Message => ({ id: 'welcome', role: 'assistant', text: WELCOME[mode] })
 
 function toMessages(items: ChatItem[]): Message[] {
   return items.map((item) =>
@@ -30,15 +43,26 @@ function toMessages(items: ChatItem[]): Message[] {
 }
 
 export function Copilot() {
-  const [messages, setMessages] = useState<Message[]>([welcome])
+  const mode = useMode()
+  const [messages, setMessages] = useState<Message[]>(() => [welcomeMessage(mode)])
   const [conversationId, setConversationId] = useState<string>()
-  const [draft, setDraft] = useState('')
+  // Los ejemplos de la pantalla de inicio llegan como ?q=...: se escriben en la
+  // caja pero no se envían solos.
+  const [params, setParams] = useSearchParams()
+  const [draft, setDraft] = useState(() => params.get('q')?.slice(0, 2000) ?? '')
+  const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const endRef = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, busy])
+
+  useEffect(() => {
+    if (!params.has('q')) return
+    inputRef.current?.focus()
+    setParams({}, { replace: true })
+  }, [params, setParams])
 
   function fail(err: unknown) {
     const text = err instanceof Error ? err.message : 'Something went wrong'
@@ -94,14 +118,15 @@ export function Copilot() {
   }
 
   function newChat() {
-    setMessages([welcome])
+    setMessages([welcomeMessage(mode)])
     setConversationId(undefined)
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-3xl flex-col max-sm:h-[calc(100dvh-13rem)]">
       <div className="mb-2 flex justify-end">
         <Button variant="ghost" onClick={newChat} disabled={busy || messages.length === 1}>
+          <SquarePen aria-hidden className="size-4" />
           New chat
         </Button>
       </div>
@@ -133,7 +158,7 @@ export function Copilot() {
         )}
         {messages.length === 1 && !busy && (
           <li className="flex flex-wrap gap-2 pt-2">
-            {suggestions.map((s) => (
+            {SUGGESTIONS[mode].map((s) => (
               <button
                 key={s}
                 type="button"
@@ -153,16 +178,18 @@ export function Copilot() {
           Message
         </label>
         <input
+          ref={inputRef}
           id="chat-input"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Ask about your invoices or tell me what to bill…"
+          placeholder={mode === 'business' ? 'Ask about your invoices or tell me what to bill…' : 'Ask about your money or your savings plan…'}
           maxLength={2000}
           autoComplete="off"
           className="flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-ink-muted"
         />
         <Button type="submit" disabled={!draft.trim() || busy}>
-          Send
+          <SendHorizontal aria-hidden className="size-4" />
+          <span className="max-sm:sr-only">Send</span>
         </Button>
       </form>
     </div>

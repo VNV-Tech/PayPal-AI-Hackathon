@@ -122,34 +122,47 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 
 > Todos los textos de la app están en **inglés**, porque el jurado es internacional.
 
+### Dos modos: Business y Personal
+- **Archivos:** `client/src/lib/mode.ts` (qué pantallas tiene cada modo) y `client/src/index.css` (los colores).
+- **Para qué:** no mezclar dos cosas distintas, igual que PayPal separa cuentas personales y de negocio.
+  - 💼 **Business (morado):** cobrarle a tus clientes. Pantallas: Home, Invoices, Copilot.
+  - 🏠 **Personal (naranja):** organizar lo que te pagan. Pantallas: Home, Savings, Copilot.
+- Se cambia con el interruptor de la barra de arriba. La app recuerda el último modo que usaste.
+- La base de la app (azul marino y blanco, estilo PayPal) es igual en los dos modos. Solo cambia el **color de acento**: botones, enlaces y detalles.
+
 ### Barra de arriba (en todas las pantallas)
 - **Archivo:** `client/src/components/Layout.tsx`
-- **Qué tiene:** logo y nombre ("VNV Copilot"), menú (Overview, Copilot, Invoices, Savings), el botón **Tour** y la etiqueta **Sandbox**.
+- **Qué tiene:** logo y nombre ("VNV Copilot"), el interruptor **Business / Personal**, el menú del modo, el botón **Tour** y la etiqueta **Sandbox**.
+- **En celular:** el menú se va **abajo**, con íconos, como en las apps.
 - El nombre de la app se cambia en un solo lugar: `client/src/lib/config.ts` (`APP_NAME`).
 
 ### Tutorial de bienvenida
 - **Archivos:** los textos en `client/src/lib/tour.ts`; cómo se ve, en `client/src/components/Tour.tsx`.
 - **Para qué:** que alguien que entra por primera vez entienda la app sin explicación.
-- **Cómo funciona:** sale solo la primera vez (el navegador lo recuerda). Oscurece la pantalla, ilumina una parte y el copiloto explica qué es, en 6 pasos: bienvenida → Inicio → Facturas → Savings → Chat → listo.
+- **Cómo funciona:** sale solo la primera vez (el navegador lo recuerda). Oscurece la pantalla, ilumina una parte y el copiloto explica qué es, en 7 pasos: bienvenida → los dos modos → Inicio → Facturas → Savings → Chat → listo. Cambia de modo solo cuando hace falta (Facturas en Business y Savings en Personal).
 - Botones **Next**, **Back** y **Skip tour**. Con el teclado: flechas para avanzar o regresar, y `Esc` para salir.
 - Se vuelve a ver con el botón **Tour** de la barra de arriba.
 - **No usa la IA ni gasta créditos:** todos los mensajes están escritos a mano.
 
-### Overview (Inicio)
-- **Archivo:** `client/src/pages/Overview.tsx`
-- **Para qué:** ver de un vistazo cómo vas.
-- **Qué tiene:**
-  - 3 tarjetas: **Outstanding** (cuánto te deben), **Paid this month** (cuánto cobraste), **Overdue** (facturas vencidas).
-  - Un recuadro "Try saying" con ejemplos de qué pedirle al chat.
-  - Botones **Refresh** y **Ask the copilot**.
-- **Estados:** cargando (muestra "…"), error (franja roja con "Try again").
+### Home (Inicio)
+- **Archivo:** `client/src/pages/Overview.tsx`. Tiene **dos versiones**, una por modo.
+- **Para qué:** ver de un vistazo cómo vas y qué hacer después.
+- **Las dos versiones tienen el mismo orden:**
+  1. Una frase arriba que explica qué estás viendo.
+  2. Una **tarjeta grande azul marino** con el número más importante y **botones rápidos**.
+  3. Tarjetas o listas con el detalle.
+  4. "**Try asking the copilot**": ejemplos que **sí se pueden presionar**. Abren el chat con el texto ya escrito, pero no lo envían solos.
+- **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask the copilot", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
+- **Personal:** aviso de que los apartados son virtuales, **lo que te queda para gastar** (número grande), aviso si hay pagos por revisar, **lo apartado** este mes y los **últimos pagos** recibidos.
+- **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 
 ### Copilot (el chat)
 - **Archivo:** `client/src/pages/Copilot.tsx`
 - **Para qué:** pedir cosas en lenguaje normal.
 - **Qué tiene:**
   - Burbujas de conversación: las del usuario en azul a la derecha y las de la IA a la izquierda.
-  - Sugerencias en forma de botones al inicio.
+  - Saludo y sugerencias que cambian según el modo.
+  - Si llegas desde un ejemplo de Home, el texto ya está escrito en la caja.
   - "Thinking…" mientras la IA piensa.
   - **Tarjetas de acción** con los detalles y los botones **Approve / Reject**.
   - Botón **New chat**.
@@ -169,6 +182,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivo:** `client/src/pages/Savings.tsx`
 - **Para qué:** decidir cuánto de lo cobrado guardar.
 - **Qué tiene:**
+  - Un aviso arriba: los apartados son **virtuales**, no se mueve dinero.
   - Tarjetas "**You got paid…** Set aside…?" con **Set aside** / **Not this time**.
   - **Collected** (cobrado del mes) y **Left to spend** (lo que queda para gastar).
   - Una tarjeta por apartado con lo que llevas guardado.
@@ -179,6 +193,8 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 ## 4. Diseño: qué se puede cambiar y qué no
 
 ### Lo más importante
+
+> **Nota (27 oct 2026):** con permiso de Vanessa, Víctor llevó el diseño un día para dejar un producto más terminado: los dos modos, el Home nuevo, letra, íconos y menú para celular. A partir de la reunión del 28 de octubre, la dirección vuelve a Vanessa y **todo eso se puede cambiar**.
 
 **Vanessa tiene la dirección creativa al 100%.** Ella decide qué se ve, cómo se ve, qué se agrega, qué se queda y qué se quita.
 
@@ -194,20 +210,22 @@ Esto es solo visual. Si algo sale mal, se regresa con un clic.
 
 | Qué | Dónde | Ejemplo |
 |---|---|---|
-| **Colores** de toda la app | `client/src/index.css` (dentro de `@theme`) | Cambiar el azul de marca por otro |
-| **Tipografía** | `client/src/index.css` (`--font-sans`) y `client/index.html` para cargar la fuente | Usar otra letra |
+| **Colores** de toda la app | `client/src/index.css` (dentro de `@theme`) | Cambiar el azul marino por otro |
+| **Color de cada modo** (morado / naranja) | `client/src/index.css`: `brand-*` en `@theme` es Business y `[data-mode='personal']` es Personal | Invertirlos, o usar otros colores |
+| **Tipografía** | Se instala con `npm install -w client @fontsource-variable/<letra>`, se carga en `client/src/main.tsx` y se nombra en `--font-sans` de `index.css` | Usar otra letra |
 | **Botones, tarjetas, etiquetas, ventanas** (todos a la vez) | `client/src/components/ui.tsx` | Botones cuadrados en lugar de redondos |
 | **Acomodo de cada pantalla**: orden, tamaños, espacios, columnas | `client/src/pages/*.tsx` | Poner Savings en dos columnas |
 | **Barra de arriba y menú** | `client/src/components/Layout.tsx` | Menú lateral en lugar de barra |
 | **Textos de la interfaz**: títulos, descripciones, botones, mensajes (en inglés) | En cada pantalla | "Outstanding" → "Owed to you" |
 | **Nombre de la app** | `client/src/lib/config.ts` (`APP_NAME`) | Otro nombre |
 | **Logo / ícono** | `client/public/favicon.svg` y `Layout.tsx` | Un logo nuevo |
-| **Íconos, ilustraciones, imágenes** | Nuevas, en `client/public/` | Ilustración para pantallas vacías |
+| **Íconos** | Vienen de [Lucide](https://lucide.dev/icons): se busca el nombre ahí y se importa de `lucide-react` en la pantalla | Cambiar el ícono de Savings |
+| **Ilustraciones, imágenes** | Nuevas, en `client/public/` | Ilustración para pantallas vacías |
 | **Pantallas vacías, de carga y de error** | En cada pantalla | Un dibujo cuando no hay facturas |
-| **Los ejemplos** de "Try saying" y las sugerencias del chat | `Overview.tsx` y `Copilot.tsx` (`suggestions`) | Ejemplos nuevos |
+| **Los ejemplos** de "Try asking" y las sugerencias del chat | `Overview.tsx` (`BUSINESS_PROMPTS`, `PERSONAL_PROMPTS`) y `Copilot.tsx` (`SUGGESTIONS`, `WELCOME`) | Ejemplos nuevos |
 | **El tutorial**: textos, orden, cuántos pasos, cómo se ve | Textos en `client/src/lib/tour.ts`, aspecto en `client/src/components/Tour.tsx` | Otro tono, otro personaje, más o menos pasos |
 | **Modo oscuro**, animaciones, transiciones | `index.css` y componentes | Agregar modo oscuro |
-| **Versión para celular** | Todas las pantallas | Menú hamburguesa |
+| **Versión para celular** | Todas las pantallas | Otro tipo de menú |
 
 ### 🟡 Amarillo: se puede, pero avísale a Víctor primero
 
@@ -219,6 +237,7 @@ Se ve como diseño, pero está conectado con cómo funciona la app.
 | **Quitar o mover botones de acción** (Send, Remind, Cancel, Delete, Set aside, Approve) | Cada uno hace algo real en PayPal o en los apartados |
 | **Cambiar los nombres de los estados** (Paid, Overdue…) | Se puede: los textos están en `client/src/lib/invoices.ts` (`displayStatus`). Pero cada estado tiene que seguir siendo distinto de los demás |
 | **Agregar una pantalla o sección nueva con datos** | Si muestra datos nuevos, hay que programarlos en el servidor |
+| **Mover una pantalla de un modo a otro** | Se hace en `client/src/lib/mode.ts` (`MODES`), pero hay que revisar el tutorial y los botones de Home que llevan a esa pantalla |
 | **Qué parte ilumina cada paso del tutorial** | Cada `target` en `tour.ts` debe coincidir con un `data-tour="..."` en la pantalla; si se borra ese `data-tour`, el paso sale al centro sin iluminar nada |
 | **Lo que dice la IA y cómo habla** | Vive en el servidor (`server/src/ai/copilot.ts`), no en la pantalla |
 | **Las monedas** (MXN, USD) y los plazos de pago | Están ligados a lo que acepta PayPal |
@@ -262,22 +281,25 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 
 **Colores actuales** (`client/src/index.css`):
 
-| Nombre | Color | Dónde se usa |
-|---|---|---|
-| `brand-900` | `#001c64` | Títulos sobre fondo azul claro |
-| `brand-800` | `#003087` | Barra de arriba |
-| `brand-600` | `#0070e0` | Botones principales, enlaces |
-| `brand-500` | `#1a85ff` | Detalles |
-| `brand-100` | `#e6f0fd` | Fondos suaves, etiquetas "info" |
-| `brand-50` | `#f2f7fe` | Recuadros destacados |
-| `canvas` | `#f5f7fa` | Fondo general |
-| `surface` | `#ffffff` | Tarjetas |
-| `line` | `#e3e7ed` | Bordes |
-| `ink` | `#001435` | Texto principal |
-| `ink-muted` | `#545d68` | Texto secundario (gris) |
-| `success` / `success-bg` | `#017a3f` / `#e6f4ec` | Pagado, mensajes de éxito |
-| `warning` / `warning-bg` | `#a35d00` / `#fff4e0` | Pendiente |
-| `danger` / `danger-bg` | `#c4002b` / `#fde8ec` | Vencido, errores |
+| Nombre | Business | Personal | Dónde se usa |
+|---|---|---|---|
+| `navy-900` | `#001c64` | (igual) | Barra de arriba y tarjeta grande de Home |
+| `brand-900` | `#2e1065` | `#7c2d12` | Textos sobre fondos de acento suave |
+| `brand-800` | `#4c1d95` | `#9a3412` | Letras dentro de los círculos de inicial |
+| `brand-600` | `#6d28d9` | `#c2410c` | Botones principales, enlaces, modo activo |
+| `brand-500` | `#8b5cf6` | `#f97316` | Brillo de la tarjeta grande, bordes al pasar el mouse |
+| `brand-100` | `#ede9fe` | `#ffedd5` | Fondos suaves, etiquetas "info" |
+| `brand-50` | `#f5f3ff` | `#fff7ed` | Avisos y recuadros destacados |
+| `canvas` | `#f5f7fa` | (igual) | Fondo general |
+| `surface` | `#ffffff` | (igual) | Tarjetas |
+| `line` | `#e3e7ed` | (igual) | Bordes y bloques de "cargando" |
+| `ink` | `#001435` | (igual) | Texto principal |
+| `ink-muted` | `#545d68` | (igual) | Texto secundario (gris) |
+| `success` / `success-bg` | `#017a3f` / `#e6f4ec` | (igual) | Pagado, mensajes de éxito |
+| `warning` / `warning-bg` | `#a35d00` / `#fff4e0` | (igual) | Pendiente |
+| `danger` / `danger-bg` | `#c4002b` / `#fde8ec` | (igual) | Vencido, errores |
+
+> El naranja de los botones (`#c2410c`) es oscuro a propósito: con un naranja más claro, el texto blanco encima casi no se lee.
 
 **De Figma al código:** si en Figma los colores, tamaños de letra y espaciados tienen **nombre** (por ejemplo "Primary / 600" o "Spacing / 24"), pasarlos al código es casi directo. Mientras más consistente sea Figma, más rápido se programa.
 
@@ -288,16 +310,13 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta para empezar. Vanessa decide cuáles se arreglan y cómo.
 
 **Generales**
-- **Explica poco qué es la app.** Ya hay un tutorial de bienvenida (primera versión), pero las pantallas por sí solas todavía no se explican.
-- **No está pensada para celular.** El menú de arriba no se acomoda en pantallas chicas.
-- **La tipografía no se carga:** el código pide **Inter**, pero no se descarga, así que se ve la letra del sistema.
-- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores son de ejemplo, inspirados en PayPal.
+- ~~Menú que no sirve en celular, letra que no se cargaba, sin íconos, Home con 3 números sueltos, ejemplos que no se podían presionar~~ → **arreglado en el PR #16**.
+- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores son de ejemplo (estilo PayPal + morado/naranja).
 - **Sin modo oscuro.**
-- **No hay íconos:** todo es texto.
+- El modo **Personal** tiene poco todavía (solo Savings). Lo que le falta lo decidirá la asesoría de finanzas.
 
-**Overview**
-- Son solo 3 números sin contexto: no se ve si vas mejor o peor que antes, ni qué hacer después.
-- Los ejemplos de "Try saying" **no se pueden presionar**, y uno menciona la factura #0007, que no existe.
+**Home**
+- No se ve si vas mejor o peor que el mes pasado.
 
 **Copilot**
 - No queda claro qué puede y qué no puede hacer la IA.
@@ -310,7 +329,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - La tabla en celular se desliza de lado.
 
 **Savings**
-- **El concepto confunde.** En las pruebas, Víctor pensó que la app había apartado dinero de verdad sin preguntarle. Hay que dejar muy claro que es una cuenta "de mentira" y que no se mueve dinero.
+- **El concepto confundía.** En las pruebas, Víctor pensó que la app había apartado dinero de verdad sin preguntarle. Ya hay un aviso de que es "virtual" en Home Personal y en Savings; falta ver si con eso basta.
 - Los porcentajes de ejemplo (Taxes 20%, Emergency fund 10%) aparecen desde el inicio sin explicar de dónde salen.
 - "Set aside" y "Not this time" podrían explicarse mejor.
 
@@ -328,6 +347,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 4 | Modo personal (apartados) | 5–7 nov | Víctor | ✅ Hecho (adelantado) |
 | 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ⏳ Por empezar |
 | 5b | Tutorial de bienvenida (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide textos y aspecto |
+| 5c | Modos Business / Personal y Home nuevo (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide desde el 28 oct |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -345,7 +365,6 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ¿Nombre final, logo y colores?
 
 ### Ideas guardadas para después (si sobra tiempo)
-- Que los ejemplos de "Try saying" se puedan presionar.
 - Autofacturación del SAT (CFDI) con Facturapi: investigado, **en pausa** hasta que el equipo decida.
 - Base de datos para que nada se pierda al reiniciar.
 - Login real, si el proyecto sigue después del hackathon.
@@ -369,6 +388,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #13 | Corrección de los papeles del equipo en la documentación |
 | #14 | Este documento |
 | #15 | Tutorial de bienvenida con el copiloto (sin IA, no gasta créditos) |
+| #16 | Modos Business (morado) y Personal (naranja), Home nuevo, letra Inter, íconos, menú para celular y avisos de "virtual" en Savings |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
@@ -382,6 +402,7 @@ Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal)
 | Backend / servidor | La cocina: hace el trabajo y guarda secretos | `server/`: Express + Node |
 | API | La ventanilla para pedirle cosas a otro sistema | Peticiones HTTP con JSON |
 | Sandbox | El PayPal de mentira para probar | `api-m.sandbox.paypal.com` |
+| Modo | Dos caras de la app: Business (cobrar) y Personal (organizar lo cobrado) | `data-mode` en `Layout.tsx`, configurado en `lib/mode.ts` |
 | Webhook | El timbre: PayPal avisa cuando pasa algo | `POST /webhooks/paypal` con firma verificada |
 | Token | Un pase temporal para hablar con PayPal | OAuth 2.0 *client credentials*, dura horas |
 | `.env` | El archivo secreto con las llaves | Variables de entorno, nunca se sube a git |

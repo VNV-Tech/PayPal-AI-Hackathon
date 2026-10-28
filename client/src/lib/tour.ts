@@ -1,11 +1,15 @@
+import type { Mode } from './mode'
+
 // Pasos del tutorial de bienvenida. Son mensajes escritos a mano: no usan la
 // IA ni gastan créditos.
 // Vanessa / Natalia: los textos se cambian aquí con toda libertad (en inglés).
+// - mode: modo al que cambia la app en ese paso (opcional).
 // - route: pantalla a la que se va el tutorial en ese paso (opcional).
 // - target: qué parte se ilumina; debe coincidir con un data-tour="..." en
 //   la pantalla. Sin target, el mensaje sale en el centro.
 export interface TourStep {
   id: string
+  mode?: Mode
   route?: string
   target?: string
   title: string
@@ -39,14 +43,24 @@ export const TOUR_STEPS: TourStep[] = [
     body: "I help freelancers get paid and keep track of their money. Let me show you around: it takes about a minute. This is a demo with test money (PayPal Sandbox), so feel free to try anything.",
   },
   {
-    id: 'overview',
+    id: 'modes',
+    mode: 'business',
     route: '/',
-    target: 'overview-stats',
+    target: 'mode-switch',
+    title: 'Two modes, two colors',
+    body: 'Purple is Business: billing your clients. Orange is Personal: organizing the money you get paid. Switch anytime up here.',
+  },
+  {
+    id: 'home',
+    mode: 'business',
+    route: '/',
+    target: 'home-hero',
     title: 'Your money at a glance',
-    body: 'What clients owe you, what you collected this month and what is overdue. It updates by itself the moment someone pays.',
+    body: 'What you collected this month, what clients still owe you and what is overdue. It updates by itself the moment someone pays.',
   },
   {
     id: 'invoices',
+    mode: 'business',
     route: '/invoices',
     target: 'invoices-new',
     title: 'Get paid with PayPal',
@@ -54,6 +68,7 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 'savings',
+    mode: 'personal',
     route: '/savings',
     target: 'savings-plan',
     title: 'Set money aside',
@@ -70,6 +85,6 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'done',
     route: '/copilot',
     title: "You're all set",
-    body: "Try one of the suggestions above, or write your own. You can see this tour again anytime with the Tour button at the top.",
+    body: 'Try one of the suggestions above, or write your own. You can see this tour again anytime with the Tour button at the top.',
   },
 ]
