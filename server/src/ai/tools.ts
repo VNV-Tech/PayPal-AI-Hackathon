@@ -1,6 +1,7 @@
 // Herramientas que Claude puede usar en el chat.
-// - Lectura (list_invoices, get_invoice): se ejecutan al momento.
-// - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice):
+// - Lectura (list_invoices, get_invoice, get_savings): se ejecutan al momento.
+// - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
+//   update_savings_plan):
 //   NUNCA se ejecutan directo. Se convierten en una propuesta que el usuario
 //   aprueba o rechaza desde una tarjeta en el chat.
 import type Anthropic from '@anthropic-ai/sdk';
@@ -17,6 +18,7 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
+import { getSavings, savePlan, savingsPlanSchema } from '../savings.js';
 
 const invoiceIdInput = {
   type: 'object',
@@ -101,9 +103,41 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     strict: true,
     input_schema: invoiceIdInput,
   },
+  {
+    name: 'get_savings',
+    description:
+      "Get the user's savings plan for this month: what they collected via PayPal, how much goes to each set-aside (e.g. taxes) and what is left to spend. Set-asides are virtual: no money moves.",
+    strict: true,
+    input_schema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'update_savings_plan',
+    description:
+      'Propose replacing the whole savings plan (max 6 set-asides, percentages add up to 100 or less). Include every set-aside to keep, not only the changed one. Requires user approval.',
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        buckets: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Short name, e.g. Taxes' },
+              percent: { type: 'number', description: 'Percent of each payment collected, 0 to 100' },
+            },
+            required: ['name', 'percent'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['buckets'],
+      additionalProperties: false,
+    },
+  },
 ];
 
-const ACTION_TOOLS = new Set(['create_invoice', 'send_invoice', 'send_reminder', 'cancel_invoice']);
+const ACTION_TOOLS = new Set(['create_invoice', 'send_invoice', 'send_reminder', 'cancel_invoice', 'update_savings_plan']);
 
 export function isActionTool(name: string): boolean {
   return ACTION_TOOLS.has(name);
@@ -149,6 +183,16 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
   if (name === 'get_invoice') {
     const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
     return JSON.stringify(forModel(await getInvoice(id)));
+  }
+  if (name === 'get_savings') {
+    const s = await getSavings();
+    const fmt = (list: { value: string; currency_code: string }[]) => list.map((m) => money(m.value, m.currency_code));
+    return JSON.stringify({
+      month: s.month,
+      collected: s.paid ? fmt(s.paid) : 'unavailable (PayPal did not return payments)',
+      set_asides: s.buckets.map((b) => ({ name: b.name, percent: b.percent, amount: fmt(b.amounts) })),
+      left_to_spend: fmt(s.available),
+    });
   }
   throw new Error(`Unknown tool ${name}`);
 }
@@ -221,6 +265,24 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         if (!raw.send_now) return `Draft invoice #${draft.number} created (id ${draft.id}). Not sent yet.`;
         const sent = await sendInvoice(draft.id);
         return `Invoice #${sent.number} created and emailed to ${sent.customer.email} (id ${sent.id}, status ${sent.status}).`;
+      },
+    };
+  }
+
+  if (name === 'update_savings_plan') {
+    const parsed = savingsPlanSchema.safeParse((input as { buckets: unknown }).buckets);
+    if (!parsed.success) throw new Error(`Invalid savings plan: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    const buckets = parsed.data;
+    const total = buckets.reduce((sum, b) => sum + b.percent, 0);
+    return {
+      title: 'Update savings plan',
+      details: [
+        ...buckets.map((b): [string, string] => [b.name, `${b.percent}%`]),
+        ['Left to spend', `${100 - total}%`],
+      ],
+      execute: async () => {
+        const saved = await savePlan(buckets);
+        return `Savings plan updated: ${saved.map((b) => `${b.name} ${b.percent}%`).join(', ')}.`;
       },
     };
   }

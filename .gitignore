@@ -13,3 +13,6 @@ dist/
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Datos locales del servidor (plan de ahorro)
+server/data/
