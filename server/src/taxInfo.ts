@@ -11,10 +11,17 @@
 //   pedirlos en su siguiente factura.
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
-import { env } from './config/env.js';
+import { env, publicUrl } from './config/env.js';
 import { publish } from './events.js';
 import { type CfdiRequest, createCfdi, emailCfdi, isFacturamaConfigured } from './facturama.js';
-import { type Money, getInvoice, getInvoiceWithItems } from './paypal/invoices.js';
+import {
+  type InvoiceSummary,
+  type Money,
+  type NewInvoice,
+  createDraftInvoice,
+  getInvoice,
+  getInvoiceWithItems,
+} from './paypal/invoices.js';
 import { jsonStore } from './store.js';
 
 // Catálogo c_RegimenFiscal del SAT (CFDI 4.0).
@@ -126,17 +133,24 @@ export async function listTaxRequests(): Promise<TaxRequest[]> {
 // Un solo link por factura: si ya existe, se devuelve el mismo. Si ya tenemos
 // los datos de este cliente, el link nace como "recibido" (se pueden corregir).
 export async function getOrCreateTaxRequest(invoiceId: string): Promise<TaxRequest> {
-  const data = await store.load();
-  const existing = data.requests.find((r) => r.invoiceId === invoiceId);
-  if (existing) return existing;
+  const existing = (await store.load()).requests.find((r) => r.invoiceId === invoiceId);
+  return existing ?? saveNewTaxRequest(await getInvoice(invoiceId), newToken());
+}
 
-  const inv = await getInvoice(invoiceId);
+const newToken = () => randomBytes(18).toString('base64url');
+
+export const taxLinkUrl = (token: string) => `${publicUrl}/factura/${token}`;
+
+// Si ya tenemos los datos de este cliente, el link nace como "recibido" (se
+// pueden corregir desde el mismo link).
+async function saveNewTaxRequest(inv: InvoiceSummary, token: string): Promise<TaxRequest> {
+  const data = await store.load();
   const customerEmail = emailKey(inv.customer.email);
   const known = customerEmail ? data.clients[customerEmail] : undefined;
   const now = new Date().toISOString();
   const request: TaxRequest = {
-    token: randomBytes(18).toString('base64url'),
-    invoiceId,
+    token,
+    invoiceId: inv.id,
     invoiceNumber: inv.number,
     customerEmail,
     amount: inv.amount,
@@ -149,11 +163,24 @@ export async function getOrCreateTaxRequest(invoiceId: string): Promise<TaxReque
   return request;
 }
 
+// Crea el borrador en PayPal con el link de datos fiscales en la nota. Así le
+// llega al cliente dentro del correo de PayPal, que ya conoce, y no en un
+// mensaje suelto. El link se crea antes porque va dentro de la factura.
+export async function createInvoiceWithTaxLink(input: NewInvoice): Promise<InvoiceSummary> {
+  const token = newToken();
+  const line = `¿Necesitas factura (CFDI)? Deja tus datos fiscales aquí: ${taxLinkUrl(token)}`;
+  const invoice = await createDraftInvoice({ ...input, note: input.note ? `${input.note}\n\n${line}` : line });
+  await saveNewTaxRequest(invoice, token);
+  return invoice;
+}
+
 // Lo que ve quien abre el link: sin los datos fiscales ya guardados.
 export async function getPublicTaxRequest(token: string) {
   const request = (await store.load()).requests.find((r) => r.token === token);
   if (!request) throw new TaxRequestNotFoundError('This link does not exist or has expired');
   return {
+    // Quién pide los datos, para que el cliente confíe.
+    issuer: env.BUSINESS_NAME ?? null,
     invoiceNumber: request.invoiceNumber,
     amount: request.amount,
     status: request.status,

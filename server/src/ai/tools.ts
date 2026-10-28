@@ -20,17 +20,18 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
-import { publicUrl } from '../config/env.js';
 import { decidePayment, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
 import {
   CFDI_USES,
   TAX_REGIMES,
+  createInvoiceWithTaxLink,
   describeTaxInfo,
   getOrCreateTaxRequest,
   issueCfdi,
   prepareCfdi,
   saveClientTaxInfo,
   taxInfoSchema,
+  taxLinkUrl,
 } from '../taxInfo.js';
 
 const invoiceIdInput = {
@@ -93,8 +94,13 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
         terms: { type: 'string', enum: [...PAYMENT_TERMS] },
         note: { type: 'string', description: 'Note to the client, or empty string' },
         send_now: { type: 'boolean', description: 'Email it to the client right after approval' },
+        cfdi_link: {
+          type: 'boolean',
+          description:
+            "Add to the invoice note a link where the client can request a Mexican tax invoice (CFDI). Use true for MXN invoices unless the user says the client doesn't need one.",
+        },
       },
-      required: ['customer_name', 'customer_email', 'company', 'items', 'currency', 'terms', 'note', 'send_now'],
+      required: ['customer_name', 'customer_email', 'company', 'items', 'currency', 'terms', 'note', 'send_now', 'cfdi_link'],
       additionalProperties: false,
     },
   },
@@ -278,7 +284,7 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
     const request = await getOrCreateTaxRequest(id);
     return JSON.stringify({
       invoice_number: request.invoiceNumber,
-      link: `${publicUrl}/factura/${request.token}`,
+      link: taxLinkUrl(request.token),
       status: request.status === 'received' ? 'tax info received' : 'waiting for the client',
       tax_info: request.taxInfo ?? null,
       cfdi: request.cfdi
@@ -327,6 +333,7 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
       terms: string;
       note: string;
       send_now: boolean;
+      cfdi_link: boolean;
     };
     const parsed = newInvoiceSchema.safeParse({
       customer: { name: raw.customer_name, email: raw.customer_email, ...(raw.company?.trim() ? { company: raw.company } : {}) },
@@ -351,9 +358,10 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         ['Total', money(total, inv.currency)],
         ['Due', TERMS_LABEL[inv.terms] ?? inv.terms],
         ...(inv.note ? [['Note', inv.note] as [string, string]] : []),
+        ...(raw.cfdi_link ? [['CFDI', 'Link for the client to request one'] as [string, string]] : []),
       ],
       execute: async () => {
-        const draft = await createDraftInvoice(inv);
+        const draft = await (raw.cfdi_link ? createInvoiceWithTaxLink(inv) : createDraftInvoice(inv));
         if (!raw.send_now) return `Draft invoice #${draft.number} created (id ${draft.id}). Not sent yet.`;
         const sent = await sendInvoice(draft.id);
         return `Invoice #${sent.number} created and emailed to ${sent.customer.email} (id ${sent.id}, status ${sent.status}).`;

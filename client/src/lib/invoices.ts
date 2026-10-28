@@ -42,6 +42,7 @@ export interface NewInvoice {
   currency: (typeof CURRENCIES)[number]
   terms: (typeof PAYMENT_TERMS)[number][0]
   note?: string
+  taxLink?: boolean // agrega a la nota el link para pedir factura fiscal (CFDI)
 }
 
 export type InvoiceAction = 'send' | 'remind' | 'cancel' | 'delete'

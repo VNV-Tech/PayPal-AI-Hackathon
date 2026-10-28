@@ -81,6 +81,7 @@ export interface TaxRequest {
 }
 
 export interface PublicTaxRequest {
+  issuer: string | null // nombre del negocio que pide los datos
   invoiceNumber: string | null
   amount: Money | null
   status: 'waiting' | 'received'

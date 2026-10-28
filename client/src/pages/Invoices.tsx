@@ -88,6 +88,8 @@ export function Invoices() {
     setCreating(false)
     setInvoices((list) => [inv, ...(list ?? [])])
     setNotice(`Draft #${inv.number} created. Nothing was sent yet: press Send when you're ready.`)
+    // Por si se creó con link de datos fiscales: así aparece en la tabla.
+    reload()
   }
 
   function onActionDone(id: string, action: InvoiceAction, updated: Invoice | null) {
@@ -623,6 +625,8 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
   const [currency, setCurrency] = useState<NewInvoice['currency']>('MXN')
   const [terms, setTerms] = useState<NewInvoice['terms']>('NET_15')
   const [note, setNote] = useState('')
+  // Factura fiscal (CFDI): solo aplica a clientes de México, o sea, facturas en MXN.
+  const [taxLink, setTaxLink] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -643,6 +647,7 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
         currency,
         terms,
         ...(note.trim() ? { note: note.trim() } : {}),
+        ...(currency === 'MXN' && taxLink ? { taxLink: true } : {}),
       })
       onCreated(inv)
     } catch (err) {
@@ -730,6 +735,24 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
         <span className="mb-1 block text-ink-muted">Note to client (optional)</span>
         <textarea maxLength={1000} rows={2} value={note} onChange={(e) => setNote(e.target.value)} className={inputClass} />
       </label>
+
+      {currency === 'MXN' && (
+        <label className="flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3 text-sm">
+          <input
+            type="checkbox"
+            checked={taxLink}
+            onChange={(e) => setTaxLink(e.target.checked)}
+            className="mt-0.5 size-4 accent-brand-600"
+          />
+          <span>
+            <span className="font-medium">Let my client request a CFDI</span>
+            <span className="block text-xs text-ink-muted">
+              Adds a link to the PayPal email so your client can leave their Mexican tax info. Only the first time: we
+              remember it.
+            </span>
+          </span>
+        </label>
+      )}
 
       <p className="flex justify-between border-t border-line pt-4 text-sm">
         <span className="text-ink-muted">Total</span>

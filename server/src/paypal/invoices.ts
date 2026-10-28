@@ -3,6 +3,7 @@
 // la API REST con paypalFetch.
 // Docs: https://developer.paypal.com/docs/api/invoicing/v2/
 import { z } from 'zod';
+import { env } from '../config/env.js';
 import { PayPalError, paypalFetch } from './client.js';
 
 export const PAYMENT_TERMS = ['DUE_ON_RECEIPT', 'NET_10', 'NET_15', 'NET_30', 'NET_45', 'NET_60'] as const;
@@ -28,6 +29,8 @@ export const newInvoiceSchema = z.object({
   currency: z.enum(CURRENCIES).default('MXN'),
   terms: z.enum(PAYMENT_TERMS).default('NET_15'),
   note: z.string().trim().max(1000).optional(),
+  // Agrega a la nota el link para que el cliente pida su factura fiscal (CFDI).
+  taxLink: z.boolean().optional(),
 });
 
 export type NewInvoice = z.infer<typeof newInvoiceSchema>;
@@ -220,6 +223,7 @@ export async function createDraftInvoice(input: NewInvoice): Promise<InvoiceSumm
     method: 'POST',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify({
+      ...(env.BUSINESS_NAME ? { invoicer: { business_name: env.BUSINESS_NAME } } : {}),
       detail: {
         currency_code: input.currency,
         payment_term: { term_type: input.terms },

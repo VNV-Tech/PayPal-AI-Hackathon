@@ -52,7 +52,15 @@ export function TaxForm() {
           Datos para tu factura
         </h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Llena tus datos fiscales para recibir tu factura (CFDI) de este pago. Solo te los pedimos una vez.
+          {request?.issuer ? (
+            <>
+              <strong className="text-ink">{request.issuer}</strong> te pide estos datos para emitir tu factura (CFDI) de
+              este pago.
+            </>
+          ) : (
+            'Quien te cobró este pago te pide estos datos para emitir tu factura (CFDI).'
+          )}{' '}
+          Solo te los pedimos una vez.
         </p>
 
         {loadError ? (
@@ -228,6 +236,14 @@ function TaxInfoForm({ token, onSaved }: { token: string; onSaved: () => void })
         <Button type="submit" disabled={busy} className="w-full">
           {busy ? 'Guardando…' : 'Enviar mis datos'}
         </Button>
+
+        {/* Aviso de privacidad corto. En México es obligatorio al pedir datos personales;
+            el texto completo queda pendiente de revisar si el proyecto sigue. */}
+        <p className="text-xs leading-relaxed text-ink-muted">
+          <strong>Aviso de privacidad:</strong> usamos tus datos solo para emitir tus facturas de este proveedor y los
+          guardamos para no volver a pedírtelos. No los compartimos con nadie más, salvo con el SAT a través del
+          proveedor autorizado que sella la factura. Puedes pedir que los corrijamos o borremos cuando quieras.
+        </p>
       </form>
     </Card>
   )
