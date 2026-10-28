@@ -130,6 +130,12 @@ export async function listTaxRequests(): Promise<TaxRequest[]> {
   return (await store.load()).requests;
 }
 
+// Correos de clientes cuyos datos fiscales ya tenemos (la guía lo usa para
+// saber que no hay que volver a pedirlos).
+export async function listKnownClients(): Promise<string[]> {
+  return Object.keys((await store.load()).clients);
+}
+
 // Un solo link por factura: si ya existe, se devuelve el mismo. Si ya tenemos
 // los datos de este cliente, el link nace como "recibido" (se pueden corregir).
 export async function getOrCreateTaxRequest(invoiceId: string): Promise<TaxRequest> {

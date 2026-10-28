@@ -290,7 +290,12 @@ function InvoiceTable({
                       </a>
                     )}
                     {inv.status !== 'DRAFT' && (
-                      <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => onTaxInfo(inv)}>
+                      <Button
+                        variant="ghost"
+                        data-tour={`tax-${inv.id}`}
+                        className="px-3 py-1.5 text-xs"
+                        onClick={() => onTaxInfo(inv)}
+                      >
                         <Receipt aria-hidden className="size-3.5" />
                         Tax info
                       </Button>
@@ -298,6 +303,7 @@ function InvoiceTable({
                     {availableActions(inv.status).map((action) => (
                       <Button
                         key={action}
+                        data-tour={`${action}-${inv.id}`}
                         variant={action === 'send' ? 'primary' : 'ghost'}
                         className="px-3 py-1.5 text-xs"
                         onClick={() => onAction(inv, action)}

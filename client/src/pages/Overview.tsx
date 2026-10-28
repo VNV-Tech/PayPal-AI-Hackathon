@@ -1,14 +1,17 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, RefreshCw, Sparkles, Wallet } from 'lucide-react'
+import { Guide } from '../components/Guide'
 import { Badge, Button, Card, Notice, Skeleton } from '../components/ui'
 import { type Suggestion, chatApi } from '../lib/chat'
 import { currentMonthName, formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import { type Invoice, displayStatus, invoicesApi } from '../lib/invoices'
+import { businessJourney, personalJourney } from '../lib/journey'
 import { useMode } from '../lib/mode'
 import { type RecentPayment, formatTotals, overviewApi, plural, sumTotals } from '../lib/overview'
 import { type Savings, savingsApi } from '../lib/savings'
+import { type TaxRequest, taxInfoApi } from '../lib/taxInfo'
 
 // Pantalla de inicio. Cada modo tiene la suya: Business (cobrar a clientes) y
 // Personal (organizar lo que te pagan).
@@ -48,7 +51,12 @@ function useHomeData<T>(load: () => Promise<T>) {
 
 // Si fallan las sugerencias del copiloto, el resto de la pantalla se muestra igual.
 const loadSuggestions = () => chatApi.suggestions().then((r) => r.suggestions, () => [] as Suggestion[])
-const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions()])
+const loadTaxInfo = () =>
+  taxInfoApi.list().then(
+    (r) => r,
+    () => ({ requests: [] as TaxRequest[], knownClients: [] as string[] }),
+  )
+const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions(), loadTaxInfo()])
 const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get(), loadSuggestions()])
 
 const BUSINESS_PROMPTS = [
@@ -65,7 +73,7 @@ const PERSONAL_PROMPTS = [
 
 function BusinessHome() {
   const { data, error, reload } = useHomeData(loadBusiness)
-  const [overview, page, suggestions] = data ?? [null, null, []]
+  const [overview, page, suggestions, taxInfo] = data ?? [null, null, [], null]
   const paid = overview?.paidThisMonth
 
   return (
@@ -78,6 +86,12 @@ function BusinessHome() {
       />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
+      {page && taxInfo && (
+        <Guide
+          title="Bill, get paid and send the CFDI"
+          steps={businessJourney(page.invoices, taxInfo.requests, taxInfo.knownClients)}
+        />
+      )}
 
       <Hero
         label={`Collected in ${currentMonthName()}`}
@@ -150,6 +164,7 @@ function PersonalHome() {
       />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
+      {savings && <Guide title="Keep part of every payment" steps={personalJourney(savings)} />}
 
       <Notice className="mb-4">
         Set-asides are <strong>virtual</strong>: your money stays in your PayPal account. They're a plan to help you budget.

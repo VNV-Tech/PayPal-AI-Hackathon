@@ -156,6 +156,18 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Personal:** aviso de que los apartados son virtuales, **lo que te queda para gastar** (número grande), aviso si hay pagos por revisar, **lo apartado** este mes y los **últimos pagos** recibidos.
 - **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 
+### La guía "Your next step" (sin IA, gratis)
+- **Archivos:** las reglas y los textos en `client/src/lib/journey.ts`; cómo se ve, en `client/src/components/Guide.tsx`. Está arriba en los dos Home.
+- **🍎 En simple:** es como un **GPS**. El tutorial te enseña la casa una vez; la guía **mira en qué vas tú** y te dice el siguiente paso cada vez que entras.
+  - **Business:** 1. Crea una factura → 2. Envíala → 3. Cobra → 4. Pide sus datos fiscales → 5. Manda su factura (CFDI).
+  - **Personal:** 1. Arma tu plan → 2. Cobra → 3. Aparta parte de un pago.
+  - Cada paso se palomea solo. El paso actual explica **qué hacer, con datos reales** (*"Draft #0012 para Juan está listo: envíalo"*) y **por qué importa**.
+  - **Show me** te lleva a la pantalla e **ilumina el botón exacto** que hay que presionar. Usa el mismo efecto del tutorial.
+  - Con el camino completo, cambia a **"Next up"** si queda algo pendiente (por ejemplo, una factura pagada sin CFDI). Si no queda nada, dice "You did the whole flow 🎉". Se puede encoger con la flecha.
+- **No gasta créditos:** son reglas fijas que leen datos que la app ya tiene.
+- **Quién habla cuándo**, para que no sea ruido: la **guía** vive en Home y siempre está; el **copiloto** solo aparece cuando pasa algo importante (te pagaron); el **tutorial** sale solo la primera vez o con el botón Tour.
+- **🔧 En técnico:** `businessJourney` y `personalJourney` devuelven los pasos (`done`, `todo`, `hint`, `showMe`). "Show me" usa `showMe` del contexto del Layout (`useShowMe` en `lib/mode.ts`), que abre `Tour` con un solo paso. Los botones de cada factura tienen `data-tour="send-<id>"`, `remind-<id>`, `tax-<id>`, etc. `GET /api/tax-info` ahora también devuelve `knownClients` (correos con datos fiscales guardados).
+
 ### El copiloto da el primer paso (proactivo)
 - **Archivos:** `server/src/ai/proactive.ts` (cuándo y con qué datos), `createSuggestion` en `server/src/ai/copilot.ts`, el aviso en `client/src/components/Layout.tsx` y la tarjeta "From your copilot" en `client/src/pages/Overview.tsx`.
 - **🍎 En simple:** antes, la IA solo trabajaba si tú le escribías. Ahora, **cuando un cliente te paga**, el copiloto se da cuenta solo y te prepara lo que sigue:
@@ -388,6 +400,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5e | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba) y mandarlo por correo | — | Víctor | ✅ Hecho |
 | 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ✅ Hecho |
 | 5g | El copiloto da el primer paso cuando te pagan (proactivo) | — | Víctor | ✅ Hecho |
+| 5h | Guía "Your next step" en Home (sin IA) | — | Víctor | ✅ Primera versión; Vanessa decide cómo se ve |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -436,6 +449,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #18 | Facturas fiscales nivel 2: emitir el CFDI con Facturama (prueba), mandarlo por correo y descargar PDF/XML |
 | #19 | El link de datos fiscales va dentro del correo de PayPal; la página dice quién pide los datos y trae aviso de privacidad |
 | #20 | El copiloto da el primer paso: cuando te pagan, te propone emitir la factura y apartar parte del pago |
+| #21 | Guía "Your next step": el camino de cada modo, el siguiente paso con datos reales y "Show me" que ilumina qué presionar |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
