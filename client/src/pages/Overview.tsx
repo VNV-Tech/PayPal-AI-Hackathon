@@ -79,7 +79,7 @@ export function Overview() {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div data-tour="overview-stats" className="grid gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <Card key={s.label}>
             <p className="text-sm font-medium text-ink-muted">{s.label}</p>

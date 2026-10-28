@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { APP_NAME } from '../lib/config'
+import { isTourDone } from '../lib/tour'
+import { Tour } from './Tour'
 
 const navItems = [
   { to: '/', label: 'Overview', end: true },
@@ -9,6 +12,9 @@ const navItems = [
 ]
 
 export function Layout() {
+  // El tutorial se abre solo la primera vez; después, con el botón Tour.
+  const [tourOpen, setTourOpen] = useState(() => !isTourDone())
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 bg-brand-800 text-white">
@@ -33,15 +39,26 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          <span className="ml-auto rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide uppercase">
-            Sandbox
-          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTourOpen(true)}
+              className="rounded-full px-3 py-1 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              Tour
+            </button>
+            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide uppercase">
+              Sandbox
+            </span>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Outlet />
       </main>
+
+      {tourOpen && <Tour onClose={() => setTourOpen(false)} />}
     </div>
   )
 }

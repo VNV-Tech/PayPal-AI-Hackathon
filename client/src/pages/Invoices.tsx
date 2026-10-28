@@ -74,7 +74,9 @@ export function Invoices() {
             <Button variant="ghost" onClick={reload}>
               Refresh
             </Button>
-            <Button onClick={() => setCreating(true)}>New invoice</Button>
+            <Button data-tour="invoices-new" onClick={() => setCreating(true)}>
+              New invoice
+            </Button>
           </div>
         }
       />

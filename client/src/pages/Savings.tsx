@@ -51,7 +51,7 @@ export function Savings() {
             <Button variant="ghost" onClick={reload}>
               Refresh
             </Button>
-            <Button onClick={() => setEditing(true)} disabled={!data}>
+            <Button data-tour="savings-plan" onClick={() => setEditing(true)} disabled={!data}>
               Edit plan
             </Button>
           </div>
