@@ -7,15 +7,12 @@
 // el disco se borra al redesplegar; aceptable para la demo hasta que haya base
 // de datos.
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import type { Money } from './paypal/invoices.js';
 import { getPaymentsThisMonth, sumByCurrency } from './paypal/overview.js';
 import type { ReceivedPayment } from './paypal/transactions.js';
+import { jsonStore } from './store.js';
 
-const DATA_PATH = fileURLToPath(new URL('../data/savings.json', import.meta.url));
 const MAX_DECISIONS = 1000; // se olvidan las más viejas
 
 export const savingsPlanSchema = z
@@ -64,35 +61,14 @@ const DEFAULT_PLAN: SavingsBucket[] = [
 
 export class PaymentNotFoundError extends Error {}
 
-let data: SavingsData | null = null;
-
-async function load(): Promise<SavingsData> {
-  if (data) return data;
-  try {
-    const raw = JSON.parse(await readFile(DATA_PATH, 'utf8'));
-    // La primera versión guardaba solo el plan (un arreglo).
-    data = Array.isArray(raw) ? { plan: raw, decisions: {} } : raw;
-  } catch {
-    // No existe todavía (o está dañado): se empieza con los valores de ejemplo.
-    data = { plan: DEFAULT_PLAN, decisions: {} };
-  }
-  return data!;
-}
-
-// Las escrituras van en fila para que dos clics seguidos no se pisen.
-let writing = Promise.resolve();
-function persist(next: SavingsData): Promise<void> {
-  data = next;
-  writing = writing.then(async () => {
-    await mkdir(dirname(DATA_PATH), { recursive: true });
-    // Archivo temporal + renombrar: si el servidor se apaga a la mitad, el
-    // archivo anterior queda intacto.
-    const tmp = `${DATA_PATH}.tmp`;
-    await writeFile(tmp, JSON.stringify(next, null, 2));
-    await rename(tmp, DATA_PATH);
-  });
-  return writing;
-}
+const store = jsonStore<SavingsData>('savings.json', (raw) => {
+  // No existe todavía (o está dañado): se empieza con los valores de ejemplo.
+  if (!raw) return { plan: DEFAULT_PLAN, decisions: {} };
+  // La primera versión guardaba solo el plan (un arreglo).
+  return Array.isArray(raw) ? { plan: raw, decisions: {} } : (raw as SavingsData);
+});
+const load = store.load;
+const persist = store.save;
 
 // Cambiar el plan solo afecta a los pagos que se respondan después; lo ya
 // apartado se queda como estaba.

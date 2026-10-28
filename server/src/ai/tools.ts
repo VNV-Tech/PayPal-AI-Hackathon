@@ -1,7 +1,9 @@
 // Herramientas que Claude puede usar en el chat.
-// - Lectura (list_invoices, get_invoice, get_savings): se ejecutan al momento.
+// - Lectura (list_invoices, get_invoice, get_savings, get_tax_info_link): se
+//   ejecutan al momento. get_tax_info_link puede crear el link, pero eso no
+//   cambia nada en PayPal ni le avisa al cliente.
 // - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
-//   update_savings_plan, review_payment):
+//   update_savings_plan, review_payment, save_tax_info):
 //   NUNCA se ejecutan directo. Se convierten en una propuesta que el usuario
 //   aprueba o rechaza desde una tarjeta en el chat.
 import type Anthropic from '@anthropic-ai/sdk';
@@ -18,7 +20,9 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
+import { publicUrl } from '../config/env.js';
 import { decidePayment, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
+import { CFDI_USES, TAX_REGIMES, describeTaxInfo, getOrCreateTaxRequest, saveClientTaxInfo, taxInfoSchema } from '../taxInfo.js';
 
 const invoiceIdInput = {
   type: 'object',
@@ -150,6 +154,33 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: 'get_tax_info_link',
+    description:
+      "Mexican tax invoices (CFDI): get the link where the client of an invoice fills in their tax info (RFC, legal name, tax regime, ZIP code, CFDI use), and whether they already did. Creates the link the first time; it does not notify the client, the user shares it. Issuing (stamping) the CFDI itself is not available yet.",
+    strict: true,
+    input_schema: invoiceIdInput,
+  },
+  {
+    name: 'save_tax_info',
+    description:
+      "Propose saving a client's Mexican tax info (for CFDI) that the user gave you in the chat. It is reused for that client's future invoices and completes their pending links. Never guess any field: ask for what is missing. Requires user approval.",
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        customer_email: { type: 'string', description: "The client's email as it appears on their PayPal invoices" },
+        rfc: { type: 'string', description: 'RFC, 12 characters (company) or 13 (person)' },
+        legal_name: { type: 'string', description: 'Razón social exactly as in their Constancia de Situación Fiscal, without "S.A. de C.V."' },
+        tax_regime: { type: 'string', enum: Object.keys(TAX_REGIMES), description: 'SAT régimen fiscal code' },
+        zip_code: { type: 'string', description: '5-digit ZIP code of their tax address' },
+        cfdi_use: { type: 'string', enum: Object.keys(CFDI_USES), description: 'Uso de CFDI; G03 (general expenses) is the usual one for services' },
+        invoice_email: { type: 'string', description: 'Email where the client wants to receive the CFDI' },
+      },
+      required: ['customer_email', 'rfc', 'legal_name', 'tax_regime', 'zip_code', 'cfdi_use', 'invoice_email'],
+      additionalProperties: false,
+    },
+  },
 ];
 
 const ACTION_TOOLS = new Set([
@@ -159,6 +190,7 @@ const ACTION_TOOLS = new Set([
   'cancel_invoice',
   'update_savings_plan',
   'review_payment',
+  'save_tax_info',
 ]);
 
 export function isActionTool(name: string): boolean {
@@ -222,6 +254,17 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
       })),
       set_aside_this_month: s.buckets.map((b) => ({ name: b.name, amount: fmt(b.amounts) })),
       left_to_spend: fmt(s.available),
+    });
+  }
+  if (name === 'get_tax_info_link') {
+    const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
+    const request = await getOrCreateTaxRequest(id);
+    return JSON.stringify({
+      invoice_number: request.invoiceNumber,
+      link: `${publicUrl}/factura/${request.token}`,
+      status: request.status === 'received' ? 'tax info received' : 'waiting for the client',
+      tax_info: request.taxInfo ?? null,
+      cfdi_stamping: 'not available yet',
     });
   }
   throw new Error(`Unknown tool ${name}`);
@@ -337,6 +380,35 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         return setAside
           ? `Set aside from the ${amount} payment: ${allocations.join(', ')}.`
           : `Nothing set aside from the ${amount} payment.`;
+      },
+    };
+  }
+
+  if (name === 'save_tax_info') {
+    const raw = input as {
+      customer_email: string;
+      rfc: string;
+      legal_name: string;
+      tax_regime: string;
+      zip_code: string;
+      cfdi_use: string;
+      invoice_email: string;
+    };
+    const parsed = taxInfoSchema.safeParse({
+      rfc: raw.rfc,
+      name: raw.legal_name,
+      regime: raw.tax_regime,
+      zip: raw.zip_code,
+      use: raw.cfdi_use,
+      email: raw.invoice_email,
+    });
+    if (!parsed.success) throw new Error(`Invalid tax info: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
+    return {
+      title: 'Save client tax info (CFDI)',
+      details: [['Client', raw.customer_email], ...describeTaxInfo(parsed.data)],
+      execute: async () => {
+        const completed = await saveClientTaxInfo(raw.customer_email, parsed.data);
+        return `Tax info saved for ${raw.customer_email}${completed ? `; ${completed} pending link(s) completed` : ''}.`;
       },
     };
   }

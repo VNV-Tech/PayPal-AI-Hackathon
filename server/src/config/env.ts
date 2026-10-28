@@ -16,6 +16,10 @@ const envSchema = z.object({
   // Orígenes permitidos para CORS en desarrollo (Vite). En producción el
   // cliente se sirve desde el mismo origen y no se necesita CORS.
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
+  // Dirección pública de la app, para los links que se comparten (por
+  // ejemplo, el de datos fiscales). Render la da sola en RENDER_EXTERNAL_URL.
+  PUBLIC_URL: z.url().optional(),
+  RENDER_EXTERNAL_URL: z.url().optional(),
 
   // Salvaguarda: este proyecto es de hackathon y solo opera en Sandbox, en
   // cualquier entorno (local o Render). No existe forma de apuntar a live.
@@ -55,3 +59,4 @@ if (parsed.data.NODE_ENV === 'production' && parsed.data.PAYPAL_SKIP_WEBHOOK_VER
 
 export const env = parsed.data;
 export const isProduction = env.NODE_ENV === 'production';
+export const publicUrl = (env.PUBLIC_URL ?? env.RENDER_EXTERNAL_URL ?? env.CLIENT_ORIGIN).replace(/\/$/, '');

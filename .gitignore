@@ -14,5 +14,5 @@ dist/
 !.vscode/extensions.json
 .idea/
 
-# Datos locales del servidor (plan de ahorro)
+# Datos locales del servidor (apartados y datos fiscales)
 server/data/

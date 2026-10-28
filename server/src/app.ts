@@ -12,6 +12,7 @@ import healthRoutes from './routes/health.js';
 import invoiceRoutes from './routes/invoices.js';
 import overviewRoutes from './routes/overview.js';
 import savingsRoutes from './routes/savings.js';
+import taxInfoRoutes from './routes/taxInfo.js';
 import webhookRoutes from './routes/webhooks.js';
 
 export function createApp() {
@@ -57,6 +58,7 @@ export function createApp() {
   app.use('/api', invoiceRoutes);
   app.use('/api', overviewRoutes);
   app.use('/api', savingsRoutes);
+  app.use('/api', taxInfoRoutes);
   app.use('/api', eventRoutes);
   app.use('/api', chatRoutes);
   app.use('/api', notFound);
