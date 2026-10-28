@@ -200,6 +200,7 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 - **Facturas del SAT, nivel 2** (PR #18): con un clic, **Facturama** (en modo prueba) sella la factura y **le llega al cliente por correo**, con PDF y XML. La cuenta de Facturama la configuró Claude por la API, porque su formulario no aceptaba el código postal de prueba. **Lo probaste y te llegó la factura a tu correo** (no a spam). ✅
 - **El link va dentro del correo de PayPal** (PR #19): al crear una factura en pesos, la nota dice *"¿Necesitas factura? Deja tus datos aquí"*. La página dice **quién** pide los datos (`BUSINESS_NAME`) y trae un aviso de privacidad.
 - **El copiloto da el primer paso** (PR #20): cuando te pagan, la IA se da cuenta sola y te propone emitir la factura y apartar tus impuestos. Tú solo apruebas. Tarda unos 5 segundos.
+- **Memoria del proyecto** (PR #22 y #23): esta bitácora diaria y un archivo `CLAUDE.md` en la raíz, que Claude lee solo al abrirse. Así cada día arranca sabiendo las reglas, cómo prender todo y dónde quedamos. Si Vanessa o Natalia usan Claude, también les sirve.
 - **La guía que te acompaña** (PR #21): un "GPS" sin IA que sigue a tu factura más reciente (envíala → espera el pago → pide datos → emite el CFDI). Va en todas las pantallas, tiene **"Show me"**, que ilumina el botón exacto, y se puede apagar cuando ya te acostumbraste.
 
 **Decisiones del día:**

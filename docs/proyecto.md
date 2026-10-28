@@ -468,6 +468,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #19 | El link de datos fiscales va dentro del correo de PayPal; la página dice quién pide los datos y trae aviso de privacidad |
 | #20 | El copiloto da el primer paso: cuando te pagan, te propone emitir la factura y apartar parte del pago |
 | #21 | Guía que acompaña en todo el proceso: sigue a tu factura más reciente, burbuja en todas las pantallas, "Show me" ilumina qué presionar, "Still to do" y se puede apagar |
+| #22 | Bitácora diaria en `guia-lo-que-se-hizo.md` |
+| #23 | `CLAUDE.md`: reglas y cómo arrancar, para que Claude retome el proyecto cada día |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
