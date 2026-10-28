@@ -1,6 +1,7 @@
 import type { IncomingHttpHeaders } from 'node:http';
 import express, { Router } from 'express';
 import { env } from '../config/env.js';
+import { onInvoicePaid } from '../ai/proactive.js';
 import { publish } from '../events.js';
 import { paypalFetch } from '../paypal/client.js';
 
@@ -119,6 +120,9 @@ async function processWebhook(rawBody: string, headers: IncomingHttpHeaders): Pr
       invoiceNumber: invoice?.detail?.invoice_number,
       status: invoice?.status,
     });
+    if (event.event_type === 'INVOICING.INVOICE.PAID' && invoice?.id) {
+      onInvoicePaid(invoice.id, invoice.detail?.invoice_number);
+    }
   } else if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
     publish({ type: 'payment.received', paypalEvent: event.event_type });
   }

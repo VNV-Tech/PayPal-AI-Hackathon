@@ -79,7 +79,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/copilot',
     target: 'copilot-input',
     title: 'Or just ask me',
-    body: 'I can draft invoices, tell you who owes you and send reminders. Before I do anything, I show you a card and wait for you to press Approve.',
+    body: "I can draft invoices, tell you who owes you and send reminders. And when a client pays, I'll come to you with what to do next. Before I do anything, I show you a card and wait for you to press Approve.",
   },
   {
     id: 'done',

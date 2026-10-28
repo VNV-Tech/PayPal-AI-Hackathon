@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, RefreshCw, Sparkles, Wallet } from 'lucide-react'
 import { Badge, Button, Card, Notice, Skeleton } from '../components/ui'
+import { type Suggestion, chatApi } from '../lib/chat'
 import { currentMonthName, formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import { type Invoice, displayStatus, invoicesApi } from '../lib/invoices'
@@ -45,8 +46,10 @@ function useHomeData<T>(load: () => Promise<T>) {
   return { data, error, reload }
 }
 
-const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1)])
-const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get()])
+// Si fallan las sugerencias del copiloto, el resto de la pantalla se muestra igual.
+const loadSuggestions = () => chatApi.suggestions().then((r) => r.suggestions, () => [] as Suggestion[])
+const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions()])
+const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get(), loadSuggestions()])
 
 const BUSINESS_PROMPTS = [
   'Who still owes me money?',
@@ -62,7 +65,7 @@ const PERSONAL_PROMPTS = [
 
 function BusinessHome() {
   const { data, error, reload } = useHomeData(loadBusiness)
-  const [overview, page] = data ?? [null, null]
+  const [overview, page, suggestions] = data ?? [null, null, []]
   const paid = overview?.paidThisMonth
 
   return (
@@ -74,6 +77,7 @@ function BusinessHome() {
         onRefresh={reload}
       />
       {error && <LoadError message={error} onRetry={reload} />}
+      <CopilotSuggestion suggestions={suggestions} />
 
       <Hero
         label={`Collected in ${currentMonthName()}`}
@@ -132,7 +136,7 @@ function BusinessHome() {
 
 function PersonalHome() {
   const { data, error, reload } = useHomeData(loadPersonal)
-  const [savings, overview] = data ?? [null, null]
+  const [savings, overview, suggestions] = data ?? [null, null, []]
   const setAside = savings ? sumTotals(savings.buckets.flatMap((b) => b.amounts)) : []
   const pending = savings?.pending.length ?? 0
 
@@ -145,6 +149,7 @@ function PersonalHome() {
         onRefresh={reload}
       />
       {error && <LoadError message={error} onRetry={reload} />}
+      <CopilotSuggestion suggestions={suggestions} />
 
       <Notice className="mb-4">
         Set-asides are <strong>virtual</strong>: your money stays in your PayPal account. They're a plan to help you budget.
@@ -259,6 +264,35 @@ function LoadError({ message, onRetry }: { message: string; onRetry: () => void 
         Try again
       </Button>
     </p>
+  )
+}
+
+// Lo último que el copiloto preparó por su cuenta y sigue esperando respuesta.
+function CopilotSuggestion({ suggestions }: { suggestions: Suggestion[] }) {
+  const latest = suggestions.find((sg) =>
+    sg.items.some((i) => i.type === 'action' && i.action.status === 'pending'),
+  )
+  if (!latest) return null
+  const intro = latest.items.find((i) => i.type === 'text')
+  const pending = latest.items.filter((i) => i.type === 'action' && i.action.status === 'pending').length
+  return (
+    <Link
+      to={`/copilot?suggestion=${latest.id}`}
+      className="mb-4 flex items-start gap-3 rounded-2xl border border-brand-100 bg-surface px-5 py-4 shadow-sm hover:border-brand-500"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600 text-white">
+        <Sparkles aria-hidden className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-bold tracking-wider text-brand-600 uppercase">From your copilot</span>
+        <span className="mt-0.5 block font-semibold text-ink">{latest.title}</span>
+        {intro?.type === 'text' && <span className="mt-0.5 line-clamp-2 block text-sm text-ink-muted">{intro.text}</span>}
+        <span className="mt-1 block text-xs font-semibold text-brand-600">
+          {pending === 1 ? '1 suggestion' : `${pending} suggestions`} waiting for your OK
+        </span>
+      </span>
+      <ArrowRight aria-hidden className="mt-3 size-4 shrink-0 text-brand-600" />
+    </Link>
   )
 }
 

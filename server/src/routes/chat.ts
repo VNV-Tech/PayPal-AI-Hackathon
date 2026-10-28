@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { type ErrorRequestHandler, Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
-import { ChatLimitError, ChatNotFoundError, resolveAction, sendMessage } from '../ai/copilot.js';
+import { ChatLimitError, ChatNotFoundError, listSuggestions, resolveAction, sendMessage } from '../ai/copilot.js';
 
 const router = Router();
 
@@ -25,6 +25,11 @@ router.post('/chat/actions/:id', async (req, res) => {
   const id = z.uuid().parse(req.params.id);
   const { decision } = decisionSchema.parse(req.body);
   res.json(await resolveAction(id, decision));
+});
+
+// Lo que el copiloto preparó por su cuenta (por ejemplo, al llegar un pago).
+router.get('/copilot/suggestions', (_req, res) => {
+  res.json({ suggestions: listSuggestions() });
 });
 
 // Errores propios del chat; el resto sigue al manejador central.

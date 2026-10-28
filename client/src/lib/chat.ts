@@ -13,7 +13,17 @@ export interface ActionView {
 
 export type ChatItem = { type: 'text'; text: string } | { type: 'action'; action: ActionView }
 
+// Lo que el copiloto preparó por su cuenta (mismo tipo que listSuggestions
+// en server/src/ai/copilot.ts). El id es el de la conversación.
+export interface Suggestion {
+  id: string
+  createdAt: string
+  title: string
+  items: ChatItem[]
+}
+
 export const chatApi = {
+  suggestions: () => api<{ suggestions: Suggestion[] }>('/copilot/suggestions'),
   send: (message: string, conversationId?: string) =>
     api<{ conversationId: string; items: ChatItem[] }>('/chat', {
       method: 'POST',
