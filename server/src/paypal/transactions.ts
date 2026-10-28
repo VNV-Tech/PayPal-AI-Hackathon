@@ -21,6 +21,8 @@ const transactionSearch = new TransactionSearchController(sdkClient);
 export interface ReceivedPayment {
   id: string; // ID de la transacción; es el mismo payment_id que guarda la factura
   amount: Money;
+  date: string; // AAAA-MM-DD
+  invoiceNumber: string | null; // número de factura de PayPal, si el pago fue de una
 }
 
 // Los códigos T00xx son pagos recibidos (por ejemplo T0006, pago de factura).
@@ -55,7 +57,12 @@ export async function listPaymentsReceived(start: Date, end: Date): Promise<Rece
         const amount = info?.transactionAmount;
         const value = Number(amount?.value);
         if (!amount || !info?.transactionId || !isPaymentReceived(info.transactionEventCode, value)) continue;
-        payments.push({ id: info.transactionId, amount: { currency_code: amount.currencyCode, value: amount.value } });
+        payments.push({
+          id: info.transactionId,
+          amount: { currency_code: amount.currencyCode, value: amount.value },
+          date: (info.transactionInitiationDate ?? toPayPalDate(end)).slice(0, 10),
+          invoiceNumber: info.invoiceId ?? null,
+        });
       }
 
       // Tope de 10 páginas (1,000 movimientos) para no colgar la pantalla.

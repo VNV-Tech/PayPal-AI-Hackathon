@@ -73,6 +73,7 @@ export interface InvoicePayment {
   id: string; // mismo ID que la transacción en Transaction Search
   date: string; // AAAA-MM-DD
   amount: Money;
+  invoiceNumber: string | null;
 }
 
 // Forma simplificada que recibe el cliente (y más adelante la IA).
@@ -180,7 +181,14 @@ export async function getInvoicePayments(id: string): Promise<InvoicePayment[]> 
   const inv = await call<PayPalInvoice>(`/v2/invoicing/invoices/${id}`);
   return (inv.payments?.transactions ?? []).flatMap((p) =>
     p.method === 'PAYPAL' && p.payment_id && p.payment_date && p.amount
-      ? [{ id: p.payment_id, date: p.payment_date, amount: { currency_code: p.amount.currency_code, value: p.amount.value } }]
+      ? [
+          {
+            id: p.payment_id,
+            date: p.payment_date,
+            amount: { currency_code: p.amount.currency_code, value: p.amount.value },
+            invoiceNumber: inv.detail.invoice_number ?? null,
+          },
+        ]
       : [],
   );
 }

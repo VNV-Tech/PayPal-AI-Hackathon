@@ -46,7 +46,7 @@ export function Invoices() {
     if (event.type !== 'invoice.updated') return
     reload()
     if (event.paypalEvent === 'INVOICING.INVOICE.PAID' && event.invoiceNumber) {
-      setNotice(`Invoice #${event.invoiceNumber} was just paid. 🎉`)
+      setNotice(`Invoice #${event.invoiceNumber} was just paid. 🎉 Go to Savings to set part of it aside.`)
     }
   })
 

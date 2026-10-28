@@ -1,20 +1,22 @@
-// Modo personal: apartados de ahorro virtuales. De lo cobrado en el mes se
-// aparta un porcentaje para cada apartado (por ejemplo, impuestos). No se mueve
-// dinero en PayPal: es solo un cálculo para que el freelancer sepa cuánto de
-// lo cobrado no es "dinero para gastar".
+// Modo personal: apartados de ahorro virtuales. Cada vez que llega un pago,
+// la app pregunta si apartar un porcentaje para cada apartado (por ejemplo,
+// impuestos). Solo cuenta lo que el usuario acepta. No se mueve dinero en
+// PayPal: es una cuenta para saber cuánto de lo cobrado no es para gastar.
 //
-// El plan (apartados y porcentajes) se guarda en server/data/savings.json.
-// En Render el disco se borra al redesplegar y se vuelve a los valores por
-// defecto; aceptable para la demo hasta que haya base de datos.
+// El plan y las decisiones se guardan en server/data/savings.json. En Render
+// el disco se borra al redesplegar; aceptable para la demo hasta que haya base
+// de datos.
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import type { Money } from './paypal/invoices.js';
-import { getOverview } from './paypal/overview.js';
+import { getPaymentsThisMonth, sumByCurrency } from './paypal/overview.js';
+import type { ReceivedPayment } from './paypal/transactions.js';
 
-const PLAN_PATH = fileURLToPath(new URL('../data/savings.json', import.meta.url));
+const DATA_PATH = fileURLToPath(new URL('../data/savings.json', import.meta.url));
+const MAX_DECISIONS = 1000; // se olvidan las más viejas
 
 export const savingsPlanSchema = z
   .array(
@@ -35,6 +37,24 @@ export interface SavingsBucket {
   percent: number;
 }
 
+interface Allocation {
+  bucketId: string;
+  name: string; // se guarda por si el apartado se borra después
+  percent: number;
+  amount: Money;
+}
+
+interface Decision {
+  status: 'accepted' | 'declined';
+  decidedAt: string;
+  allocations: Allocation[]; // vacío si se rechazó
+}
+
+interface SavingsData {
+  plan: SavingsBucket[];
+  decisions: Record<string, Decision>; // por ID de pago
+}
+
 // Valores de ejemplo para la demo. Los porcentajes reales dependen del régimen
 // fiscal de cada persona: pendiente de revisar con alguien de finanzas.
 const DEFAULT_PLAN: SavingsBucket[] = [
@@ -42,59 +62,149 @@ const DEFAULT_PLAN: SavingsBucket[] = [
   { id: 'emergency', name: 'Emergency fund', percent: 10 },
 ];
 
-let plan: SavingsBucket[] | null = null;
+export class PaymentNotFoundError extends Error {}
 
-export async function getPlan(): Promise<SavingsBucket[]> {
-  if (plan) return plan;
+let data: SavingsData | null = null;
+
+async function load(): Promise<SavingsData> {
+  if (data) return data;
   try {
-    plan = savingsPlanSchema.parse(JSON.parse(await readFile(PLAN_PATH, 'utf8'))) as SavingsBucket[];
+    const raw = JSON.parse(await readFile(DATA_PATH, 'utf8'));
+    // La primera versión guardaba solo el plan (un arreglo).
+    data = Array.isArray(raw) ? { plan: raw, decisions: {} } : raw;
   } catch {
-    // No existe todavía (o está dañado): se usan los valores de ejemplo.
-    plan = DEFAULT_PLAN;
+    // No existe todavía (o está dañado): se empieza con los valores de ejemplo.
+    data = { plan: DEFAULT_PLAN, decisions: {} };
   }
-  return plan;
+  return data!;
 }
 
+// Las escrituras van en fila para que dos clics seguidos no se pisen.
+let writing = Promise.resolve();
+function persist(next: SavingsData): Promise<void> {
+  data = next;
+  writing = writing.then(async () => {
+    await mkdir(dirname(DATA_PATH), { recursive: true });
+    // Archivo temporal + renombrar: si el servidor se apaga a la mitad, el
+    // archivo anterior queda intacto.
+    const tmp = `${DATA_PATH}.tmp`;
+    await writeFile(tmp, JSON.stringify(next, null, 2));
+    await rename(tmp, DATA_PATH);
+  });
+  return writing;
+}
+
+// Cambiar el plan solo afecta a los pagos que se respondan después; lo ya
+// apartado se queda como estaba.
 export async function savePlan(input: z.input<typeof savingsPlanSchema>): Promise<SavingsBucket[]> {
-  const buckets = savingsPlanSchema.parse(input).map((b) => ({ ...b, id: b.id ?? randomUUID() }));
-  await mkdir(dirname(PLAN_PATH), { recursive: true });
-  // Se escribe en un archivo temporal y se renombra: si el servidor se apaga a
-  // la mitad, el archivo anterior queda intacto.
-  const tmp = `${PLAN_PATH}.tmp`;
-  await writeFile(tmp, JSON.stringify(buckets, null, 2));
-  await rename(tmp, PLAN_PATH);
-  plan = buckets;
+  const current = await load();
+  // Sin id (por ejemplo, desde el chat) se reusa el del apartado con el mismo
+  // nombre, para que lo ya apartado siga sumando en el mismo lugar.
+  const sameName = (name: string) => current.plan.find((b) => b.name.toLowerCase() === name.toLowerCase())?.id;
+  const plan = savingsPlanSchema.parse(input).map((b) => ({ ...b, id: b.id ?? sameName(b.name) ?? randomUUID() }));
+  await persist({ ...current, plan });
   return plan;
-}
-
-export interface SavingsSummary {
-  month: string; // AAAA-MM (UTC, igual que "Paid this month")
-  // null si PayPal no devolvió los pagos del mes.
-  paid: Money[] | null;
-  buckets: (SavingsBucket & { amounts: Money[] })[];
-  available: Money[]; // lo que queda para gastar
 }
 
 const toCents = (m: Money) => Math.round(Number(m.value) * 100);
 const fromCents = (currency_code: string, cents: number): Money => ({ currency_code, value: (cents / 100).toFixed(2) });
 
-export async function getSavings(now = new Date()): Promise<SavingsSummary> {
-  const [buckets, overview] = await Promise.all([getPlan(), getOverview(now)]);
-  const paid = overview.paidThisMonth?.totals ?? null;
-
-  const withAmounts = buckets.map((b) => ({
-    ...b,
-    amounts: (paid ?? []).map((m) => fromCents(m.currency_code, Math.round((toCents(m) * b.percent) / 100))),
+// Lo que se propone apartar de un pago con el plan actual.
+function proposeAllocations(plan: SavingsBucket[], amount: Money): Allocation[] {
+  return plan.map((b) => ({
+    bucketId: b.id,
+    name: b.name,
+    percent: b.percent,
+    amount: fromCents(amount.currency_code, Math.round((toCents(amount) * b.percent) / 100)),
   }));
-  // Lo disponible es lo cobrado menos los apartados ya redondeados, para que
-  // la suma cuadre al centavo.
-  const available = (paid ?? []).map((m) => {
-    const setAside = withAmounts.reduce(
-      (sum, b) => sum + toCents(b.amounts.find((a) => a.currency_code === m.currency_code)!),
-      0,
-    );
-    return fromCents(m.currency_code, toCents(m) - setAside);
+}
+
+export interface PaymentReview {
+  id: string;
+  date: string;
+  invoiceNumber: string | null;
+  amount: Money;
+  proposal: Allocation[];
+}
+
+export interface SavingsSummary {
+  month: string; // AAAA-MM (UTC, igual que "Paid this month")
+  plan: SavingsBucket[];
+  // null si PayPal no devolvió los pagos del mes.
+  paid: Money[] | null;
+  // Pagos del mes que todavía no tienen respuesta.
+  pending: PaymentReview[];
+  // Lo apartado este mes (solo pagos aceptados), por apartado.
+  buckets: { id: string; name: string; percent: number | null; amounts: Money[] }[];
+  available: Money[]; // lo cobrado menos lo apartado
+}
+
+function summarize(month: string, d: SavingsData, payments: ReceivedPayment[] | null): SavingsSummary {
+  const list = payments ?? [];
+  const accepted = list.flatMap((p) => {
+    const decision = d.decisions[p.id];
+    return decision?.status === 'accepted' ? decision.allocations : [];
   });
 
-  return { month: now.toISOString().slice(0, 7), paid, buckets: withAmounts, available };
+  // Primero los apartados del plan actual; luego los que se borraron pero
+  // todavía tienen dinero apartado este mes.
+  const buckets = new Map<string, SavingsSummary['buckets'][number]>(
+    d.plan.map((b) => [b.id, { id: b.id, name: b.name, percent: b.percent, amounts: [] }]),
+  );
+  for (const a of accepted) {
+    const bucket = buckets.get(a.bucketId) ?? { id: a.bucketId, name: a.name, percent: null, amounts: [] };
+    bucket.amounts.push(a.amount);
+    buckets.set(a.bucketId, bucket);
+  }
+
+  const paid = sumByCurrency(list.map((p) => p.amount));
+  const setAside = sumByCurrency(accepted.map((a) => a.amount));
+  return {
+    month,
+    plan: d.plan,
+    paid: payments ? paid : null,
+    pending: list
+      .filter((p) => !d.decisions[p.id])
+      .map((p) => ({ ...p, proposal: proposeAllocations(d.plan, p.amount) })),
+    buckets: [...buckets.values()].map((b) => ({ ...b, amounts: sumByCurrency(b.amounts) })),
+    available: paid.map((m) => {
+      const aside = setAside.find((s) => s.currency_code === m.currency_code);
+      return fromCents(m.currency_code, toCents(m) - (aside ? toCents(aside) : 0));
+    }),
+  };
+}
+
+export async function getSavings(now = new Date()): Promise<SavingsSummary> {
+  const [d, payments] = await Promise.all([load(), getPaymentsThisMonth(now)]);
+  return summarize(now.toISOString().slice(0, 7), d, payments);
+}
+
+// Busca un pago del mes que todavía no tenga respuesta.
+export async function findPendingPayment(paymentId: string): Promise<PaymentReview> {
+  const summary = await getSavings();
+  const payment = summary.pending.find((p) => p.id === paymentId);
+  if (!payment) throw new PaymentNotFoundError('That payment is not waiting for a decision.');
+  return payment;
+}
+
+// Acepta (aparta según el plan actual) o rechaza un pago. Si ya tenía
+// respuesta, no hace nada: un doble clic no aparta dos veces.
+export async function decidePayment(paymentId: string, accept: boolean): Promise<SavingsSummary> {
+  const d = await load();
+  if (!d.decisions[paymentId]) {
+    const payment = await findPendingPayment(paymentId);
+    const decisions = {
+      ...d.decisions,
+      [paymentId]: {
+        status: accept ? 'accepted' : 'declined',
+        decidedAt: new Date().toISOString(),
+        allocations: accept ? proposeAllocations(d.plan, payment.amount) : [],
+      } satisfies Decision,
+    };
+    // Tope de decisiones guardadas: se quitan las más viejas.
+    const ids = Object.keys(decisions);
+    for (const old of ids.slice(0, Math.max(0, ids.length - MAX_DECISIONS))) delete decisions[old];
+    await persist({ ...(await load()), decisions });
+  }
+  return getSavings();
 }

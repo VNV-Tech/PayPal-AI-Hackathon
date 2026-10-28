@@ -2,7 +2,15 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Badge, Button, Card, EmptyState, Modal, PageHeader } from '../components/ui'
 import { useLiveEvents } from '../lib/events'
 import { formatTotals } from '../lib/overview'
-import { MAX_BUCKETS, type PlanInput, type Savings as SavingsData, type SavingsBucket, savingsApi } from '../lib/savings'
+import { formatMoney } from '../lib/config'
+import {
+  MAX_BUCKETS,
+  type PaymentReview,
+  type PlanBucket,
+  type PlanInput,
+  type Savings as SavingsData,
+  savingsApi,
+} from '../lib/savings'
 
 export function Savings() {
   const [data, setData] = useState<SavingsData | null>(null)
@@ -59,13 +67,13 @@ export function Savings() {
       ) : !data ? (
         <p className="py-12 text-center text-sm text-ink-muted">Loading savings…</p>
       ) : (
-        <SavingsView data={data} onEdit={() => setEditing(true)} />
+        <SavingsView data={data} onChange={setData} onEdit={() => setEditing(true)} />
       )}
 
       <Modal open={editing} onClose={() => setEditing(false)} title="Edit savings plan">
         {data && (
           <PlanForm
-            buckets={data.buckets}
+            buckets={data.plan}
             onCancel={() => setEditing(false)}
             onSaved={(saved) => {
               setData(saved)
@@ -82,10 +90,31 @@ function monthName(month: string) {
   return new Date(`${month}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' })
 }
 
-function SavingsView({ data, onEdit }: { data: SavingsData; onEdit: () => void }) {
+function SavingsView({
+  data,
+  onChange,
+  onEdit,
+}: {
+  data: SavingsData
+  onChange: (data: SavingsData) => void
+  onEdit: () => void
+}) {
   const month = monthName(data.month)
   return (
     <>
+      {data.pending.length > 0 && (
+        <section aria-labelledby="to-review" className="mb-8">
+          <h2 id="to-review" className="mb-3 font-semibold text-ink">
+            New payments · set aside part of them?
+          </h2>
+          <div className="space-y-3">
+            {data.pending.map((p) => (
+              <ReviewCard key={p.id} payment={p} onDecided={onChange} onEditPlan={onEdit} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <p className="text-sm font-medium text-ink-muted">Collected in {month}</p>
@@ -97,21 +126,21 @@ function SavingsView({ data, onEdit }: { data: SavingsData; onEdit: () => void }
           <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums text-brand-900">
             {data.paid ? formatTotals(data.available) : '—'}
           </p>
-          <p className="mt-1 text-xs text-ink-muted">After your set-asides</p>
+          <p className="mt-1 text-xs text-ink-muted">Collected minus what you set aside</p>
         </Card>
       </div>
 
-      <h2 className="mt-8 mb-3 font-semibold text-ink">Set-asides this month</h2>
+      <h2 className="mt-8 mb-3 font-semibold text-ink">Set aside in {month}</h2>
       {data.buckets.length === 0 ? (
         <EmptyState
           title="No set-asides yet"
-          description="Add one, for example Taxes, and part of every payment will be set aside for it."
+          description="Add one, for example Taxes. Every time you get paid, you'll be asked whether to set part of it aside."
           action={<Button onClick={onEdit}>Add a set-aside</Button>}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
           {data.buckets.map((b) => (
-            <BucketCard key={b.id} bucket={b} hasPayments={data.paid !== null} />
+            <BucketCard key={b.id} bucket={b} />
           ))}
         </div>
       )}
@@ -119,15 +148,89 @@ function SavingsView({ data, onEdit }: { data: SavingsData; onEdit: () => void }
   )
 }
 
-function BucketCard({ bucket, hasPayments }: { bucket: SavingsBucket; hasPayments: boolean }) {
+function ReviewCard({
+  payment,
+  onDecided,
+  onEditPlan,
+}: {
+  payment: PaymentReview
+  onDecided: (data: SavingsData) => void
+  onEditPlan: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const amount = formatMoney(Number(payment.amount.value), payment.amount.currency_code)
+  const proposal = payment.proposal.filter((a) => Number(a.amount.value) > 0)
+
+  async function decide(decision: 'set_aside' | 'skip') {
+    setBusy(true)
+    setError(null)
+    try {
+      onDecided(await savingsApi.decide(payment.id, decision))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save your answer')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="border-brand-100">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="font-semibold text-ink">
+            You got paid {amount}
+            {payment.invoiceNumber && <span className="font-normal text-ink-muted"> · invoice #{payment.invoiceNumber}</span>}
+          </p>
+          {proposal.length > 0 ? (
+            <p className="mt-1 text-sm text-ink-muted">
+              Set aside{' '}
+              {proposal.map((a, i) => (
+                <span key={a.bucketId}>
+                  {i > 0 && (i === proposal.length - 1 ? ' and ' : ', ')}
+                  <strong className="text-ink">{formatMoney(Number(a.amount.value), a.amount.currency_code)}</strong> for{' '}
+                  {a.name}
+                </span>
+              ))}
+              ?
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-ink-muted">
+              Your plan has no set-asides yet.{' '}
+              <button type="button" onClick={onEditPlan} className="font-semibold text-brand-600 hover:underline">
+                Edit plan
+              </button>
+            </p>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" disabled={busy} onClick={() => decide('skip')}>
+            Not this time
+          </Button>
+          <Button disabled={busy || proposal.length === 0} onClick={() => decide('set_aside')}>
+            Set aside
+          </Button>
+        </div>
+      </div>
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-danger">
+          {error}
+        </p>
+      )}
+    </Card>
+  )
+}
+
+function BucketCard({ bucket }: { bucket: SavingsData['buckets'][number] }) {
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
         <p className="font-semibold text-ink">{bucket.name}</p>
-        <Badge tone="info">{bucket.percent}%</Badge>
+        {bucket.percent !== null && <Badge tone="info">{bucket.percent}%</Badge>}
       </div>
-      <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{hasPayments ? formatTotals(bucket.amounts) : '—'}</p>
-      <p className="mt-1 text-xs text-ink-muted">{bucket.percent}% of every payment</p>
+      <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{formatTotals(bucket.amounts)}</p>
+      <p className="mt-1 text-xs text-ink-muted">
+        {bucket.percent !== null ? `${bucket.percent}% of payments you accept` : 'No longer in your plan'}
+      </p>
     </Card>
   )
 }
@@ -147,7 +250,7 @@ function PlanForm({
   onCancel,
   onSaved,
 }: {
-  buckets: SavingsBucket[]
+  buckets: PlanBucket[]
   onCancel: () => void
   onSaved: (saved: SavingsData) => void
 }) {
