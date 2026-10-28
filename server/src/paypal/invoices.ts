@@ -175,6 +175,25 @@ export async function getInvoice(id: string): Promise<InvoiceSummary> {
   return toSummary(await call<PayPalInvoice>(`/v2/invoicing/invoices/${id}`));
 }
 
+export interface InvoiceItem {
+  name: string;
+  quantity: number;
+  unitAmount: Money;
+}
+
+// Factura con sus conceptos (el listado no los trae). La usa la factura fiscal.
+export async function getInvoiceWithItems(id: string): Promise<{ invoice: InvoiceSummary; items: InvoiceItem[] }> {
+  const inv = await call<PayPalInvoice>(`/v2/invoicing/invoices/${id}`);
+  return {
+    invoice: toSummary(inv),
+    items: (inv.items ?? []).map((i) => ({
+      name: i.name,
+      quantity: Number(i.quantity),
+      unitAmount: { currency_code: i.unit_amount.currency_code, value: i.unit_amount.value },
+    })),
+  };
+}
+
 // Pagos hechos con PayPal o tarjeta (method PAYPAL). Los registrados a mano
 // (efectivo, transferencia) no cuentan como "cobrado vía PayPal".
 export async function getInvoicePayments(id: string): Promise<InvoicePayment[]> {

@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { isProduction } from '../config/env.js';
+import { FacturamaError } from '../facturama.js';
 import { PayPalError } from '../paypal/client.js';
 
 export const notFound: RequestHandler = (_req, res) => {
@@ -28,6 +29,18 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
       return;
     }
     res.status(502).json({ error: 'PayPal request failed', debugId: err.debugId });
+    return;
+  }
+
+  if (err instanceof FacturamaError) {
+    console.error(`[facturama] ${err.message} (status ${err.status})`);
+    // 400: Facturama o el SAT rechazaron el CFDI; su mensaje explica qué dato
+    // está mal (por ejemplo, el régimen no corresponde al RFC).
+    if (err.status === 400 || err.status === 422) {
+      res.status(422).json({ error: err.message });
+      return;
+    }
+    res.status(err.status === 503 ? 503 : 502).json({ error: err.status === 503 ? err.message : 'Facturama request failed' });
     return;
   }
 

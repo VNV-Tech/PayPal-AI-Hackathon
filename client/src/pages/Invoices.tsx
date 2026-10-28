@@ -1,6 +1,6 @@
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, Copy, ExternalLink, Plus, Receipt, RefreshCw } from 'lucide-react'
+import { Check, Copy, Download, ExternalLink, FileCheck2, Plus, Receipt, RefreshCw } from 'lucide-react'
 import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader, Skeleton } from '../components/ui'
 import { formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
@@ -27,6 +27,7 @@ export function Invoices() {
   // Datos fiscales (CFDI) por factura, y la factura cuyo link se está viendo.
   const [taxRequests, setTaxRequests] = useState<Record<string, TaxRequest>>({})
   const [taxFor, setTaxFor] = useState<Invoice | null>(null)
+  const [cfdiEnabled, setCfdiEnabled] = useState(false)
 
   // Cambiar reloadKey vuelve a pedir la lista (botones Refresh / Try again).
   const [reloadKey, setReloadKey] = useState(0)
@@ -46,8 +47,10 @@ export function Invoices() {
     )
     // Si fallan, la tabla se muestra igual, solo sin el estado de los datos fiscales.
     taxInfoApi.list().then(
-      ({ requests }) => {
-        if (!ignore) setTaxRequests(Object.fromEntries(requests.map((r) => [r.invoiceId, r])))
+      ({ requests, cfdiEnabled }) => {
+        if (ignore) return
+        setTaxRequests(Object.fromEntries(requests.map((r) => [r.invoiceId, r])))
+        setCfdiEnabled(cfdiEnabled)
       },
       () => {},
     )
@@ -64,13 +67,20 @@ export function Invoices() {
   useLiveEvents((event) => {
     if (event.type === 'tax.updated') {
       reload()
-      setNotice(`Your client sent their tax info for invoice #${event.invoiceNumber ?? '—'}. ✅`)
+      if (event.paypalEvent === 'TAX_INFO.RECEIVED') {
+        setNotice(`Your client sent their tax info for invoice #${event.invoiceNumber ?? '—'}. ✅`)
+      }
       return
     }
     if (event.type !== 'invoice.updated') return
     reload()
     if (event.paypalEvent === 'INVOICING.INVOICE.PAID' && event.invoiceNumber) {
-      setNotice(`Invoice #${event.invoiceNumber} was just paid. 🎉 Go to Savings to set part of it aside.`)
+      const taxReady = event.invoiceId && taxRequests[event.invoiceId]?.status === 'received'
+      setNotice(
+        taxReady
+          ? `Invoice #${event.invoiceNumber} was just paid. 🎉 Your client's tax info is ready: open Tax info to issue the CFDI.`
+          : `Invoice #${event.invoiceNumber} was just paid. 🎉 Go to Savings to set part of it aside.`,
+      )
     }
   })
 
@@ -159,6 +169,8 @@ export function Invoices() {
         {taxFor && (
           <TaxInfoPanel
             invoice={taxFor}
+            latest={taxRequests[taxFor.id]}
+            cfdiEnabled={cfdiEnabled}
             onLoaded={(r) => setTaxRequests((all) => ({ ...all, [r.invoiceId]: r }))}
             onClose={() => setTaxFor(null)}
           />
@@ -259,7 +271,7 @@ function InvoiceTable({
                   <Badge tone={status.tone}>{status.label}</Badge>
                   {tax && (
                     <p className="mt-1 text-xs text-ink-muted">
-                      {tax.status === 'received' ? 'Tax info ✓' : 'Tax info pending'}
+                      {tax.cfdi ? 'CFDI issued ✓' : tax.status === 'received' ? 'Tax info ✓' : 'Tax info pending'}
                     </p>
                   )}
                 </td>
@@ -306,14 +318,24 @@ function InvoiceTable({
 // link la primera vez (no le avisa nada al cliente).
 function TaxInfoPanel({
   invoice,
+  latest,
+  cfdiEnabled,
   onLoaded,
   onClose,
 }: {
   invoice: Invoice
+  latest?: TaxRequest // lo más nuevo, si llegó un aviso en vivo con la ventana abierta
+  cfdiEnabled: boolean
   onLoaded: (request: TaxRequest) => void
   onClose: () => void
 }) {
-  const [request, setRequest] = useState<TaxRequest | null>(null)
+  const [loaded, setLoaded] = useState<TaxRequest | null>(null)
+  const request = loaded && latest ? latest : loaded
+  // Se guarda la última función para pedir el link solo al abrir la ventana.
+  const onLoadedRef = useRef(onLoaded)
+  useEffect(() => {
+    onLoadedRef.current = onLoaded
+  })
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -322,8 +344,8 @@ function TaxInfoPanel({
     taxInfoApi.link(invoice.id).then(
       (r) => {
         if (ignore) return
-        setRequest(r)
-        onLoaded(r)
+        setLoaded(r)
+        onLoadedRef.current(r)
       },
       (err: unknown) => {
         if (!ignore) setError(err instanceof Error ? err.message : 'Could not create the link')
@@ -332,7 +354,6 @@ function TaxInfoPanel({
     return () => {
       ignore = true
     }
-    // Solo al abrir la ventana de esta factura (onLoaded cambia en cada render).
   }, [invoice.id])
 
   async function copy(link: string) {
@@ -411,7 +432,7 @@ function TaxInfoPanel({
               As soon as your client sends it, it shows up here. You can also give it to the copilot in the chat.
             </p>
           )}
-          <p className="mt-4 text-xs text-ink-muted">Coming next: issue the CFDI with the SAT in one click.</p>
+          <CfdiSection invoice={invoice} request={request} enabled={cfdiEnabled} onIssued={onLoaded} />
         </>
       )}
 
@@ -421,6 +442,109 @@ function TaxInfoPanel({
         </Button>
       </div>
     </>
+  )
+}
+
+const PAID_STATUSES = ['PAID', 'MARKED_AS_PAID']
+
+// Emitir la factura fiscal: Facturama (sandbox) la sella y se la manda al
+// cliente por correo. Siempre con un paso de confirmación.
+function CfdiSection({
+  invoice,
+  request,
+  enabled,
+  onIssued,
+}: {
+  invoice: Invoice
+  request: TaxRequest
+  enabled: boolean
+  onIssued: (request: TaxRequest) => void
+}) {
+  const [confirming, setConfirming] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const cfdi = request.cfdi
+  if (cfdi) {
+    return (
+      <div className="mt-4 rounded-xl bg-success-bg px-4 py-3 text-sm text-success">
+        <p className="flex items-center gap-2 font-semibold">
+          <FileCheck2 aria-hidden className="size-4" />
+          CFDI issued · folio {cfdi.folio}
+        </p>
+        <p className="mt-1 text-xs break-all">UUID {cfdi.uuid}</p>
+        <p className="mt-1 text-xs">
+          {cfdi.emailedTo ? `Emailed to ${cfdi.emailedTo}.` : "The email couldn't be sent; download it and share it."} Test
+          mode: no legal validity.
+        </p>
+        <div className="mt-3 flex gap-2">
+          {(['pdf', 'xml'] as const).map((format) => (
+            <a
+              key={format}
+              href={taxInfoApi.fileUrl(invoice.id, format)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-success hover:underline"
+            >
+              <Download aria-hidden className="size-3.5" />
+              {format.toUpperCase()}
+            </a>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const reason = !enabled
+    ? "Issuing CFDIs isn't set up on this server yet."
+    : request.status !== 'received'
+      ? "You'll be able to issue the CFDI once your client sends their tax info."
+      : !PAID_STATUSES.includes(invoice.status)
+        ? 'You can issue the CFDI once this invoice is paid.'
+        : invoice.amount?.currency_code !== 'MXN'
+          ? 'For now, CFDIs can only be issued for invoices in MXN.'
+          : null
+  if (reason) return <p className="mt-4 text-xs text-ink-muted">{reason}</p>
+
+  async function issue() {
+    setBusy(true)
+    setError(null)
+    try {
+      onIssued(await taxInfoApi.issue(invoice.id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not issue the CFDI')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm">
+      <p className="font-semibold text-brand-900">Ready to issue the CFDI</p>
+      <p className="mt-1 text-xs text-ink-muted">
+        Facturama (test mode) will stamp it and email it to {request.taxInfo?.email}. The amount charged is treated as
+        including 16% VAT.
+      </p>
+      {error && (
+        <p role="alert" className="mt-2 rounded-lg bg-danger-bg px-3 py-2 text-xs text-danger">
+          {error}
+        </p>
+      )}
+      <div className="mt-3 flex justify-end gap-2">
+        {confirming ? (
+          <>
+            <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
+              Go back
+            </Button>
+            <Button onClick={issue} disabled={busy}>
+              {busy ? 'Issuing…' : 'Yes, issue and email it'}
+            </Button>
+          </>
+        ) : (
+          <Button onClick={() => setConfirming(true)}>
+            <FileCheck2 aria-hidden className="size-4" />
+            Issue CFDI
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }
 

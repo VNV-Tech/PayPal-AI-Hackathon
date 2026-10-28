@@ -3,7 +3,7 @@
 //   ejecutan al momento. get_tax_info_link puede crear el link, pero eso no
 //   cambia nada en PayPal ni le avisa al cliente.
 // - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
-//   update_savings_plan, review_payment, save_tax_info):
+//   update_savings_plan, review_payment, save_tax_info, issue_cfdi):
 //   NUNCA se ejecutan directo. Se convierten en una propuesta que el usuario
 //   aprueba o rechaza desde una tarjeta en el chat.
 import type Anthropic from '@anthropic-ai/sdk';
@@ -22,7 +22,16 @@ import {
 } from '../paypal/invoices.js';
 import { publicUrl } from '../config/env.js';
 import { decidePayment, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
-import { CFDI_USES, TAX_REGIMES, describeTaxInfo, getOrCreateTaxRequest, saveClientTaxInfo, taxInfoSchema } from '../taxInfo.js';
+import {
+  CFDI_USES,
+  TAX_REGIMES,
+  describeTaxInfo,
+  getOrCreateTaxRequest,
+  issueCfdi,
+  prepareCfdi,
+  saveClientTaxInfo,
+  taxInfoSchema,
+} from '../taxInfo.js';
 
 const invoiceIdInput = {
   type: 'object',
@@ -157,7 +166,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'get_tax_info_link',
     description:
-      "Mexican tax invoices (CFDI): get the link where the client of an invoice fills in their tax info (RFC, legal name, tax regime, ZIP code, CFDI use), and whether they already did. Creates the link the first time; it does not notify the client, the user shares it. Issuing (stamping) the CFDI itself is not available yet.",
+      "Mexican tax invoices (CFDI): get the link where the client of an invoice fills in their tax info (RFC, legal name, tax regime, ZIP code, CFDI use), and whether they already did. Creates the link the first time; it does not notify the client, the user shares it. Also says whether the CFDI was already issued.",
     strict: true,
     input_schema: invoiceIdInput,
   },
@@ -181,6 +190,13 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: 'issue_cfdi',
+    description:
+      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice in MXN whose client already sent their tax info, and emailing it to the client. The price charged in PayPal is treated as including 16% VAT. Test environment: the CFDI has no legal validity. Requires user approval.",
+    strict: true,
+    input_schema: invoiceIdInput,
+  },
 ];
 
 const ACTION_TOOLS = new Set([
@@ -191,6 +207,7 @@ const ACTION_TOOLS = new Set([
   'update_savings_plan',
   'review_payment',
   'save_tax_info',
+  'issue_cfdi',
 ]);
 
 export function isActionTool(name: string): boolean {
@@ -264,7 +281,9 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
       link: `${publicUrl}/factura/${request.token}`,
       status: request.status === 'received' ? 'tax info received' : 'waiting for the client',
       tax_info: request.taxInfo ?? null,
-      cfdi_stamping: 'not available yet',
+      cfdi: request.cfdi
+        ? { folio: request.cfdi.folio, uuid: request.cfdi.uuid, emailed_to: request.cfdi.emailedTo }
+        : 'not issued yet',
     });
   }
   throw new Error(`Unknown tool ${name}`);
@@ -409,6 +428,30 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
       execute: async () => {
         const completed = await saveClientTaxInfo(raw.customer_email, parsed.data);
         return `Tax info saved for ${raw.customer_email}${completed ? `; ${completed} pending link(s) completed` : ''}.`;
+      },
+    };
+  }
+
+  if (name === 'issue_cfdi') {
+    const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
+    const preview = await prepareCfdi(id);
+    const info = preview.request.taxInfo;
+    return {
+      title: 'Issue tax invoice (CFDI)',
+      details: [
+        ['Invoice', `#${preview.request.invoiceNumber ?? '—'}`],
+        ['Client', `${info.name} · ${info.rfc}`],
+        ['Subtotal', money(preview.subtotal, 'MXN')],
+        ['VAT 16%', money(preview.iva, 'MXN')],
+        ['Total', money(preview.total.value, 'MXN')],
+        ['Email to', info.email],
+      ],
+      execute: async () => {
+        const issued = await issueCfdi(id);
+        const cfdi = issued.cfdi!;
+        return `CFDI issued for invoice #${issued.invoiceNumber} (folio ${cfdi.folio}, UUID ${cfdi.uuid}). ${
+          cfdi.emailedTo ? `Emailed to ${cfdi.emailedTo}.` : 'The email could not be sent.'
+        } Test environment: no legal validity.`;
       },
     };
   }
