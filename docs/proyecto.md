@@ -415,7 +415,10 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5i | Que la guía y el copiloto no hablen al mismo tiempo: tutorial de bienvenida detallado y guía apagada por defecto | 29 oct | Víctor | ✅ PR #25 |
 | 5j | Que se vea bien en celular (facturas en tarjetas, tutorial que no tapa) | — | Víctor | ✅ PR #26 |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ✅ Adelantado: https://vnv-copilot.onrender.com (28 oct) |
-| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis) | Antes del 1 dic | Víctor | ⏳ Pendiente |
+| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis): hoy se pierden con cada reinicio (al publicar, al despertar o por mantenimiento) el plan de apartados, lo apartado, los datos fiscales, la marca de "CFDI emitido" y las pláticas. Facturas y pagos no (viven en PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
+| 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 29 oct | Víctor | ⏳ Pendiente |
+| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
+| 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | — | Víctor | ⏳ Pendiente |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
@@ -449,6 +452,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
 - **AWS Bedrock** para pagar la IA con créditos de AWS: en pausa hasta que AWS habilite Sonnet 5.5 en la cuenta (caso de soporte abierto). La librería `@anthropic-ai/bedrock-sdk` se probó en local, sin subir. El plan: un interruptor Anthropic directo / Bedrock por variable, sin quitar el directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
+- **Seguridad, antes de usar Bedrock en Render:** crear en AWS IAM un usuario que solo pueda usar Bedrock, y usar sus llaves en vez de las de la cuenta principal.
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
 - **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
 - Base de datos para que nada se pierda al reiniciar.
