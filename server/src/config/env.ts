@@ -16,13 +16,44 @@ const envSchema = z.object({
   // Orígenes permitidos para CORS en desarrollo (Vite). En producción el
   // cliente se sirve desde el mismo origen y no se necesita CORS.
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
+  // Dirección pública de la app, para los links que se comparten (por
+  // ejemplo, el de datos fiscales). Render la da sola en RENDER_EXTERNAL_URL.
+  PUBLIC_URL: z.url().optional(),
+  RENDER_EXTERNAL_URL: z.url().optional(),
 
-  PAYPAL_ENV: z.enum(['sandbox', 'live']).default('sandbox'),
+  // Salvaguarda: este proyecto es de hackathon y solo opera en Sandbox, en
+  // cualquier entorno (local o Render). No existe forma de apuntar a live.
+  PAYPAL_ENV: z
+    .literal('sandbox', { error: 'solo se permite "sandbox" (live está bloqueado en este proyecto)' })
+    .default('sandbox'),
   PAYPAL_CLIENT_ID: z.string().min(1, 'PAYPAL_CLIENT_ID es obligatorio'),
   PAYPAL_CLIENT_SECRET: z.string().min(1, 'PAYPAL_CLIENT_SECRET es obligatorio'),
   PAYPAL_WEBHOOK_ID: z.string().optional(),
+  // Solo para pruebas locales sin webhook registrado. Nunca activarlo en Render.
+  PAYPAL_SKIP_WEBHOOK_VERIFY: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+
+  // Nombre del negocio del usuario: sale en sus facturas de PayPal y en la
+  // página donde su cliente deja sus datos fiscales (para que sepa quién se
+  // los pide). Opcional.
+  BUSINESS_NAME: z.string().trim().min(1).max(100).optional(),
+
+  // Facturama (sandbox) para sellar las facturas fiscales (CFDI). Opcionales:
+  // sin ellas la app funciona igual y solo se desactiva "Issue CFDI".
+  FACTURAMA_USER: z.string().optional(),
+  FACTURAMA_PASSWORD: z.string().optional(),
+  // Código postal del lugar de expedición dado de alta en Facturama.
+  FACTURAMA_EXPEDITION_PLACE: z.string().regex(/^\d{5}$/).default('42501'),
 
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
+  // Modelo del chat. Cambiarlo aquí no requiere tocar código.
+  // Sonnet 5.5 cuesta la mitad que Opus y alcanza para los créditos de la demo.
+  ANTHROPIC_MODEL: z.string().default('claude-sonnet-5-5'),
+  // Tope diario de llamadas a Claude para proteger los créditos (la demo
+  // queda pública para el jurado). Se reinicia cada día (UTC).
+  CHAT_DAILY_LIMIT: z.coerce.number().int().positive().default(200),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -34,11 +65,11 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-if (parsed.data.NODE_ENV === 'production' && parsed.data.PAYPAL_ENV === 'live') {
-  // Salvaguarda: este proyecto es de hackathon y solo debe operar en Sandbox.
-  console.error('PAYPAL_ENV=live no está permitido en este proyecto.');
+if (parsed.data.NODE_ENV === 'production' && parsed.data.PAYPAL_SKIP_WEBHOOK_VERIFY) {
+  console.error('PAYPAL_SKIP_WEBHOOK_VERIFY=true no está permitido en producción.');
   process.exit(1);
 }
 
 export const env = parsed.data;
 export const isProduction = env.NODE_ENV === 'production';
+export const publicUrl = (env.PUBLIC_URL ?? env.RENDER_EXTERNAL_URL ?? env.CLIENT_ORIGIN).replace(/\/$/, '');

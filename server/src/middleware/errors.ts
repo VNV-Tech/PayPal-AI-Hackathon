@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { isProduction } from '../config/env.js';
+import { FacturamaError } from '../facturama.js';
 import { PayPalError } from '../paypal/client.js';
 
 export const notFound: RequestHandler = (_req, res) => {
@@ -16,8 +17,30 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (err instanceof PayPalError) {
-    console.error(`[paypal] ${err.message} (debug_id=${err.debugId ?? 'n/a'})`);
+    console.error(`[paypal] ${err.message} (debug_id=${err.debugId ?? 'n/a'})`, err.details);
+    if (err.status === 404) {
+      res.status(404).json({ error: 'Not found in PayPal', debugId: err.debugId });
+      return;
+    }
+    // 400/422: PayPal rechazó la petición (dato inválido o acción no permitida
+    // en ese estado). Su descripción es útil para el usuario y no es sensible.
+    if (err.status === 400 || err.status === 422) {
+      res.status(422).json({ error: err.details[0] ?? 'PayPal rejected the request', details: err.details, debugId: err.debugId });
+      return;
+    }
     res.status(502).json({ error: 'PayPal request failed', debugId: err.debugId });
+    return;
+  }
+
+  if (err instanceof FacturamaError) {
+    console.error(`[facturama] ${err.message} (status ${err.status})`);
+    // 400: Facturama o el SAT rechazaron el CFDI; su mensaje explica qué dato
+    // está mal (por ejemplo, el régimen no corresponde al RFC).
+    if (err.status === 400 || err.status === 422) {
+      res.status(422).json({ error: err.message });
+      return;
+    }
+    res.status(err.status === 503 ? 503 : 502).json({ error: err.status === 503 ? err.message : 'Facturama request failed' });
     return;
   }
 

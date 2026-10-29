@@ -1,6 +1,8 @@
 # docs/
 
-Material de investigación, diseño y pitch (principalmente Vanessa).
+Material de investigación, diseño y pitch (principalmente Natalia).
+
+**Empieza aquí:** [`proyecto.md`](proyecto.md) explica qué estamos haciendo, cómo funciona, qué falta y qué se puede cambiar del diseño.
 
 Ideas de archivos:
 

@@ -13,3 +13,6 @@ dist/
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Datos locales del servidor (apartados y datos fiscales)
+server/data/

@@ -6,7 +6,13 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { env, isProduction } from './config/env.js';
 import { errorHandler, notFound } from './middleware/errors.js';
+import chatRoutes from './routes/chat.js';
+import eventRoutes from './routes/events.js';
 import healthRoutes from './routes/health.js';
+import invoiceRoutes from './routes/invoices.js';
+import overviewRoutes from './routes/overview.js';
+import savingsRoutes from './routes/savings.js';
+import taxInfoRoutes from './routes/taxInfo.js';
 import webhookRoutes from './routes/webhooks.js';
 
 export function createApp() {
@@ -34,8 +40,14 @@ export function createApp() {
     app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
   }
 
-  // Webhooks antes de express.json(): necesitan el body crudo.
-  app.use('/webhooks', webhookRoutes);
+  // Webhooks antes de express.json(): necesitan el body crudo. Cada evento
+  // provoca una llamada a PayPal para verificar la firma; el límite evita que
+  // eventos falsos agoten las peticiones permitidas de la cuenta.
+  app.use(
+    '/webhooks',
+    rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false }),
+    webhookRoutes,
+  );
 
   app.use(
     '/api',
@@ -43,6 +55,12 @@ export function createApp() {
     express.json({ limit: '100kb' }),
   );
   app.use('/api', healthRoutes);
+  app.use('/api', invoiceRoutes);
+  app.use('/api', overviewRoutes);
+  app.use('/api', savingsRoutes);
+  app.use('/api', taxInfoRoutes);
+  app.use('/api', eventRoutes);
+  app.use('/api', chatRoutes);
   app.use('/api', notFound);
 
   // En producción Express sirve el build de React (un solo servicio en Render).

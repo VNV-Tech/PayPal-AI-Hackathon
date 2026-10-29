@@ -1,7 +1,8 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
+import { Info } from 'lucide-react'
 
-// Componentes base reutilizables. Natalia: aquí se ajusta el estilo global
+// Componentes base reutilizables. Vanessa: aquí se ajusta el estilo global
 // de botones, tarjetas y etiquetas.
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
@@ -13,7 +14,7 @@ const buttonStyles: Record<ButtonVariant, string> = {
 }
 
 const buttonBase =
-  'inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50'
 
 export function Button({
   variant = 'primary',
@@ -46,6 +47,21 @@ export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: R
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${toneStyles[tone]}`}>{children}</span>
 }
 
+// Bloque gris animado mientras llegan los datos.
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <span aria-hidden className={`block animate-pulse rounded-lg bg-line ${className}`} />
+}
+
+// Aviso informativo con ícono, por ejemplo para explicar qué es una pantalla.
+export function Notice({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={`flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-900 ${className}`}>
+      <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <span>{children}</span>
+    </p>
+  )
+}
+
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return (
     <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -65,5 +81,45 @@ export function EmptyState({ title, description, action }: { title: string; desc
       <p className="mt-1 max-w-sm text-sm text-ink-muted">{description}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>
+  )
+}
+
+// Ventana modal sobre <dialog> nativo: atrapa el foco y se cierra con Esc.
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    if (open && !dialog.open) dialog.showModal()
+    if (!open && dialog.open) dialog.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      onClose={onClose}
+      aria-labelledby="modal-title"
+      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-line bg-surface p-0 text-ink shadow-xl backdrop:bg-ink/40"
+    >
+      {open && (
+        <div className="p-6">
+          <h2 id="modal-title" className="text-lg font-bold tracking-tight">
+            {title}
+          </h2>
+          <div className="mt-4">{children}</div>
+        </div>
+      )}
+    </dialog>
   )
 }
