@@ -113,15 +113,24 @@ async function callClaude(messages: Anthropic.Beta.BetaMessageParam[], effort: C
   const fallback = env.ANTHROPIC_MODEL.startsWith('claude-haiku')
     ? {}
     : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const };
-  return client.beta.messages.create({
+  const response = await client.beta.messages.create({
     model: env.ANTHROPIC_MODEL,
     max_tokens: 16000,
+    // Caché automático: herramientas, instrucciones e historial ya enviados se
+    // cobran ~90% más barato en la siguiente llamada (cada ronda reenvía todo).
+    cache_control: { type: 'ephemeral' },
     system: systemPrompt(),
     tools: TOOLS,
     messages,
     output_config: { effort },
     ...fallback,
   });
+  // Tokens por llamada, para vigilar el gasto en los logs (sin contenido del chat).
+  const u = response.usage;
+  console.log(
+    `[claude] ${response.model} in=${u.input_tokens} cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0} out=${u.output_tokens}`,
+  );
+  return response;
 }
 
 // Corre el ciclo de herramientas hasta que Claude termina o propone acciones.

@@ -49,7 +49,8 @@ const envSchema = z.object({
 
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
   // Modelo del chat. Cambiarlo aquí no requiere tocar código.
-  ANTHROPIC_MODEL: z.string().default('claude-opus-5-5'),
+  // Sonnet 5.5 cuesta la mitad que Opus y alcanza para los créditos de la demo.
+  ANTHROPIC_MODEL: z.string().default('claude-sonnet-5-5'),
   // Tope diario de llamadas a Claude para proteger los créditos (la demo
   // queda pública para el jurado). Se reinicia cada día (UTC).
   CHAT_DAILY_LIMIT: z.coerce.number().int().positive().default(200),
