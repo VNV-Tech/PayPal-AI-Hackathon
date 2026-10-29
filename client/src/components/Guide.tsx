@@ -37,7 +37,7 @@ export function Guide({ title }: { title: string }) {
       <p className="mb-4 text-right text-xs text-ink-muted">
         <button type="button" onClick={() => setGuideOff(false)} className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">
           <Compass aria-hidden className="size-3.5" />
-          Turn the guide back on
+          Want step-by-step hints? Turn on the guide
         </button>
       </p>
     )

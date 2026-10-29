@@ -97,7 +97,7 @@ function BusinessHome() {
         }
       />
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div data-tour="home-stats" className="mt-4 grid gap-4 sm:grid-cols-2">
         <StatCard
           icon={Clock}
           label="Waiting to be paid"

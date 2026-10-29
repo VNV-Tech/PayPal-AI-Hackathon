@@ -139,7 +139,11 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 ### Tutorial de bienvenida
 - **Archivos:** los textos en `client/src/lib/tour.ts`; cómo se ve, en `client/src/components/Tour.tsx`.
 - **Para qué:** que alguien que entra por primera vez entienda la app sin explicación.
-- **Cómo funciona:** sale solo la primera vez (el navegador lo recuerda). Oscurece la pantalla, ilumina una parte y el copiloto explica qué es, en 7 pasos: bienvenida → los dos modos → Inicio → Facturas → Savings → Chat → listo. Cambia de modo solo cuando hace falta (Facturas en Business y Savings en Personal).
+- **Cómo funciona:** sale solo la primera vez que alguien entra (el navegador lo recuerda). Oscurece la pantalla, ilumina una parte y el copiloto explica qué es. Es una **introducción detallada de toda la app en 14 pasos**, en tres partes:
+  - **Business:** los dos modos → Inicio (lo cobrado) → quién te debe → crear una factura → seguir cada factura → facturas del SAT (CFDI).
+  - **Personal:** lo que te queda para gastar → tu plan de apartados → apartar cada pago.
+  - **El copiloto:** pregúntale con tus palabras → tú siempre apruebas → da el primer paso cuando te pagan → listo (señala el botón **Tour** para verlo de nuevo).
+- Cambia de modo y de pantalla solo. Si lo que quiere iluminar no está (por ejemplo, no hay facturas todavía), el mensaje sale al centro.
 - Botones **Next**, **Back** y **Skip tour**. Con el teclado: flechas para avanzar o regresar, y `Esc` para salir.
 - Se vuelve a ver con el botón **Tour** de la barra de arriba.
 - **No usa la IA ni gasta créditos:** todos los mensajes están escritos a mano.
@@ -163,15 +167,16 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - **En Home** es una tarjeta con el camino completo. **En las demás pantallas** es una **burbuja** abajo a la izquierda con el paso actual; se puede minimizar con la ✕. En el chat no sale, para no tapar la caja de texto.
   - Se actualiza **sola**: al cambiar de pantalla, al hacer algo en la app (cualquier botón que guarda o envía) y cuando PayPal avisa de un pago.
   - **"Your next step"** mientras vas aprendiendo (un paso que nunca has hecho). **"Still to do"** para lo pendiente que se te pudo olvidar.
-  - **"I've got it, turn off the guide"**: cuando ya te acostumbraste, la apagas. Se vuelve a prender desde Home con *"Turn the guide back on"*.
+  - **"I've got it, turn off the guide"**: si la prendiste y ya te acostumbraste, la apagas otra vez.
   - **Business:** 1. Crea una factura → 2. Envíala → 3. Cobra → 4. Pide sus datos fiscales → 5. Manda su factura (CFDI).
   - **Personal:** 1. Arma tu plan → 2. Cobra → 3. Aparta parte de un pago.
   - Cada paso se palomea solo. El paso actual explica **qué hacer, con datos reales** (*"Draft #0012 para Juan está listo: envíalo"*) y **por qué importa**.
   - **Show me** te lleva a la pantalla e **ilumina el botón exacto** que hay que presionar. Usa el mismo efecto del tutorial.
   - Si no queda nada pendiente, dice **"All caught up 🎉"**.
 - **No gasta créditos:** son reglas fijas que leen datos que la app ya tiene.
-- **Quién habla cuándo**, para que no sea ruido: la **guía** vive en Home y siempre está; el **copiloto** solo aparece cuando pasa algo importante (te pagaron); el **tutorial** sale solo la primera vez o con el botón Tour.
-- **🔧 En técnico:** `businessJourney` sigue la factura más reciente con algo pendiente (`stageOf`: send → paid → tax-info → cfdi) y `personalJourney` el primer pago por revisar. Cada paso trae `done`, `todo`, `hint` y `showMe`. `useJourney` (en `journey.ts`) los carga en el Layout y los recarga con la ruta, con los avisos en vivo y con el evento `vnv:data-changed`, que `lib/api.ts` lanza tras cualquier POST/PUT/DELETE exitoso. Todo se comparte por el contexto del Layout (`useLayout` en `lib/mode.ts`). "Show me" abre `Tour` con un solo paso. Apagado: `localStorage` `vnv-guide-off`. Los botones de cada factura tienen `data-tour="send-<id>"`, `remind-<id>`, `tax-<id>`, etc. `GET /api/tax-info` ahora también devuelve `knownClients` (correos con datos fiscales guardados).
+- **Empieza apagada** (desde el 29 de octubre). El tutorial de bienvenida ya explica todo, y así la guía no compite con el copiloto. Quien quiera los pasos la prende en Home con *"Want step-by-step hints? Turn on the guide"*.
+- **Quién habla cuándo**, para que no sea ruido: el **tutorial** enseña todo una vez (la primera vez o con el botón Tour); el **copiloto** es el único que habla mientras usas la app, cuando pasa algo importante (te pagaron); la **guía** solo si tú la prendes.
+- **🔧 En técnico:** `businessJourney` sigue la factura más reciente con algo pendiente (`stageOf`: send → paid → tax-info → cfdi) y `personalJourney` el primer pago por revisar. Cada paso trae `done`, `todo`, `hint` y `showMe`. `useJourney` (en `journey.ts`) los carga en el Layout y los recarga con la ruta, con los avisos en vivo y con el evento `vnv:data-changed`, que `lib/api.ts` lanza tras cualquier POST/PUT/DELETE exitoso. Todo se comparte por el contexto del Layout (`useLayout` en `lib/mode.ts`). "Show me" abre `Tour` con un solo paso. Prendido: `localStorage` `vnv-guide-on` (sin esa clave, apagada). Los botones de cada factura tienen `data-tour="send-<id>"`, `remind-<id>`, `tax-<id>`, etc. `GET /api/tax-info` ahora también devuelve `knownClients` (correos con datos fiscales guardados).
 
 ### El copiloto da el primer paso (proactivo)
 - **Archivos:** `server/src/ai/proactive.ts` (cuándo y con qué datos), `createSuggestion` en `server/src/ai/copilot.ts`, el aviso en `client/src/components/Layout.tsx` y la tarjeta "From your copilot" en `client/src/pages/Overview.tsx`.
@@ -406,7 +411,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5f | El link de datos fiscales dentro del correo de PayPal, y que la página diga quién los pide | — | Víctor | ✅ Hecho |
 | 5g | El copiloto da el primer paso cuando te pagan (proactivo) | — | Víctor | ✅ Hecho |
 | 5h | Guía que acompaña en todo el proceso (sin IA) | — | Víctor | ✅ Primera versión; Vanessa decide cómo se ve |
-| 5i | Que la guía y el copiloto no hablen al mismo tiempo justo después de un pago | 29 oct | Víctor | ⏳ Siguiente |
+| 5i | Que la guía y el copiloto no hablen al mismo tiempo: tutorial de bienvenida detallado y guía apagada por defecto | 29 oct | Víctor | ✅ PR #25 |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |

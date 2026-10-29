@@ -12,7 +12,7 @@ import { Button } from './ui'
 const PAD = 8 // margen alrededor de lo iluminado
 const GAP = 12 // separación entre lo iluminado y el mensaje
 const CARD_WIDTH = 360
-const CARD_HEIGHT_ESTIMATE = 260 // para decidir si el mensaje cabe abajo
+const CARD_HEIGHT_ESTIMATE = 300 // para decidir si el mensaje cabe abajo o arriba
 
 export function Tour({
   steps = TOUR_STEPS,
@@ -55,7 +55,10 @@ export function Tour({
       if (el) setFound({ stepId: step.id, rect: el.getBoundingClientRect() })
     }
     const find = () => {
-      el = document.querySelector(`[data-tour="${step.target}"]`)
+      const target = step.target!
+      el = document.querySelector(
+        target.endsWith('*') ? `[data-tour^="${target.slice(0, -1)}"]` : `[data-tour="${target}"]`,
+      )
       if (el) {
         el.scrollIntoView({ block: 'center' })
         measure()
@@ -106,7 +109,7 @@ export function Tour({
       )}
 
       <section
-        className="fixed w-[min(360px,calc(100vw-2rem))] rounded-2xl bg-surface p-5 shadow-xl max-sm:right-4 max-sm:bottom-4 max-sm:left-4 max-sm:w-auto"
+        className="fixed max-h-[calc(100vh-2rem)] w-[min(360px,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-surface p-5 shadow-xl max-sm:right-4 max-sm:bottom-4 max-sm:left-4 max-sm:w-auto"
         style={cardPosition(rect)}
       >
         <div className="flex items-center gap-3">
@@ -155,7 +158,9 @@ export function Tour({
   )
 }
 
-// Abajo de lo iluminado si cabe; si no, arriba. Sin nada iluminado, al centro.
+// Abajo de lo iluminado si cabe; si no, arriba. Si lo iluminado es tan alto
+// que no cabe en ningún lado (como la tabla de facturas), el mensaje va
+// encima, pegado abajo de la pantalla. Sin nada iluminado, al centro.
 // En celular el mensaje siempre va abajo (clases max-sm:).
 function cardPosition(rect: DOMRect | null): CSSProperties {
   if (typeof window !== 'undefined' && window.innerWidth < 640) return {}
@@ -163,5 +168,7 @@ function cardPosition(rect: DOMRect | null): CSSProperties {
   const left = Math.min(Math.max(16, rect.left - PAD), window.innerWidth - CARD_WIDTH - 16)
   const below = rect.bottom + PAD + GAP
   if (below + CARD_HEIGHT_ESTIMATE <= window.innerHeight) return { top: below, left }
-  return { bottom: window.innerHeight - rect.top + PAD + GAP, left }
+  const above = rect.top - PAD - GAP
+  if (above - CARD_HEIGHT_ESTIMATE >= 0) return { bottom: window.innerHeight - above, left }
+  return { bottom: 16, left }
 }

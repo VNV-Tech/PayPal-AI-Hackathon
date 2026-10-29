@@ -242,21 +242,22 @@ export function useJourney(mode: Mode): JourneyStep[] | null {
   return loaded?.mode === mode ? loaded.steps : null
 }
 
-const GUIDE_OFF_KEY = 'vnv-guide-off'
+const GUIDE_ON_KEY = 'vnv-guide-on'
 
-// "I've got it": el usuario apaga la guía cuando ya se acostumbró.
+// La guía empieza apagada: el tutorial de bienvenida ya explica todo y así no
+// compite con el copiloto. Quien quiera los pasos la prende desde Home.
 export function isGuideOff(): boolean {
   try {
-    return localStorage.getItem(GUIDE_OFF_KEY) === '1'
+    return localStorage.getItem(GUIDE_ON_KEY) !== '1'
   } catch {
-    return false
+    return true
   }
 }
 
 export function saveGuideOff(off: boolean) {
   try {
-    if (off) localStorage.setItem(GUIDE_OFF_KEY, '1')
-    else localStorage.removeItem(GUIDE_OFF_KEY)
+    if (off) localStorage.removeItem(GUIDE_ON_KEY)
+    else localStorage.setItem(GUIDE_ON_KEY, '1')
   } catch {
     // Se ignora: ver isGuideOff.
   }

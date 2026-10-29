@@ -257,11 +257,11 @@ function InvoiceTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
-          {invoices.map((inv) => {
+          {invoices.map((inv, i) => {
             const status = displayStatus(inv)
             const tax = taxRequests[inv.id]
             return (
-              <tr key={inv.id}>
+              <tr key={inv.id} data-tour={i === 0 ? 'invoices-row' : undefined}>
                 <td className="px-4 py-4 font-semibold tabular-nums">#{inv.number ?? '—'}</td>
                 <td className="px-4 py-4">
                   <p className="font-medium">{inv.customer.company ?? inv.customer.name ?? '—'}</p>

@@ -24,7 +24,7 @@ export function Layout() {
   const [tourOpen, setTourOpen] = useState(() => !isTourDone())
   // Paso que ilumina el botón "Show me" de la guía.
   const [spotlight, setSpotlight] = useState<TourStep | null>(null)
-  // Guía: acompaña en todas las pantallas hasta que el usuario la apaga.
+  // Guía: apagada al principio; si el usuario la prende, acompaña en todas las pantallas.
   const journey = useJourney(mode)
   const [guideOff, setGuideOffState] = useState(isGuideOff)
   const setGuideOff = (off: boolean) => {
@@ -108,6 +108,7 @@ export function Layout() {
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
+              data-tour="tour-button"
               onClick={() => setTourOpen(true)}
               aria-label="Tour"
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
