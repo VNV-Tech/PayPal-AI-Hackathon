@@ -62,22 +62,53 @@ Detalle de pantallas, arquitectura y reglas de diseño: `docs/proyecto.md`.
    repetirlo siempre.
 3. Al cerrar: apagar el túnel. Mientras está prendido, la app local es accesible desde internet.
 
+El script del webhook reescribe `PAYPAL_WEBHOOK_ID` en el `.env` local, pero
+solo borra webhooks viejos de `trycloudflare.com`: el de Render no se toca.
+
+## La versión publicada (Render)
+
+- https://vnv-copilot.onrender.com · servicio **VNV-Copilot** (plan Free,
+  Oregon). Publica sola la rama `dev` al fusionar un PR (~5 min). Antes de
+  entregar: cambiarla a `main`.
+- Build `npm ci --include=dev && npm run build` · start `npm start`.
+- Las variables viven en Render → Environment y **solo Víctor** las ve o
+  cambia; Claude no tiene acceso. Si el chat dice "unavailable", pedirle la
+  línea `[claude] ...` de los Logs (401 = clave, 404 = modelo).
+- Plan gratis: se duerme a los 15 min y `server/data/*.json` (apartados,
+  datos fiscales) se puede borrar al reiniciarse. Pendiente de resolver.
+- Para revisar cómo se ve en celular: Chrome headless con `puppeteer-core`
+  (instalado en el scratchpad, no en el proyecto) a 390×844. La app tiene
+  conexiones en vivo (SSE): esperar con `waitUntil: 'load'`, no `networkidle`.
+
 Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 
 ## Mapa rápido
 
 - `server/src/paypal/`: Invoicing (REST), Transaction Search (SDK oficial
   `@paypal/paypal-server-sdk`, cuenta para el premio de APIMatic), overview.
-- `server/src/ai/`: `copilot.ts` (chat + aprobaciones + sugerencias),
+- `server/src/ai/`: `copilot.ts` (chat + aprobaciones + sugerencias; Sonnet
+  5.5 con caché de prompts, anota `[claude] ...` con los tokens de cada llamada),
   `tools.ts` (herramientas), `proactive.ts` (la IA da el primer paso al pagar).
 - `server/src/taxInfo.ts` + `facturama.ts`: datos fiscales y CFDI.
 - `server/src/savings.ts`: apartados. `server/src/store.ts`: guardado en
   `server/data/*.json` (no se sube a git; en Render se borra al redesplegar).
-- `client/src/lib/journey.ts`: la guía (reglas, sin IA). `lib/mode.ts`: modos
-  Business/Personal. `lib/tour.ts`: tutorial. `index.css`: colores y letra.
+- `client/src/lib/tour.ts`: tutorial de bienvenida (14 pasos, sale la primera
+  vez; es la forma principal de enseñar la app). `lib/journey.ts`: la guía
+  (reglas, sin IA; **apagada por defecto**, se prende en Home). `lib/mode.ts`:
+  modos Business/Personal. `index.css`: colores y letra.
 
 ## Estado conocido
 
+- **Costos de IA:** la app usa ~$10 de créditos de la API de Anthropic
+  (~1 centavo por mensaje, tope `CHAT_DAILY_LIMIT`). Víctor programa con
+  Claude Pro: son cuentas separadas.
+- **AWS Bedrock en pausa:** Víctor tiene créditos de AWS, pero su cuenta aún
+  no tiene acceso a Sonnet 5.5 (caso de soporte abierto). En su compu hay
+  `@anthropic-ai/bedrock-sdk` instalado y un `test.js` sin subir: no
+  incluirlos en commits. Si AWS aprueba, el plan es un interruptor de
+  proveedor por variable, sin quitar Anthropic directo.
+- Mientras Vanessa y Natalia no estén disponibles, **Víctor decide** (también
+  el diseño); en sus reuniones se ajusta lo que ellas pidan.
 - El conector MCP de PayPal (plugin) falla con `Unsupported cache mode: default`
   desde el 27 oct. Es del lado de PayPal: el token responde 200 por REST. La app
   no depende de él.

@@ -413,7 +413,9 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5g | El copiloto da el primer paso cuando te pagan (proactivo) | — | Víctor | ✅ Hecho |
 | 5h | Guía que acompaña en todo el proceso (sin IA) | — | Víctor | ✅ Primera versión; Vanessa decide cómo se ve |
 | 5i | Que la guía y el copiloto no hablen al mismo tiempo: tutorial de bienvenida detallado y guía apagada por defecto | 29 oct | Víctor | ✅ PR #25 |
-| 6 | Publicar en Render | 8–9 nov | Víctor | ⏳ Falta la cuenta en render.com |
+| 5j | Que se vea bien en celular (facturas en tarjetas, tutorial que no tapa) | — | Víctor | ✅ PR #26 |
+| 6 | Publicar en Render | 8–9 nov | Víctor | ✅ Adelantado: https://vnv-copilot.onrender.com (28 oct) |
+| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis) | Antes del 1 dic | Víctor | ⏳ Pendiente |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
@@ -421,7 +423,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 | Fechas | Qué |
 |---|---|
-| 29 oct – 1 nov | Guía + copiloto sin encimarse, Render y diseño de Vanessa |
+| 29 oct – 1 nov | Prueba de pago en Render, apartados con meta (máximo 1 día) y diseño de Vanessa |
 | 1 – 5 nov | AG Grid (si el equipo va por ese premio) y pulir |
 | 6 – 10 nov | README en inglés, video y Devpost |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
@@ -444,6 +446,9 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ¿Nombre final, logo y colores?
 
 ### Ideas guardadas para después (si sobra tiempo)
+- **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
+- **AWS Bedrock** para pagar la IA con créditos de AWS: en pausa hasta que AWS habilite Sonnet 5.5 en la cuenta (caso de soporte abierto). La librería `@anthropic-ai/bedrock-sdk` se probó en local, sin subir. El plan: un interruptor Anthropic directo / Bedrock por variable, sin quitar el directo.
+- **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
 - **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
 - Base de datos para que nada se pierda al reiniciar.
@@ -476,6 +481,10 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #21 | Guía que acompaña en todo el proceso: sigue a tu factura más reciente, burbuja en todas las pantallas, "Show me" ilumina qué presionar, "Still to do" y se puede apagar |
 | #22 | Bitácora diaria en `guia-lo-que-se-hizo.md` |
 | #23 | `CLAUDE.md`: reglas y cómo arrancar, para que Claude retome el proyecto cada día |
+| #24 | El copiloto usa Sonnet 5.5 con caché (~1 centavo por mensaje) y anota sus tokens en el log |
+| #25 | Tutorial de bienvenida detallado (14 pasos) y la guía empieza apagada: ya no habla junto con el copiloto |
+| #26 | Celular: cada factura es una tarjeta y el tutorial se acomoda para no tapar lo que explica |
+| #27 | Bitácora del 28 oct (noche), `CLAUDE.md` con Render, y planes al día |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

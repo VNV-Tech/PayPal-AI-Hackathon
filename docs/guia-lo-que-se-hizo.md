@@ -15,12 +15,13 @@
 4. Le llega su **factura del SAT (CFDI)** por correo.
 5. Tú apartas tus impuestos.
 
-Además, hay una **guía** que te acompaña paso a paso, sin gastar créditos de IA.
+Además, un **tutorial de bienvenida** enseña toda la app la primera vez, sin gastar créditos de IA.
+
+**Ya está en internet:** https://vnv-copilot.onrender.com
 
 **Lo que falta:**
-- que la guía y el copiloto no hablen al mismo tiempo;
 - el diseño de Vanessa;
-- publicar en **Render**;
+- que los datos guardados no se borren en Render;
 - el README en inglés, el video y Devpost;
 - pasar todo a `main`.
 
@@ -130,9 +131,11 @@ Un servicio para **publicar la app en internet**, para que el jurado la abra con
 - Las reglas piden que la demo **siga en línea y gratis hasta el 15 de diciembre**.
 - Render es patrocinador del hackathon y da premios en créditos ($1,000, $750 o $500).
 
-### Estado: ⏳ es lo siguiente (después de arreglar la guía y el copiloto)
-**Tú tendrás que crear una cuenta en [render.com](https://render.com)**; lo más fácil es entrar con tu GitHub. Te guiaré paso a paso. Dos cosas a cuidar cuando lo hagamos:
-- **Los datos no deben borrarse** cada vez que se actualiza la app (los apartados y los datos fiscales hoy viven en un archivo).
+### Estado: ✅ publicada el 28 de octubre en https://vnv-copilot.onrender.com
+- Cuenta de Render con tu GitHub (que tiene verificación en dos pasos). Servicio **VNV-Copilot**, plan **Free**, región Oregon.
+- **Se actualiza sola:** Render publica lo que haya en `dev` cada vez que fusionas un PR (tarda unos 5 minutos). Antes de entregar se cambia a `main`.
+- **Las claves** viven en Render → tu servicio → **Environment**. Solo tú las ves; Claude no tiene acceso. Si cambias una, Render reinicia la app solo.
+- **Plan gratis:** se duerme si nadie la usa en 15 minutos (la primera visita espera ~1 minuto) y **puede borrar los apartados y los datos fiscales** al reiniciarse. Las facturas no se pierden: viven en PayPal. Pendiente de resolver.
 - **En la versión pública no se usan correos reales:** cualquiera la puede ver.
 
 ---
@@ -215,19 +218,47 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 
 **🔧 En técnico:** `server/src/facturama.ts` (PAC sandbox), `server/src/taxInfo.ts` (datos fiscales y CFDI), `server/src/ai/proactive.ts` (sugerencias al pagar), `client/src/lib/journey.ts` (reglas de la guía) y `client/src/lib/mode.ts` (modos). Hay variables nuevas en el `.env`: `FACTURAMA_USER`, `FACTURAMA_PASSWORD` y `BUSINESS_NAME` (ver `.env.example`).
 
+### 📅 28 de octubre de 2026 (segunda parte, en la noche)
+
+**🍎 En simple:** la app **ya está en internet**, la IA cuesta **~1 centavo por mensaje** y hay un **tutorial completo** que funciona bien en celular.
+
+- **La IA, más barata** (PR #24): el copiloto pasó de Opus 5.5 a **Sonnet 5.5** (la mitad de precio) y usa **caché**: lo que se repite en cada mensaje (instrucciones, herramientas, la plática) se cobra ~90% más barato. Medido: **~1 centavo por mensaje**, así que los ~$10 de créditos alcanzan para la revisión del jurado. Tú sigues usando Opus en Claude Code con tu Claude Pro: son cuentas separadas.
+- **Tutorial de bienvenida detallado** (PR #25), idea tuya: al entrar por primera vez, **14 pasos** explican toda la app (Business, Personal y el copiloto). Se puede omitir y volver a ver con el botón **Tour**. **La guía (el GPS) ahora empieza apagada**, y quien la quiera la prende en Home. Así, cuando te pagan, **solo habla el copiloto**. Esto resolvió el pendiente de la mañana.
+- **Publicada en Render**: https://vnv-copilot.onrender.com. Configuraste la cuenta con tu GitHub, las variables y el webhook de PayPal para esa dirección. El copiloto contestó desde internet ✅ (falló al principio por un guion de más en una clave).
+- **Arreglos para celular** (PR #26): la lista de facturas era una tabla que no cabía; ahora en celular **cada factura es una tarjeta**. El mensaje del tutorial se acomoda arriba o abajo para no tapar lo que explica, y espera a que lleguen las facturas de PayPal.
+
+**Decisiones del día:**
+- **Sonnet 5.5** para el copiloto de la app (pendiente desde el 27).
+- **Render antes que funciones nuevas:** sin link, el jurado no puede probar nada.
+- **Apartados con meta** (por ejemplo "Laptop: $15,000") y que el copiloto proponga cuánto meter cuando te pagan: **sí, pero chiquito y máximo 1 día**, después de Render. Quedó en "Ideas guardadas" de `proyecto.md`.
+- **AWS Bedrock** (para usar tus $100 de créditos de AWS): **en pausa**. Te suscribiste a Sonnet 5.5 en AWS, pero tu cuenta todavía dice "no disponible". Abriste un caso con AWS pidiendo acceso y límite de 6 millones de tokens al día. Mientras tanto, la app sigue con Anthropic directo.
+- Mientras Vanessa y Natalia no estén, **las decisiones las tomas tú**; en las reuniones se ajusta lo que ellas opinen.
+
+**Lo aprendido:**
+- Probar en el celular de verdad descubre cosas que en la compu no se ven.
+- Las cuentas nuevas de AWS vienen muy limitadas: los modelos nuevos y los límites se piden con un caso de soporte.
+- Un error de dedo en una clave (un guion) basta para que la IA no conteste. Los logs de Render dicen el motivo sin mostrar la clave.
+- El copiloto contestó una vez en **español a una pregunta en inglés**. Hay que vigilarlo: el jurado es internacional.
+
+**🔧 En técnico:** `callClaude` en `server/src/ai/copilot.ts` manda `cache_control: { type: 'ephemeral' }` y anota en el log `[claude] modelo in= cache_read= cache_write= out=` (sin contenido). Modelo por defecto `claude-sonnet-5-5` en `server/src/config/env.ts`. Tutorial: `client/src/lib/tour.ts` (14 pasos; un `target` con `*` ilumina el primero que empiece así), `Tour.tsx` busca la copia **visible** de cada parte, en celular pone el mensaje arriba si lo iluminado está abajo y espera hasta ~10 s. Guía: clave `localStorage` `vnv-guide-on` (sin ella, apagada). Invoices: `InvoiceActions` y `TaxNote` compartidos entre la tabla (compu) y las tarjetas (`sm:hidden`). Render: build `npm ci --include=dev && npm run build`, start `npm start`, rama `dev`. El webhook de Render se registró con `npm run paypal:webhook -- https://vnv-copilot.onrender.com` (el script solo borra webhooks viejos de `trycloudflare.com`).
+
 ---
 
 ## ✅ ¿Qué te toca hacer a ti?
 
 **En la reunión del 29 de octubre:**
-- [ ] Enseñarle a Vanessa los modos Business / Personal, el Home nuevo y la guía. **Desde ahí, el diseño lo decide ella.**
+- [ ] Enseñarles el link de Render, los modos Business / Personal, el Home nuevo y el **tutorial nuevo** (Natalia puede mejorar los textos en `client/src/lib/tour.ts`). **Desde ahí, el diseño lo decide Vanessa.**
 - [ ] Pedirle a Natalia una frase para la historia, por ejemplo: *"el copiloto que ayuda a los freelancers mexicanos a cobrar y cumplir con el SAT"*. También que empiece a pensar el video.
 - [ ] Decidir juntos si vamos por el premio de **AG Grid**.
 - [ ] Preguntarles si quieren aparecer en el aviso de autoría del código (`LICENSE`).
 
 **Con Claude:**
-- [ ] Arreglar que la guía y el copiloto no hablen al mismo tiempo.
-- [ ] Crear tu cuenta en **Render** (te guío).
+- [x] ~~Arreglar que la guía y el copiloto no hablen al mismo tiempo.~~ (PR #25)
+- [x] ~~Publicar en **Render**.~~ (28 oct)
+- [ ] **Prueba de pago completa en Render:** crear una factura chiquita, pagarla con tu cuenta personal de Sandbox y ver que pase a **Paid** sola y salga "Your copilot has a suggestion".
+- [ ] Que los apartados y los datos fiscales **no se borren** en Render.
+- [ ] **Apartados con meta** y que el copiloto proponga cuánto meter (máximo 1 día).
+- [ ] Cuando AWS conteste tu caso: pegarle la respuesta a Claude para probar Bedrock.
 - [ ] Del 1 al 5 de noviembre: activar la prueba de AG Grid, si el equipo dijo que sí.
 
 **Siempre:**
@@ -244,7 +275,10 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 |---|---|
 | Una pantalla dice "Not found" o no carga después de cambios grandes | Detén la app (Ctrl+C) y vuelve a correr `npm run dev` |
 | Pagas en Sandbox, pero la app no se actualiza sola | El túnel está apagado o cambió de link. Dile a Claude *"prende todo"*: vuelve a registrar el webhook |
-| El link de datos fiscales empieza con `localhost` | Es normal mientras la app corre en tu computadora. En Render tendrá la dirección real |
+| El link de datos fiscales empieza con `localhost` | Es normal mientras la app corre en tu computadora. En Render tiene la dirección real |
+| En Render el copiloto dice "unavailable right now" | Alguna variable de Anthropic está mal copiada en Render. Busca en **Logs** la línea `[claude] ...`: 401 = clave mal, 404 = modelo mal |
+| La app de Render tarda en abrir | El plan gratis se duerme a los 15 minutos sin uso: la primera visita espera ~1 minuto |
+| Probaste pagos en tu compu y ahora en local no llegan | El webhook de tu compu cambia con cada túnel. Dile a Claude *"prende todo"*; el de Render no se afecta |
 | No te llega el correo de la factura del SAT | Revisa que en el formulario se haya puesto un correo real (el de prueba, `facturas@example.com`, no existe) y revisa spam |
 | Claude dice "401" o "no autorizado" con PayPal | La llave caducó: `npm run paypal:token` y reinicia Claude Code |
 | GitHub no te deja subir cambios a `main` o `dev` | Es normal, son los candados. Trabaja en tu rama y abre una solicitud |
