@@ -45,6 +45,8 @@ El hackathon pide usar PayPal "de forma significativa". Con esta conexión podem
 ### ⚠️ Estado al 28 de octubre: el conector falla, pero no nos afecta
 Desde el 27 de octubre, cada consulta del conector responde `Unsupported cache mode: default`. **Tu llave está bien**: la probamos directo con PayPal y responde 200. El problema es del servidor de PayPal. Víctor lo reportó en el Discord del hackathon y nadie ha respondido.
 
+**Actualización (28 oct, noche):** el error cambió. Al abrir Claude Code ahora sale `SSE error: Non-200 status code (500)`. El servidor del conector ya responde cuando se le prueba directo, y el token se renovó con `npm run paypal:token`. **Falta probarlo:** cerrar Claude Code, volver a abrirlo y correr `/paypal:setup`. Si vuelve a fallar, para Discord: *"The Claude Code PayPal plugin (`mcp.sandbox.paypal.com/sse`) fails to connect with `SSE error: Non-200 status code (500)` (earlier: `Unsupported cache mode: default`), with a fresh sandbox token that works for the REST API."*
+
 **La app no depende de este conector:** habla con PayPal por su cuenta, y todo funciona.
 
 ### ⚠️ Lo que debes saber
@@ -238,6 +240,13 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 - Probar en el celular de verdad descubre cosas que en la compu no se ven.
 - Las cuentas nuevas de AWS vienen muy limitadas: los modelos nuevos y los límites se piden con un caso de soporte.
 - Un error de dedo en una clave (un guion) basta para que la IA no conteste. Los logs de Render dicen el motivo sin mostrar la clave.
+
+**Revisión de cierre (todo bien):** el `.env` no está en GitHub y no hay claves en el repositorio. La app publicada tiene HTTPS obligatorio y protecciones de página activas. Un aviso de pago **falso** (sin firma de PayPal) se contesta con "recibido" pero **se descarta**: el servidor verifica la firma con PayPal antes de hacer algo. Tu GitHub tiene verificación en dos pasos, y eso protege también tu Render.
+
+**Pendientes que salieron en la revisión** (no están rotos):
+- **Datos que se borran en Render** (tarea 6b). En el plan gratis, el servidor es como un cuarto de hotel: cada reinicio (al fusionar un PR, al despertar tras 15 minutos dormido o por mantenimiento) te dan uno limpio. Se pierden el plan de apartados y lo apartado, los datos fiscales de los clientes, la marca de "CFDI emitido" y las pláticas del copiloto. **No se pierden** las facturas ni los pagos (viven en PayPal), ni los CFDI ya enviados por correo. Importa porque un juez podría dejar algo a medias, regresar y ver que desapareció.
+- **Invoices pide la lista de facturas varias veces** al abrir (se vieron 4 pedidos seguidos en vez de 1). No rompe nada; revisar.
+- **Llaves de AWS:** si las del `.env` son de tu usuario principal, antes de subirlas a Render crear un usuario en IAM que **solo** pueda usar Bedrock.
 - El copiloto contestó una vez en **español a una pregunta en inglés**. Hay que vigilarlo: el jurado es internacional.
 
 **🔧 En técnico:** `callClaude` en `server/src/ai/copilot.ts` manda `cache_control: { type: 'ephemeral' }` y anota en el log `[claude] modelo in= cache_read= cache_write= out=` (sin contenido). Modelo por defecto `claude-sonnet-5-5` en `server/src/config/env.ts`. Tutorial: `client/src/lib/tour.ts` (14 pasos; un `target` con `*` ilumina el primero que empiece así), `Tour.tsx` busca la copia **visible** de cada parte, en celular pone el mensaje arriba si lo iluminado está abajo y espera hasta ~10 s. Guía: clave `localStorage` `vnv-guide-on` (sin ella, apagada). Invoices: `InvoiceActions` y `TaxNote` compartidos entre la tabla (compu) y las tarjetas (`sm:hidden`). Render: build `npm ci --include=dev && npm run build`, start `npm start`, rama `dev`. El webhook de Render se registró con `npm run paypal:webhook -- https://vnv-copilot.onrender.com` (el script solo borra webhooks viejos de `trycloudflare.com`).
@@ -257,6 +266,8 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 - [x] ~~Publicar en **Render**.~~ (28 oct)
 - [ ] **Prueba de pago completa en Render:** crear una factura chiquita, pagarla con tu cuenta personal de Sandbox y ver que pase a **Paid** sola y salga "Your copilot has a suggestion".
 - [ ] Que los apartados y los datos fiscales **no se borren** en Render.
+- [ ] Revisar los detalles de **cómo se ve en celular** (lo que viste al probar).
+- [ ] Cerrar y abrir Claude Code y correr `/paypal:setup`, para ver si el conector de PayPal ya funciona.
 - [ ] **Apartados con meta** y que el copiloto proponga cuánto meter (máximo 1 día).
 - [ ] Cuando AWS conteste tu caso: pegarle la respuesta a Claude para probar Bedrock.
 - [ ] Del 1 al 5 de noviembre: activar la prueba de AG Grid, si el equipo dijo que sí.

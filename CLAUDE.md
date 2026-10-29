@@ -109,8 +109,13 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   proveedor por variable, sin quitar Anthropic directo.
 - Mientras Vanessa y Natalia no estén disponibles, **Víctor decide** (también
   el diseño); en sus reuniones se ajusta lo que ellas pidan.
-- El conector MCP de PayPal (plugin) falla con `Unsupported cache mode: default`
-  desde el 27 oct. Es del lado de PayPal: el token responde 200 por REST. La app
-  no depende de él.
+- El conector MCP de PayPal (plugin) falla desde el 27 oct (`Unsupported cache
+  mode: default`; el 28 en la noche, `SSE error ... (500)` al abrir). Es del
+  lado de PayPal. El token se renueva con `npm run paypal:token` (dura ~8 h y
+  Claude Code solo lo lee al abrirse); probar con `/paypal:setup`. La app no
+  depende de él.
+- Pendientes chicos: Invoices pide la lista de facturas varias veces al abrir
+  (se vieron 4); el copiloto contestó una vez en español a una pregunta en
+  inglés.
 - Premio de AG Grid: activar su prueba de 45 días **entre el 1 y el 5 de
   noviembre** para que dure hasta el 15 de diciembre (si el equipo va por él).
