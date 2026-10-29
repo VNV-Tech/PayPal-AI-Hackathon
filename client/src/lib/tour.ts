@@ -6,7 +6,9 @@ import type { Mode } from './mode'
 // - mode: modo al que cambia la app en ese paso (opcional).
 // - route: pantalla a la que se va el tutorial en ese paso (opcional).
 // - target: qué parte se ilumina; debe coincidir con un data-tour="..." en
-//   la pantalla. Sin target, el mensaje sale en el centro.
+//   la pantalla. Con * al final ilumina el primero que empiece así (por
+//   ejemplo 'tax-*' = el primer botón Tax info). Sin target, el mensaje sale
+//   en el centro.
 export interface TourStep {
   id: string
   mode?: Mode
@@ -76,10 +78,10 @@ export const TOUR_STEPS: TourStep[] = [
     body: 'Add your client, what you did and how much. Your client gets an email from PayPal and pays with PayPal or a card. Nothing is sent until you press Send, so you can save it as a draft first.',
   },
   {
-    id: 'invoices-list',
+    id: 'invoices-row',
     mode: 'business',
     route: '/invoices',
-    target: 'invoices-list',
+    target: 'invoices-row',
     title: 'Follow every invoice',
     body: 'Each invoice shows its status: draft, sent, paid or overdue. From here you can send it, remind your client, open the payment page or cancel it.',
   },
@@ -87,7 +89,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'cfdi',
     mode: 'business',
     route: '/invoices',
-    target: 'invoices-list',
+    target: 'tax-*',
     title: 'Tax invoices (CFDI), handled',
     body: "Many clients in Mexico need an official tax invoice. With Tax info you get a link where your client fills in their tax details just once. When they pay, issue the CFDI with one click and it's emailed to them with the PDF and XML. In this demo CFDIs are test documents.",
   },

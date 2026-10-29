@@ -55,7 +55,10 @@ export function Tour({
       if (el) setFound({ stepId: step.id, rect: el.getBoundingClientRect() })
     }
     const find = () => {
-      el = document.querySelector(`[data-tour="${step.target}"]`)
+      const target = step.target!
+      el = document.querySelector(
+        target.endsWith('*') ? `[data-tour^="${target.slice(0, -1)}"]` : `[data-tour="${target}"]`,
+      )
       if (el) {
         el.scrollIntoView({ block: 'center' })
         measure()
