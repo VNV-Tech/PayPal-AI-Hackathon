@@ -230,6 +230,7 @@ function money(m: { currency_code: string; value: string } | null) {
   return m ? formatMoney(Number(m.value), m.currency_code) : '—'
 }
 
+// En compu, una tabla; en celular, una tarjeta por factura (la tabla no cabe).
 function InvoiceTable({
   invoices,
   taxRequests,
@@ -242,85 +243,137 @@ function InvoiceTable({
   onTaxInfo: (inv: Invoice) => void
 }) {
   return (
-    <Card className="overflow-x-auto p-0">
-      <table className="w-full min-w-[820px] text-left text-sm">
-        <thead className="border-b border-line text-xs font-semibold tracking-wide text-ink-muted uppercase">
-          <tr>
-            <th className="px-4 py-3">Invoice</th>
-            <th className="px-4 py-3">Client</th>
-            <th className="px-4 py-3 text-right">Amount</th>
-            <th className="px-4 py-3">Due</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3 text-right">
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
-          {invoices.map((inv, i) => {
-            const status = displayStatus(inv)
-            const tax = taxRequests[inv.id]
-            return (
-              <tr key={inv.id} data-tour={i === 0 ? 'invoices-row' : undefined}>
-                <td className="px-4 py-4 font-semibold tabular-nums">#{inv.number ?? '—'}</td>
-                <td className="px-4 py-4">
-                  <p className="font-medium">{inv.customer.company ?? inv.customer.name ?? '—'}</p>
-                  <p className="text-xs text-ink-muted">{inv.customer.email}</p>
-                </td>
-                <td className="px-4 py-4 text-right font-semibold tabular-nums">{money(inv.amount)}</td>
-                <td className="px-4 py-4 whitespace-nowrap text-ink-muted">{formatDate(inv.dueDate)}</td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <Badge tone={status.tone}>{status.label}</Badge>
-                  {tax && (
-                    <p className="mt-1 text-xs text-ink-muted">
-                      {tax.cfdi ? 'CFDI issued ✓' : tax.status === 'received' ? 'Tax info ✓' : 'Tax info pending'}
-                    </p>
-                  )}
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex justify-end gap-1 whitespace-nowrap">
-                    {inv.status !== 'DRAFT' && (
-                      <a
-                        href={inv.payerViewUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        title="Payment page"
-                        className="grid size-8 place-items-center rounded-full text-brand-600 hover:bg-brand-50"
-                      >
-                        <ExternalLink aria-hidden className="size-4" />
-                        <span className="sr-only">Payment page</span>
-                      </a>
-                    )}
-                    {inv.status !== 'DRAFT' && (
-                      <Button
-                        variant="ghost"
-                        data-tour={`tax-${inv.id}`}
-                        className="px-3 py-1.5 text-xs"
-                        onClick={() => onTaxInfo(inv)}
-                      >
-                        <Receipt aria-hidden className="size-3.5" />
-                        Tax info
-                      </Button>
-                    )}
-                    {availableActions(inv.status).map((action) => (
-                      <Button
-                        key={action}
-                        data-tour={`${action}-${inv.id}`}
-                        variant={action === 'send' ? 'primary' : 'ghost'}
-                        className="px-3 py-1.5 text-xs"
-                        onClick={() => onAction(inv, action)}
-                      >
-                        {ACTION_COPY[action].button}
-                      </Button>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </Card>
+    <>
+      <ul className="space-y-3 sm:hidden">
+        {invoices.map((inv, i) => {
+          const status = displayStatus(inv)
+          return (
+            <li
+              key={inv.id}
+              data-tour={i === 0 ? 'invoices-row' : undefined}
+              className="rounded-2xl border border-line bg-surface p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold tabular-nums">#{inv.number ?? '—'}</p>
+                  <p className="truncate font-medium">{inv.customer.company ?? inv.customer.name ?? '—'}</p>
+                  <p className="truncate text-xs text-ink-muted">{inv.customer.email}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-semibold tabular-nums">{money(inv.amount)}</p>
+                  <p className="text-xs text-ink-muted">Due {formatDate(inv.dueDate)}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Badge tone={status.tone}>{status.label}</Badge>
+                <TaxNote tax={taxRequests[inv.id]} />
+              </div>
+              <InvoiceActions invoice={inv} onAction={onAction} onTaxInfo={onTaxInfo} className="mt-3 flex flex-wrap gap-1 border-t border-line pt-3" />
+            </li>
+          )
+        })}
+      </ul>
+
+      <Card className="overflow-x-auto p-0 max-sm:hidden">
+        <table className="w-full min-w-[820px] text-left text-sm">
+          <thead className="border-b border-line text-xs font-semibold tracking-wide text-ink-muted uppercase">
+            <tr>
+              <th className="px-4 py-3">Invoice</th>
+              <th className="px-4 py-3">Client</th>
+              <th className="px-4 py-3 text-right">Amount</th>
+              <th className="px-4 py-3">Due</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">
+                <span className="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {invoices.map((inv, i) => {
+              const status = displayStatus(inv)
+              return (
+                <tr key={inv.id} data-tour={i === 0 ? 'invoices-row' : undefined}>
+                  <td className="px-4 py-4 font-semibold tabular-nums">#{inv.number ?? '—'}</td>
+                  <td className="px-4 py-4">
+                    <p className="font-medium">{inv.customer.company ?? inv.customer.name ?? '—'}</p>
+                    <p className="text-xs text-ink-muted">{inv.customer.email}</p>
+                  </td>
+                  <td className="px-4 py-4 text-right font-semibold tabular-nums">{money(inv.amount)}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-ink-muted">{formatDate(inv.dueDate)}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <Badge tone={status.tone}>{status.label}</Badge>
+                    <TaxNote tax={taxRequests[inv.id]} className="mt-1" />
+                  </td>
+                  <td className="px-4 py-4">
+                    <InvoiceActions
+                      invoice={inv}
+                      onAction={onAction}
+                      onTaxInfo={onTaxInfo}
+                      className="flex justify-end gap-1 whitespace-nowrap"
+                    />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </Card>
+    </>
+  )
+}
+
+function TaxNote({ tax, className = '' }: { tax: TaxRequest | undefined; className?: string }) {
+  if (!tax) return null
+  return (
+    <p className={`text-xs text-ink-muted ${className}`}>
+      {tax.cfdi ? 'CFDI issued ✓' : tax.status === 'received' ? 'Tax info ✓' : 'Tax info pending'}
+    </p>
+  )
+}
+
+function InvoiceActions({
+  invoice: inv,
+  onAction,
+  onTaxInfo,
+  className,
+}: {
+  invoice: Invoice
+  onAction: (inv: Invoice, action: InvoiceAction) => void
+  onTaxInfo: (inv: Invoice) => void
+  className: string
+}) {
+  return (
+    <div className={className}>
+      {inv.status !== 'DRAFT' && (
+        <a
+          href={inv.payerViewUrl}
+          target="_blank"
+          rel="noreferrer"
+          title="Payment page"
+          className="grid size-8 place-items-center rounded-full text-brand-600 hover:bg-brand-50"
+        >
+          <ExternalLink aria-hidden className="size-4" />
+          <span className="sr-only">Payment page</span>
+        </a>
+      )}
+      {inv.status !== 'DRAFT' && (
+        <Button variant="ghost" data-tour={`tax-${inv.id}`} className="px-3 py-1.5 text-xs" onClick={() => onTaxInfo(inv)}>
+          <Receipt aria-hidden className="size-3.5" />
+          Tax info
+        </Button>
+      )}
+      {availableActions(inv.status).map((action) => (
+        <Button
+          key={action}
+          data-tour={`${action}-${inv.id}`}
+          variant={action === 'send' ? 'primary' : 'ghost'}
+          className="px-3 py-1.5 text-xs"
+          onClick={() => onAction(inv, action)}
+        >
+          {ACTION_COPY[action].button}
+        </Button>
+      ))}
+    </div>
   )
 }
 
