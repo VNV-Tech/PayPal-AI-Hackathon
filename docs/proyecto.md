@@ -145,6 +145,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - **El copiloto:** pregúntale con tus palabras → tú siempre apruebas → da el primer paso cuando te pagan → listo (señala el botón **Tour** para verlo de nuevo).
 - Cambia de modo y de pantalla solo. Si lo que quiere iluminar no está (por ejemplo, no hay facturas todavía), el mensaje sale al centro.
 - Botones **Next**, **Back** y **Skip tour**. Con el teclado: flechas para avanzar o regresar, y `Esc` para salir.
+- **En celular** el mensaje ocupa todo el ancho: va abajo, o arriba si lo que ilumina está en la parte de abajo (por ejemplo, la caja del chat). Espera hasta ~10 segundos a que aparezca lo que ilumina (las facturas vienen de PayPal).
 - Se vuelve a ver con el botón **Tour** de la barra de arriba.
 - **No usa la IA ni gasta créditos:** todos los mensajes están escritos a mano.
 
@@ -208,7 +209,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivo:** `client/src/pages/Invoices.tsx`
 - **Para qué:** ver y manejar todas las facturas.
 - **Qué tiene:**
-  - Tabla con número, cliente, monto, fecha de vencimiento, estado (etiqueta de color) y acciones.
+  - En compu, una tabla con número, cliente, monto, fecha de vencimiento, estado (etiqueta de color) y acciones. **En celular**, una tarjeta por factura con lo mismo (la tabla no cabía y se salía de la pantalla).
   - Botón **New invoice**, que abre un formulario en una ventana.
   - Antes de enviar, recordar, cancelar o borrar, sale una ventana de confirmación.
   - Mensaje verde cuando algo sale bien (por ejemplo, "Invoice sent").

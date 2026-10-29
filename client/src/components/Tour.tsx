@@ -44,8 +44,8 @@ export function Tour({
     if (step.route && pathname !== step.route) navigate(step.route)
   }, [step, pathname, navigate])
 
-  // Busca la parte que se ilumina. Puede tardar unos cuadros en aparecer
-  // después de cambiar de pantalla.
+  // Busca la parte que se ilumina. Puede tardar en aparecer después de
+  // cambiar de pantalla (las facturas vienen de PayPal): se busca hasta ~10 s.
   useEffect(() => {
     if (!step.target) return
     let el: Element | null = null
@@ -56,13 +56,14 @@ export function Tour({
     }
     const find = () => {
       const target = step.target!
-      el = document.querySelector(
-        target.endsWith('*') ? `[data-tour^="${target.slice(0, -1)}"]` : `[data-tour="${target}"]`,
-      )
+      const selector = target.endsWith('*') ? `[data-tour^="${target.slice(0, -1)}"]` : `[data-tour="${target}"]`
+      // El primero que se ve: algunas partes existen dos veces (versión de
+      // compu y de celular) y una está escondida.
+      el = [...document.querySelectorAll(selector)].find((e) => e.getClientRects().length > 0) ?? null
       if (el) {
         el.scrollIntoView({ block: 'center' })
         measure()
-      } else if (++tries < 120) {
+      } else if (++tries < 600) {
         frame = requestAnimationFrame(find)
       }
     }
@@ -161,9 +162,12 @@ export function Tour({
 // Abajo de lo iluminado si cabe; si no, arriba. Si lo iluminado es tan alto
 // que no cabe en ningún lado (como la tabla de facturas), el mensaje va
 // encima, pegado abajo de la pantalla. Sin nada iluminado, al centro.
-// En celular el mensaje siempre va abajo (clases max-sm:).
+// En celular el mensaje ocupa todo el ancho (clases max-sm:): va abajo, o
+// arriba si lo iluminado está en la mitad de abajo de la pantalla.
 function cardPosition(rect: DOMRect | null): CSSProperties {
-  if (typeof window !== 'undefined' && window.innerWidth < 640) return {}
+  if (typeof window !== 'undefined' && window.innerWidth < 640) {
+    return rect && rect.top + rect.height / 2 > window.innerHeight / 2 ? { top: 16, bottom: 'auto' } : {}
+  }
   if (!rect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
   const left = Math.min(Math.max(16, rect.left - PAD), window.innerWidth - CARD_WIDTH - 16)
   const below = rect.bottom + PAD + GAP
