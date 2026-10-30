@@ -102,11 +102,10 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 - **Costos de IA:** la app usa ~$10 de créditos de la API de Anthropic
   (~1 centavo por mensaje, tope `CHAT_DAILY_LIMIT`). Víctor programa con
   Claude Pro: son cuentas separadas.
-- **AWS Bedrock en pausa:** Víctor tiene créditos de AWS, pero su cuenta aún
-  no tiene acceso a Sonnet 5.5 (caso de soporte abierto). En su compu hay
-  `@anthropic-ai/bedrock-sdk` instalado y un `test.js` sin subir: no
-  incluirlos en commits. Si AWS aprueba, el plan es un interruptor de
-  proveedor por variable, sin quitar Anthropic directo.
+- **AWS Bedrock descartado (30 oct):** AWS contestó el caso, pero hubo
+  complicaciones y no se usará; la IA sigue con Anthropic directo. En la
+  compu de Víctor quedaron `@anthropic-ai/bedrock-sdk` instalado y un
+  `test.js` sin subir: no incluirlos en commits.
 - Mientras Vanessa y Natalia no estén disponibles, **Víctor decide** (también
   el diseño); en sus reuniones se ajusta lo que ellas pidan.
 - El conector MCP de PayPal (plugin) falla desde el 27 oct (`Unsupported cache
@@ -114,8 +113,7 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   lado de PayPal. El token se renueva con `npm run paypal:token` (dura ~8 h y
   Claude Code solo lo lee al abrirse); probar con `/paypal:setup`. La app no
   depende de él.
-- Pendientes chicos: Invoices pide la lista de facturas varias veces al abrir
-  (se vieron 4); el copiloto contestó una vez en español a una pregunta en
+- Pendiente chico: el copiloto contestó una vez en español a una pregunta en
   inglés.
 - Premio de AG Grid: activar su prueba de 45 días **entre el 1 y el 5 de
   noviembre** para que dure hasta el 15 de diciembre (si el equipo va por él).

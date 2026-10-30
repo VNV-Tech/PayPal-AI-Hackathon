@@ -25,8 +25,8 @@ export function Layout() {
   // Paso que ilumina el botón "Show me" de la guía.
   const [spotlight, setSpotlight] = useState<TourStep | null>(null)
   // Guía: apagada al principio; si el usuario la prende, acompaña en todas las pantallas.
-  const journey = useJourney(mode)
   const [guideOff, setGuideOffState] = useState(isGuideOff)
+  const journey = useJourney(mode, guideOff)
   const setGuideOff = (off: boolean) => {
     setGuideOffState(off)
     saveGuideOff(off)
