@@ -4,8 +4,9 @@ import { EventEmitter } from 'node:events';
 
 export interface LiveEvent {
   // tax.updated: un cliente mandó sus datos fiscales (no viene de PayPal).
+  // copilot.thinking: el copiloto empezó a preparar propuestas (status 'failed' si no pudo).
   // copilot.suggestion: el copiloto preparó propuestas por su cuenta.
-  type: 'invoice.updated' | 'payment.received' | 'tax.updated' | 'copilot.suggestion';
+  type: 'invoice.updated' | 'payment.received' | 'tax.updated' | 'copilot.thinking' | 'copilot.suggestion';
   // Evento original de PayPal, por ejemplo INVOICING.INVOICE.PAID.
   paypalEvent: string;
   invoiceId?: string;

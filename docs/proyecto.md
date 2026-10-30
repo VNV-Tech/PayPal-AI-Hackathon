@@ -183,7 +183,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivos:** `server/src/ai/proactive.ts` (cuándo y con qué datos), `createSuggestion` en `server/src/ai/copilot.ts`, el aviso en `client/src/components/Layout.tsx` y la tarjeta "From your copilot" en `client/src/pages/Overview.tsx`.
 - **🍎 En simple:** antes, la IA solo trabajaba si tú le escribías. Ahora, **cuando un cliente te paga**, el copiloto se da cuenta solo y te prepara lo que sigue:
   - *"Juan te pagó $1,000, que incluyen $137.93 de IVA. Ya tengo sus datos fiscales: ¿emito su factura? ¿Aparto $300 para impuestos?"*
-  - Te sale un aviso abajo a la derecha, **"Your copilot has a suggestion"**, y una tarjeta en Home. Con **Review** se abre en el chat con las tarjetas para aprobar.
+  - Claude tarda unos segundos en pensar, así que al instante sale un aviso abajo a la derecha, **"Your copilot is on it"** con puntitos que se mueven (evento en vivo `copilot.thinking`). Cuando está lista cambia a **"Your copilot has a suggestion"**, y aparece una tarjeta en Home. Si falla, el aviso se quita solo. Con **Review** se abre en el chat con las tarjetas para aprobar.
 - **Nunca hace nada solo:** sigue pidiendo tu aprobación para todo. La diferencia es que él da el primer paso.
 - **🔧 En técnico:**
   - El webhook `INVOICING.INVOICE.PAID` llama a `onInvoicePaid`, que **no bloquea** la respuesta a PayPal.
@@ -416,7 +416,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5j | Que se vea bien en celular (facturas en tarjetas, tutorial que no tapa) | — | Víctor | ✅ PR #26 |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ✅ Adelantado: https://vnv-copilot.onrender.com (28 oct) |
 | 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis): hoy se pierden con cada reinicio (al publicar, al despertar o por mantenimiento) el plan de apartados, lo apartado, los datos fiscales, la marca de "CFDI emitido" y las pláticas. Facturas y pagos no (viven en PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
-| 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 29 oct | Víctor | ⏳ Pendiente |
+| 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 30 oct | Víctor | ✅ Pasó (factura #0014). La sugerencia tardaba unos segundos sin aviso: ahora sale "Your copilot is on it" al instante |
+| 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | — | Víctor | ⏳ Pendiente |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
