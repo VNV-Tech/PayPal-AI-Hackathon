@@ -206,13 +206,15 @@ export function currentStep(steps: JourneyStep[]): { step: JourneyStep; firstTim
 }
 
 // Pasos del modo, actualizados al cambiar de pantalla, al hacer algo en la
-// app y cuando PayPal avisa de un cambio. null mientras cargan.
-export function useJourney(mode: Mode): JourneyStep[] | null {
+// app y cuando PayPal avisa de un cambio. null mientras cargan o si la guía
+// está apagada (así no se piden datos que nadie va a ver).
+export function useJourney(mode: Mode, off = false): JourneyStep[] | null {
   const [loaded, setLoaded] = useState<{ mode: Mode; steps: JourneyStep[] } | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const { pathname } = useLocation()
 
   useEffect(() => {
+    if (off) return
     let ignore = false
     const load =
       mode === 'business'
@@ -230,7 +232,7 @@ export function useJourney(mode: Mode): JourneyStep[] | null {
     return () => {
       ignore = true
     }
-  }, [mode, pathname, reloadKey])
+  }, [mode, off, pathname, reloadKey])
 
   useLiveEvents(() => setReloadKey((k) => k + 1))
   useEffect(() => {
@@ -239,7 +241,7 @@ export function useJourney(mode: Mode): JourneyStep[] | null {
     return () => window.removeEventListener(DATA_CHANGED, onChange)
   }, [])
 
-  return loaded?.mode === mode ? loaded.steps : null
+  return !off && loaded?.mode === mode ? loaded.steps : null
 }
 
 const GUIDE_ON_KEY = 'vnv-guide-on'
