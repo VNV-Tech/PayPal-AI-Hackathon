@@ -51,6 +51,9 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
   if (handled.has(invoiceId)) return;
   handled.add(invoiceId);
 
+  // Claude tarda unos segundos: se avisa de inmediato que ya viene algo.
+  publish({ type: 'copilot.thinking', paypalEvent: 'COPILOT.THINKING', invoiceId, invoiceNumber });
+
   // Sin await: el webhook le responde a PayPal de inmediato.
   void paidInvoiceFacts(invoiceId)
     .then(({ title, event }) => createSuggestion(title, event))
@@ -66,6 +69,7 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
       (err: unknown) => {
         // Si falla (por ejemplo, se acabó el límite diario), los avisos normales siguen funcionando.
         handled.delete(invoiceId);
+        publish({ type: 'copilot.thinking', paypalEvent: 'COPILOT.THINKING', invoiceId, invoiceNumber, status: 'failed' });
         if (!(err instanceof ChatLimitError)) console.error('[copilot] No se pudo preparar la sugerencia:', err);
       },
     );

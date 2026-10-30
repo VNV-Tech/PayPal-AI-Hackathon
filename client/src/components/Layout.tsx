@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, Sparkles, UserRound, X } from 'lucide-react'
 import { APP_NAME } from '../lib/config'
@@ -35,13 +35,26 @@ export function Layout() {
   const { pathname } = useLocation()
   const nav = MODES[mode].nav
   // Aviso cuando el copiloto prepara algo por su cuenta (por ejemplo, al llegar un pago).
-  const [suggestion, setSuggestion] = useState<{ id: string; invoiceNumber?: string } | null>(null)
+  // Sin id: todavía lo está pensando (Claude tarda unos segundos).
+  const [suggestion, setSuggestion] = useState<{ id?: string; invoiceNumber?: string } | null>(null)
 
   useLiveEvents((event) => {
     if (event.type === 'copilot.suggestion' && event.suggestionId) {
       setSuggestion({ id: event.suggestionId, invoiceNumber: event.invoiceNumber })
+    } else if (event.type === 'copilot.thinking') {
+      // Si no pudo (por ejemplo, el límite diario), se quita el "pensando"; una sugerencia ya lista no se toca.
+      if (event.status === 'failed') setSuggestion((s) => (s?.id ? s : null))
+      else setSuggestion((s) => (s?.id ? s : { invoiceNumber: event.invoiceNumber }))
     }
   })
+
+  // Por si el aviso final nunca llega (se cayó la conexión): el "pensando" no se queda para siempre.
+  const thinking = suggestion !== null && !suggestion.id
+  useEffect(() => {
+    if (!thinking) return
+    const timer = setTimeout(() => setSuggestion((s) => (s?.id ? s : null)), 90_000)
+    return () => clearTimeout(timer)
+  }, [thinking])
 
   function openSuggestion(id: string) {
     setSuggestion(null)
@@ -163,22 +176,36 @@ export function Layout() {
           className="fixed right-4 bottom-24 left-4 z-20 flex items-center gap-3 rounded-2xl bg-navy-900 p-4 text-white shadow-xl sm:bottom-6 sm:left-auto sm:w-96"
         >
           <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600">
-            <Sparkles aria-hidden className="size-5" />
+            <Sparkles aria-hidden className={`size-5 ${thinking ? 'animate-pulse' : ''}`} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Your copilot has a suggestion</p>
+            <p className="text-sm font-semibold">
+              {thinking ? 'Your copilot is on it' : 'Your copilot has a suggestion'}
+            </p>
             <p className="text-xs text-white/70">
-              {suggestion.invoiceNumber ? `Invoice #${suggestion.invoiceNumber} was just paid.` : 'Something new happened.'} Take a
-              look?
+              {suggestion.invoiceNumber ? `Invoice #${suggestion.invoiceNumber} was just paid.` : 'Something new happened.'}{' '}
+              {thinking ? 'Preparing next steps…' : 'Take a look?'}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => openSuggestion(suggestion.id)}
-            className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-brand-50"
-          >
-            Review
-          </button>
+          {suggestion.id ? (
+            <button
+              type="button"
+              onClick={() => openSuggestion(suggestion.id!)}
+              className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-brand-50"
+            >
+              Review
+            </button>
+          ) : (
+            <span aria-hidden className="flex gap-1 px-2">
+              {[0, 150, 300].map((delay) => (
+                <span
+                  key={delay}
+                  className="size-1.5 animate-bounce rounded-full bg-white/80"
+                  style={{ animationDelay: `${delay}ms` }}
+                />
+              ))}
+            </span>
+          )}
           <button type="button" onClick={() => setSuggestion(null)} aria-label="Dismiss" className="text-white/60 hover:text-white">
             <X aria-hidden className="size-4" />
           </button>
