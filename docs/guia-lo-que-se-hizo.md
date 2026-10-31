@@ -280,6 +280,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - **Memoria entre pláticas: no.** La demo es pública y todos los jueces comparten la cuenta, así que un juez vería lo que habló otro. Además, cada mensaje costaría más. Para lo que se necesita basta el historial de pagos.
 - **No se guardan las respuestas de PayPal unos segundos para acelerar:** medido, ahorraba menos de 1 segundo y podía retrasar que apareciera un pago nuevo.
 - **Antes de agregar o quitar algo, Claude dice primero si conviene o no,** con sinceridad, y espera tu OK.
+- **El video:** Claude hace el guion, las tomas limpias de la app y los subtítulos. Natalia (o tú) narra con su voz y edita en CapCut o Clipchamp. La toma del pago se graba en pantalla. Detalle en `proyecto.md` → "Ideas guardadas".
 - **Desde el 31 de octubre: no más funciones nuevas.** Lo que sigue es README, video, Devpost y el diseño de Vanessa.
 
 **Lo aprendido:**
