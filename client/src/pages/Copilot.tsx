@@ -91,6 +91,24 @@ export function Copilot() {
     }
   }, [suggestionId, setParams])
 
+  // Botón "Review all with AI" de Savings (?review=payments): la conversación
+  // arranca sola con los pagos pendientes. El ref evita pedirlo dos veces.
+  const reviewStarted = useRef(false)
+  useEffect(() => {
+    if (params.get('review') !== 'payments' || reviewStarted.current) return
+    reviewStarted.current = true
+    setParams({}, { replace: true })
+    setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'user', text: 'Review all my pending payments' }])
+    setBusy(true)
+    chatApi
+      .reviewPayments()
+      .then((res) => {
+        if (res.conversationId) setConversationId(res.conversationId)
+        setMessages((m) => [...m, ...toMessages(res.items)])
+      }, fail)
+      .finally(() => setBusy(false))
+  }, [params, setParams])
+
   function fail(err: unknown) {
     const text = err instanceof Error ? err.message : 'Something went wrong'
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'error', text }])
