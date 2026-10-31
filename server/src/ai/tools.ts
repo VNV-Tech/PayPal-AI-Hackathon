@@ -3,7 +3,7 @@
 //   ejecutan al momento. get_tax_info_link puede crear el link, pero eso no
 //   cambia nada en PayPal ni le avisa al cliente.
 // - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
-//   update_savings_plan, review_payment, save_tax_info, issue_cfdi):
+//   update_savings_plan, review_payment, review_payments, save_tax_info, issue_cfdi):
 //   NUNCA se ejecutan directo. Se convierten en una propuesta que el usuario
 //   aprueba o rechaza desde una tarjeta en el chat.
 import type Anthropic from '@anthropic-ai/sdk';
@@ -20,7 +20,7 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
-import { decidePayment, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
+import { decidePayment, decidePayments, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
 import {
   CFDI_USES,
   TAX_REGIMES,
@@ -145,6 +145,32 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     },
   },
   {
+    name: 'review_payments',
+    description:
+      'Propose answering several pending payments from get_savings in ONE card that looks like a receipt, with a checkbox per payment. Check (set_aside true) the ones you recommend setting aside with the current plan and leave the rest unchecked, each with a short reason (max 8 words). The user can change the checkboxes before approving: checked payments get the plan applied, unchecked ones are skipped this time. Prefer this over several review_payment calls when 2 or more payments are pending. Requires user approval.',
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        payments: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
+              set_aside: { type: 'boolean', description: 'Whether the checkbox starts checked' },
+              reason: { type: 'string', description: 'Short reason shown to the user, e.g. "Big payment, keep taxes safe"' },
+            },
+            required: ['payment_id', 'set_aside', 'reason'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['payments'],
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'update_savings_plan',
     description:
       'Propose replacing the whole savings plan (max 6 set-asides, percentages add up to 100 or less). Include every set-aside to keep, not only the changed one. It applies to payments answered from now on. Requires user approval.',
@@ -212,6 +238,7 @@ const ACTION_TOOLS = new Set([
   'cancel_invoice',
   'update_savings_plan',
   'review_payment',
+  'review_payments',
   'save_tax_info',
   'issue_cfdi',
 ]);
@@ -295,11 +322,23 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
   throw new Error(`Unknown tool ${name}`);
 }
 
+// Un renglón con casilla en una tarjeta tipo ticket (review_payments).
+export interface ActionChoice {
+  id: string;
+  label: string; // "#0013 · Juan Hernán"
+  detail: string; // fecha y la razón que da la IA
+  amount: string;
+  setAside: { name: string; value: string; currency: string }[];
+  checked: boolean;
+}
+
 // Propuesta lista para mostrarse en una tarjeta y ejecutarse al aprobarla.
+// Si trae choices, execute recibe los ids que el usuario dejó palomeados.
 export interface PreparedAction {
   title: string;
   details: [string, string][];
-  execute: () => Promise<string>;
+  choices?: ActionChoice[];
+  execute: (selected?: string[]) => Promise<string>;
 }
 
 const TERMS_LABEL: Record<string, string> = {
@@ -407,6 +446,43 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         return setAside
           ? `Set aside from the ${amount} payment: ${allocations.join(', ')}.`
           : `Nothing set aside from the ${amount} payment.`;
+      },
+    };
+  }
+
+  if (name === 'review_payments') {
+    const { payments } = input as { payments: { payment_id: string; set_aside: boolean; reason: string }[] };
+    if (!payments.length) throw new Error('No payments given. Call get_savings to see the pending ones.');
+    // Las facturas solo sirven para mostrar el nombre del cliente; si fallan, se omite.
+    const [summary, invoices] = await Promise.all([getSavings(), allInvoices().catch(() => [])]);
+    const byNumber = new Map(invoices.map((inv) => [inv.number, inv]));
+    const seen = new Set<string>();
+    const choices = payments.map((p): ActionChoice => {
+      const payment = summary.pending.find((x) => x.id === p.payment_id);
+      if (!payment) throw new Error(`Payment ${p.payment_id} is not waiting for a decision. Call get_savings again.`);
+      if (seen.has(payment.id)) throw new Error(`Payment ${payment.id} is listed twice.`);
+      seen.add(payment.id);
+      const inv = payment.invoiceNumber ? byNumber.get(payment.invoiceNumber) : undefined;
+      const client = inv && (inv.customer.company ?? inv.customer.name ?? inv.customer.email);
+      return {
+        id: payment.id,
+        label: [payment.invoiceNumber ? `#${payment.invoiceNumber}` : 'Payment', client].filter(Boolean).join(' · '),
+        detail: [payment.date, p.reason.trim().slice(0, 80)].filter(Boolean).join(' · '),
+        amount: money(payment.amount.value, payment.amount.currency_code),
+        setAside: payment.proposal.map((a) => ({ name: a.name, value: a.amount.value, currency: a.amount.currency_code })),
+        checked: p.set_aside,
+      };
+    });
+    return {
+      title: 'Set aside from your payments',
+      details: [],
+      choices,
+      execute: async (selected = choices.filter((c) => c.checked).map((c) => c.id)) => {
+        const chosen = new Set(selected);
+        await decidePayments(choices.map((c) => ({ paymentId: c.id, accept: chosen.has(c.id) })));
+        const kept = choices.filter((c) => chosen.has(c.id)).map((c) => c.label);
+        const skipped = choices.filter((c) => !chosen.has(c.id)).map((c) => c.label);
+        return `Set aside from ${kept.length} payment(s): ${kept.join(', ') || 'none'}. Skipped ${skipped.length}: ${skipped.join(', ') || 'none'}. (The user may have changed your selection.)`;
       },
     };
   }
