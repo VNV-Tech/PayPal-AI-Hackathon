@@ -38,7 +38,10 @@ Detalle de pantallas, arquitectura y reglas de diseño: `docs/proyecto.md`.
 - **Datos personales**: la demo es pública. Usar datos de prueba del SAT; nada
   de correos o RFC reales en la versión publicada.
 - **Enfoque**: seguir el plan; las ideas nuevas se anotan en `docs/proyecto.md`
-  ("Ideas guardadas") en vez de construirlas.
+  ("Ideas guardadas") en vez de construirlas. **Desde el 31 oct no hay
+  funciones nuevas** (salvo que algo esté roto): toca README, video y Devpost.
+- **Antes de agregar o quitar algo**, decirle a Víctor con sinceridad si
+  conviene o no (beneficio contra tiempo, costo y riesgo) y esperar su OK.
 
 ## Cómo trabajamos
 
@@ -92,7 +95,9 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   `@paypal/paypal-server-sdk`, cuenta para el premio de APIMatic), overview.
 - `server/src/ai/`: `copilot.ts` (chat + aprobaciones + sugerencias; Sonnet
   5.5 con caché de prompts, anota `[claude] ...` con los tokens de cada llamada),
-  `tools.ts` (herramientas), `proactive.ts` (la IA da el primer paso al pagar).
+  `tools.ts` (herramientas; `review_payments` = ticket con casillas,
+  `list_payments` = historial de pagos), `proactive.ts` (la IA da el primer
+  paso al pagar y arma el ticket del botón "Review all with AI" de Savings).
 - `server/src/taxInfo.ts` + `facturama.ts`: datos fiscales y CFDI.
 - `server/src/savings.ts`: apartados. `server/src/store.ts`: guardado en Neon
   (tabla `app_store`, una fila por "archivo") o, sin `DATABASE_URL`, en
@@ -120,5 +125,10 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   depende de él.
 - Pendiente chico: el copiloto contestó una vez en español a una pregunta en
   inglés.
+- **Antes del 1 dic:** dejar 3–4 pagos sin responder en Render (el jurado no
+  puede pagar facturas, así que lo que prueba es el ticket) y prender el
+  "despertador" del 1 al 15 dic.
+- `main` recibió una copia de `dev` el 29 oct (#29, desde la rama de Vanessa).
+  `main` solo debe actualizarse desde `dev`.
 - Premio de AG Grid: activar su prueba de 45 días **entre el 1 y el 5 de
   noviembre** para que dure hasta el 15 de diciembre (si el equipo va por él).

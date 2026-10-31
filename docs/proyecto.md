@@ -51,7 +51,7 @@ El premio al que apuntamos es **"Best Use of PayPal + AI"**.
 
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS 4 + React Router (carpeta `client/`).
 - **Backend:** Node.js + Express 5 + TypeScript + zod (carpeta `server/`).
-- **PayPal:** API REST de Invoicing v2 y Transaction Search (esta última con el SDK oficial `@paypal/paypal-server-sdk`, hecho por APIMatic), además de webhooks. **Solo Sandbox**: está bloqueado en el código para que nunca se use dinero real.
+- **PayPal:** API REST de Invoicing v2 y Transaction Search (esta última con el SDK oficial `@paypal/paypal-server-sdk`, hecho por APIMatic: lo usan Home, Savings, el ticket de pagos y el historial de pagos del copiloto), además de webhooks. **Solo Sandbox**: está bloqueado en el código para que nunca se use dinero real.
 - **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El caché tiene dos puntos: uno fijo al final de las instrucciones, que comparten **todas** las pláticas (desde el 30 oct el primer mensaje de una plática nueva también lo lee, ~1 centavo menos), y el automático para la plática que va creciendo. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
 
 ---
@@ -430,6 +430,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
+| 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
+| 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 15 dic (despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1 dic | Víctor | ⏳ Pendiente |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
@@ -437,7 +439,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 | Fechas | Qué |
 |---|---|
-| 29 oct – 1 nov | Prueba de pago en Render, apartados con meta (máximo 1 día) y diseño de Vanessa |
+| 29 oct – 1 nov | ✅ Prueba de pago en Render y datos en Neon (30 oct). Diseño de Vanessa. **Desde el 31 oct: no más funciones nuevas** salvo que algo esté roto; las ideas van a "Ideas guardadas" |
 | 1 – 5 nov | AG Grid (si el equipo va por ese premio) y pulir |
 | 6 – 10 nov | README en inglés, video y Devpost |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
@@ -465,7 +467,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
 - **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
-- Base de datos para que nada se pierda al reiniciar.
+- ~~Base de datos para que nada se pierda al reiniciar~~: hecho el 30 oct con Neon para apartados y datos fiscales. Falta, si sobra tiempo: guardar también las **pláticas y sugerencias del copiloto** (hoy viven en memoria y se borran al reiniciar Render).
 - Login real, si el proyecto sigue después del hackathon.
 
 ---
@@ -499,6 +501,15 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #25 | Tutorial de bienvenida detallado (14 pasos) y la guía empieza apagada: ya no habla junto con el copiloto |
 | #26 | Celular: cada factura es una tarjeta y el tutorial se acomoda para no tapar lo que explica |
 | #27 | Bitácora del 28 oct (noche), `CLAUDE.md` con Render, y planes al día |
+| #28 | Revisión de cierre del 28 oct: qué se borra en Render y pendientes |
+| #29 | (Vanessa, 29 oct) Pasó su rama a `main`; era una copia de `dev`, así que `main` quedó con lo del 28 oct. Sin diseño nuevo todavía |
+| #30 | Invoices pide la lista de facturas 1 vez en vez de 4 (la guía apagada ya no carga nada) |
+| #31 | Al pagar sale al instante "Your copilot is on it" mientras la IA prepara la sugerencia |
+| #32 | Links del chat que se pueden presionar, y apartados y datos fiscales guardados en **Neon** para que Render no los borre |
+| #33 | Varios pagos en una sola tarjeta tipo ticket, con casillas, totales y la IA recomendando cuáles apartar |
+| #34 | Botón "Review all with AI" en Savings: el ticket sale en ~5 s |
+| #35 | Historial de pagos en el chat, la sugerencia al pagar incluye los pagos pendientes, y caché compartido entre pláticas |
+| #36 | Bitácora del 30 oct y documentos al día |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
