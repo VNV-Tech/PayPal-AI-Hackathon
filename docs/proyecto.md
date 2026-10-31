@@ -518,6 +518,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #34 | Botón "Review all with AI" en Savings: el ticket sale en ~5 s |
 | #35 | Historial de pagos en el chat, la sugerencia al pagar incluye los pagos pendientes, y caché compartido entre pláticas |
 | #36 | Bitácora del 30 oct, documentos al día, y un cliente da sus datos fiscales una sola vez (se completan todas sus facturas pendientes) |
+| #37 | Plan del video: Claude hace guion, tomas limpias y subtítulos; el equipo narra y edita |
+| #38 | Botón ES/EN guardado para después del rediseño; revisión final de documentos del 30 oct |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
