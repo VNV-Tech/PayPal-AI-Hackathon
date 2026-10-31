@@ -156,6 +156,9 @@ APIMatic hizo un plugin llamado **`acp-paypal`** que le da a la IA la documentac
 - El código de PayPal sale más correcto.
 - APIMatic es patrocinador: da **3 premios de $1,000** a quien lo use mejor.
 
+### ¿Dónde lo usa la app?
+El SDK oficial de PayPal para servidor (`@paypal/paypal-server-sdk`) **lo genera APIMatic**. La app lo usa para saber **qué dinero te entró** (Transaction Search), en `server/src/paypal/transactions.ts`. De ahí salen el "cobrado este mes" de Home, los pagos de Savings, el ticket de pagos y, desde el 30 de octubre, el **historial de pagos** del copiloto. Las facturas van directo a la API de PayPal, porque el SDK no incluye Invoicing.
+
 ### ⚠️ Cosas a tener en cuenta
 - **El mes gratis:** llenaste un formulario de APIMatic, pero todavía no llega el correo. Revisa spam y la pestaña "Promociones". Si en 1 o 2 días no llega, escribe a developer@apimatic.io o pregunta en el Discord del hackathon. **El plugin funciona igual sin ese mes.**
 - Si ves otro plugin llamado `paypal-sdk`, **no lo instales**: es para otro lenguaje (.NET) y choca con el que ya tenemos.
@@ -251,30 +254,75 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 
 **🔧 En técnico:** `callClaude` en `server/src/ai/copilot.ts` manda `cache_control: { type: 'ephemeral' }` y anota en el log `[claude] modelo in= cache_read= cache_write= out=` (sin contenido). Modelo por defecto `claude-sonnet-5-5` en `server/src/config/env.ts`. Tutorial: `client/src/lib/tour.ts` (14 pasos; un `target` con `*` ilumina el primero que empiece así), `Tour.tsx` busca la copia **visible** de cada parte, en celular pone el mensaje arriba si lo iluminado está abajo y espera hasta ~10 s. Guía: clave `localStorage` `vnv-guide-on` (sin ella, apagada). Invoices: `InvoiceActions` y `TaxNote` compartidos entre la tabla (compu) y las tarjetas (`sm:hidden`). Render: build `npm ci --include=dev && npm run build`, start `npm start`, rama `dev`. El webhook de Render se registró con `npm run paypal:webhook -- https://vnv-copilot.onrender.com` (el script solo borra webhooks viejos de `trycloudflare.com`).
 
+### 📅 29 de octubre de 2026
+
+Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main` (#29). Su rama era una copia de `dev`, así que `main` quedó con lo del 28 de octubre, todavía sin diseño nuevo. AWS contestó el caso de Bedrock, pero hubo complicaciones y se decidió **no usarlo**.
+
+### 📅 30 de octubre de 2026
+
+**🍎 En simple:** probamos un pago **de punta a punta en internet** y funcionó. Los datos **ya no se borran** en Render, y el copiloto aprendió a **ponerte al día con varios pagos de un jalón** y a **contestar sobre pagos pasados**.
+
+- **Adiós a AWS:** se borró todo lo que quedaba (`test.js`, la librería y las llaves del `.env`), y tú desactivaste y borraste la llave en AWS. La IA sigue con Anthropic.
+- **Invoices más ligera** (PR #30): pedía la lista de facturas 4 veces al abrir; ahora 1. La guía apagada ya no carga nada.
+- **Prueba de pago en Render ✅:** factura #0014 de $10 → la pagaste con tu cuenta de prueba → cambió sola a **Paid** → salió la sugerencia del copiloto. Así se confirmó que el aviso de PayPal (webhook) sí llega a internet.
+- **"Your copilot is on it"** (PR #31): la sugerencia tarda unos segundos en pensarse. Ahora, en cuanto te pagan, sale un aviso con puntitos y luego cambia a "Your copilot has a suggestion".
+- **Links del chat** (PR #32): ya se pueden presionar, por ejemplo el de datos fiscales.
+- **Los datos ya no se borran** (PR #32): los apartados y los datos fiscales se guardan en **Neon**, una base de datos gratis. Abriste la cuenta con tu GitHub y pusiste la dirección en Render. Lo confirmamos: el apartado de $10 que aceptaste quedó guardado en Neon. En tu compu se siguen usando archivos, para no mezclar pruebas con la demo.
+- **Varios pagos en un solo ticket** (PR #33 y #34), idea tuya: en vez de aceptar pago por pago, el copiloto arma **una tarjeta tipo ticket** con todos los pagos pendientes, palomea los que recomienda con una razón corta, y tú cambias las casillas y apruebas una vez. En **Savings** hay un botón **"Review all with AI"** que lo abre en ~5 segundos (escribiéndolo en el chat tarda ~23).
+- **La sugerencia te pone al día** (PR #35): si cuando te pagan ya tenías pagos sin responder, la misma sugerencia trae el ticket con el pago nuevo arriba y los viejos abajo.
+- **Historial de pagos** (PR #35): le puedes preguntar *"¿cuándo me pagó Juan?"* y contesta con fecha, número de transacción y lo que apartaste. No es memoria: lo busca en PayPal cada vez.
+- **IA más barata** (PR #35): las pláticas nuevas ya reusan el "manual de instrucciones" guardado en caché. Ahorra ~1 centavo por plática.
+- **Datos fiscales una sola vez** (PR #36): al probar viste que el copiloto pedía otra vez los datos de Test Buyer. Era un error: si el cliente llenaba el link de **una** factura, sus otras facturas que ya existían se quedaban "esperando". Ahora todas quedan listas, y las que estaban atoradas se corrigen solas cuando Render arranca. Si Test Buyer llenó sus datos antes de las ~6:25 p. m. del 30 oct, se borraron con el cambio a Neon y hay que llenarlos una vez más.
+
+**Decisiones del día:**
+- **Neon gratis** en vez de pagar Render (~$11). Si algo falla en diciembre, se puede pagar Render solo esas dos semanas.
+- **Un "despertador"** para que Render no se duerma, pero **solo** al grabar el video y del 1 al 15 de diciembre: despierta todo el mes gasta casi todas las horas gratis.
+- **Memoria entre pláticas: no.** La demo es pública y todos los jueces comparten la cuenta, así que un juez vería lo que habló otro. Además, cada mensaje costaría más. Para lo que se necesita basta el historial de pagos.
+- **No se guardan las respuestas de PayPal unos segundos para acelerar:** medido, ahorraba menos de 1 segundo y podía retrasar que apareciera un pago nuevo.
+- **Antes de agregar o quitar algo, Claude dice primero si conviene o no,** con sinceridad, y espera tu OK.
+- **Desde el 31 de octubre: no más funciones nuevas.** Lo que sigue es README, video, Devpost y el diseño de Vanessa.
+
+**Lo aprendido:**
+- Un juez **no puede pagar** una factura (no tiene cuenta de prueba de PayPal). La sugerencia al pagar se luce en el **video**; lo que el juez sí prueba en vivo es lo que ya está en la app (el ticket, el chat, el historial). Por eso hay que dejar pagos sin responder antes del 1 de diciembre.
+- Neon y la app "duermen" de forma distinta: Neon despierta en menos de un segundo; Render tarda ~1 minuto.
+- A la IA hay que pedirle el mensaje **al principio** de la instrucción: cuando se le pidió al final, ponía las tarjetas sin explicar nada.
+
+**🔧 En técnico:**
+- `server/src/store.ts`: con `DATABASE_URL` guarda en Neon (`@neondatabase/serverless` por HTTP, tabla `app_store` con una fila por "archivo", creada sola); sin ella, archivos. Si Neon falla al leer, lanza error en vez de empezar en blanco. El log de arranque dice `data in postgres` o `data in files`.
+- Evento en vivo `copilot.thinking` (`status: 'failed'` si no pudo) en `proactive.ts` y `Layout.tsx`.
+- Ticket: herramienta `review_payments` (tarjeta con `choices`; al aprobar, el cliente manda `selected`, y el servidor solo acepta ids de la tarjeta), `decidePayments` en `savings.ts` (una consulta y una escritura) y `PaymentTicket` en `Copilot.tsx`. Botón: `POST /api/copilot/review-payments` → `pendingPaymentsFacts` → `startFromEvent` (`effort: low`).
+- Historial: herramienta de solo lectura `list_payments` → `getPaymentsSince` en `overview.ts` (Transaction Search en ventanas de 31 días, hasta 93, más pagos de facturas).
+- Caché: `cache_control` explícito en el bloque `system`, junto al automático. Medido: la 2.ª y la 3.ª plática nueva leen 4,471 tokens del caché.
+- `invoicesApi.list` comparte los pedidos iguales que están en camino; `useJourney(mode, off)` no carga nada con la guía apagada.
+- Datos fiscales: `fillFromKnownClients` en `server/src/taxInfo.ts` completa los links "waiting" de un cliente conocido (por correo). Se usa en `submitTaxInfo` y al cargar el archivo o la fila de Neon.
+
 ---
 
 ## ✅ ¿Qué te toca hacer a ti?
 
-**En la reunión del 29 de octubre:**
-- [ ] Enseñarles el link de Render, los modos Business / Personal, el Home nuevo y el **tutorial nuevo** (Natalia puede mejorar los textos en `client/src/lib/tour.ts`). **Desde ahí, el diseño lo decide Vanessa.**
-- [ ] Pedirle a Natalia una frase para la historia, por ejemplo: *"el copiloto que ayuda a los freelancers mexicanos a cobrar y cumplir con el SAT"*. También que empiece a pensar el video.
-- [ ] Decidir juntos si vamos por el premio de **AG Grid**.
+**Esta semana (del 31 de oct al 5 de nov):**
+- [ ] **Decidir si van por el premio de AG Grid.** Si sí, activar su prueba gratis **entre el 1 y el 5 de noviembre** (dura 45 días y debe llegar al 15 de diciembre).
+- [ ] Reunión con Vanessa y Natalia: enseñarles la app en Render (modos, tutorial, ticket de pagos, historial). **Desde ahí el diseño lo decide Vanessa.** Pedirles que `main` solo se actualice desde `dev`.
+- [ ] Pedirle a Natalia la frase de la historia (por ejemplo *"el copiloto que ayuda a los freelancers mexicanos a cobrar y cumplir con el SAT"*) y que empiece a pensar el video.
 - [ ] Preguntarles si quieren aparecer en el aviso de autoría del código (`LICENSE`).
 
-**Con Claude:**
-- [x] ~~Arreglar que la guía y el copiloto no hablen al mismo tiempo.~~ (PR #25)
-- [x] ~~Publicar en **Render**.~~ (28 oct)
-- [ ] **Prueba de pago completa en Render:** crear una factura chiquita, pagarla con tu cuenta personal de Sandbox y ver que pase a **Paid** sola y salga "Your copilot has a suggestion".
-- [ ] Que los apartados y los datos fiscales **no se borren** en Render.
-- [ ] Revisar los detalles de **cómo se ve en celular** (lo que viste al probar).
+**Con Claude (desde el 31 de oct, sin funciones nuevas):**
+- [ ] **README en inglés** y el texto de **Devpost**.
+- [ ] Guion y grabación del **video** (menos de 3 minutos). Mientras se graba, prender el "despertador" de Render.
+- [ ] Revisar los detalles de **cómo se ve en celular** (tarea 6d).
 - [ ] Cerrar y abrir Claude Code y correr `/paypal:setup`, para ver si el conector de PayPal ya funciona.
-- [ ] **Apartados con meta** y que el copiloto proponga cuánto meter (máximo 1 día).
-- [ ] Cuando AWS conteste tu caso: pegarle la respuesta a Claude para probar Bedrock.
-- [ ] Del 1 al 5 de noviembre: activar la prueba de AG Grid, si el equipo dijo que sí.
+- [x] ~~Prueba de pago completa en Render~~ (30 oct)
+- [x] ~~Que los apartados y los datos fiscales no se borren en Render~~ (30 oct, Neon)
+
+**Antes del 1 de diciembre (revisión del jurado):**
+- [ ] Dejar **3 o 4 pagos sin responder** en Render, para que el jurado vea el ticket y el botón "Review all with AI".
+- [ ] Prender el **"despertador"** (cron-job.org o UptimeRobot) del 1 al 15 de dic, y revisar las horas en Render → **Billing**.
+- [ ] Cambiar Render para que publique desde `main` en vez de `dev`.
 
 **Siempre:**
 - [ ] Dar clic en **Merge** cuando te pida aceptar una solicitud.
 - [ ] Para prender la app: `npm run dev`. Para que los pagos se actualicen solos también hace falta el túnel; dile a Claude *"prende todo"*.
+- [ ] En tu compu, **no** pongas `DATABASE_URL` en el `.env`: esa variable solo va en Render.
 
 **Para la asesoría de finanzas:** las preguntas están en [`proyecto.md`](proyecto.md), sección 6. Por ejemplo, si el IVA va incluido en el precio y cuándo hay retenciones.
 
@@ -289,6 +337,8 @@ Según las reglas que leímos, **solo se puede ganar un premio de patrocinador**
 | El link de datos fiscales empieza con `localhost` | Es normal mientras la app corre en tu computadora. En Render tiene la dirección real |
 | En Render el copiloto dice "unavailable right now" | Alguna variable de Anthropic está mal copiada en Render. Busca en **Logs** la línea `[claude] ...`: 401 = clave mal, 404 = modelo mal |
 | La app de Render tarda en abrir | El plan gratis se duerme a los 15 minutos sin uso: la primera visita espera ~1 minuto |
+| En Render, Savings o los datos fiscales salen vacíos después de un reinicio | En Render → **Logs**, busca `Server listening ... data in ...`. Si dice `data in files`, falta o está mal `DATABASE_URL` en **Environment** (la dirección de Neon) |
+| Neon dice que la base de datos está "suspended" o "idle" | Es normal: se duerme sola y despierta en menos de un segundo cuando la app le pide algo |
 | Probaste pagos en tu compu y ahora en local no llegan | El webhook de tu compu cambia con cada túnel. Dile a Claude *"prende todo"*; el de Render no se afecta |
 | No te llega el correo de la factura del SAT | Revisa que en el formulario se haya puesto un correo real (el de prueba, `facturas@example.com`, no existe) y revisa spam |
 | Claude dice "401" o "no autorizado" con PayPal | La llave caducó: `npm run paypal:token` y reinicia Claude Code |

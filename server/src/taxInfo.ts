@@ -113,7 +113,27 @@ export class TaxRequestNotFoundError extends Error {}
 // No se puede emitir (factura sin pagar, sin datos, ya emitida...). El mensaje es para el usuario.
 export class CfdiNotReadyError extends Error {}
 
-const store = jsonStore<TaxData>('tax-info.json', (raw) => (raw as TaxData | undefined) ?? { requests: [], clients: {} });
+// Links que siguen "esperando" aunque ya tenemos los datos de ese cliente (por
+// ejemplo, el cliente llenó el link de otra factura): se completan con lo
+// guardado. Así un cliente nunca tiene que dar sus datos dos veces.
+function fillFromKnownClients(data: TaxData): { data: TaxData; completed: TaxRequest[] } {
+  const completed: TaxRequest[] = [];
+  const now = new Date().toISOString();
+  const requests = data.requests.map((r) => {
+    const known = r.customerEmail ? data.clients[r.customerEmail] : undefined;
+    if (r.status !== 'waiting' || !known) return r;
+    const updated: TaxRequest = { ...r, status: 'received', receivedAt: now, source: 'saved', taxInfo: known };
+    completed.push(updated);
+    return updated;
+  });
+  return { data: { ...data, requests }, completed };
+}
+
+// Al cargar también se corrigen los links que se quedaron "esperando" antes de este arreglo.
+const store = jsonStore<TaxData>(
+  'tax-info.json',
+  (raw) => fillFromKnownClients((raw as TaxData | undefined) ?? { requests: [], clients: {} }).data,
+);
 
 const emailKey = (email: string | null | undefined) => email?.trim().toLowerCase() || null;
 
@@ -202,11 +222,13 @@ export async function submitTaxInfo(token: string, input: unknown): Promise<TaxR
 
   const updated: TaxRequest = { ...request, status: 'received', receivedAt: new Date().toISOString(), source: 'client', taxInfo };
   const key = request.customerEmail ?? taxInfo.email;
-  await store.save({
+  // Las otras facturas de este cliente que esperaban sus datos también quedan listas.
+  const { data: next, completed } = fillFromKnownClients({
     requests: data.requests.map((r) => (r.token === token ? updated : r)),
     clients: { ...data.clients, [key]: taxInfo },
   });
-  notify(updated);
+  await store.save(next);
+  [updated, ...completed].forEach(notify);
   return updated;
 }
 
