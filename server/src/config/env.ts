@@ -47,6 +47,10 @@ const envSchema = z.object({
   // Código postal del lugar de expedición dado de alta en Facturama.
   FACTURAMA_EXPEDITION_PLACE: z.string().regex(/^\d{5}$/).default('42501'),
 
+  // Postgres (Neon) donde se guardan apartados y datos fiscales. Opcional: sin
+  // ella se guardan en archivos de server/data/ (en Render se borrarían).
+  DATABASE_URL: z.url().optional(),
+
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
   // Modelo del chat. Cambiarlo aquí no requiere tocar código.
   // Sonnet 5.5 cuesta la mitad que Opus y alcanza para los créditos de la demo.

@@ -74,8 +74,12 @@ solo borra webhooks viejos de `trycloudflare.com`: el de Render no se toca.
 - Las variables viven en Render → Environment y **solo Víctor** las ve o
   cambia; Claude no tiene acceso. Si el chat dice "unavailable", pedirle la
   línea `[claude] ...` de los Logs (401 = clave, 404 = modelo).
-- Plan gratis: se duerme a los 15 min y `server/data/*.json` (apartados,
-  datos fiscales) se puede borrar al reiniciarse. Pendiente de resolver.
+- Plan gratis: se duerme a los 15 min (750 h gratis al mes; dormida no gasta).
+  Plan: un "despertador" externo solo para el video y del 1 al 15 de dic.
+- Apartados y datos fiscales se guardan en **Neon** (Postgres gratis, proyecto
+  `vnv-copilot`, Oregon) con `DATABASE_URL` en Render. En local, dejarla
+  vacía: así se usan archivos y las pruebas no se mezclan con la demo. Al
+  arrancar, el log dice `data in postgres` o `data in files`.
 - Para revisar cómo se ve en celular: Chrome headless con `puppeteer-core`
   (instalado en el scratchpad, no en el proyecto) a 390×844. La app tiene
   conexiones en vivo (SSE): esperar con `waitUntil: 'load'`, no `networkidle`.
@@ -90,8 +94,9 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   5.5 con caché de prompts, anota `[claude] ...` con los tokens de cada llamada),
   `tools.ts` (herramientas), `proactive.ts` (la IA da el primer paso al pagar).
 - `server/src/taxInfo.ts` + `facturama.ts`: datos fiscales y CFDI.
-- `server/src/savings.ts`: apartados. `server/src/store.ts`: guardado en
-  `server/data/*.json` (no se sube a git; en Render se borra al redesplegar).
+- `server/src/savings.ts`: apartados. `server/src/store.ts`: guardado en Neon
+  (tabla `app_store`, una fila por "archivo") o, sin `DATABASE_URL`, en
+  `server/data/*.json` (no se sube a git).
 - `client/src/lib/tour.ts`: tutorial de bienvenida (14 pasos, sale la primera
   vez; es la forma principal de enseñar la app). `lib/journey.ts`: la guía
   (reglas, sin IA; **apagada por defecto**, se prende en Home). `lib/mode.ts`:
