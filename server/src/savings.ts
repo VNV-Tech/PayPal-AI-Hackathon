@@ -155,6 +155,11 @@ export async function getSavings(now = new Date()): Promise<SavingsSummary> {
   return summarize(now.toISOString().slice(0, 7), d, payments);
 }
 
+// Lo que el usuario respondió de cada pago (por ID), para el historial del copiloto.
+export async function paymentDecisions(): Promise<Record<string, Decision>> {
+  return (await load()).decisions;
+}
+
 // Busca un pago del mes que todavía no tenga respuesta.
 export async function findPendingPayment(paymentId: string): Promise<PaymentReview> {
   const summary = await getSavings();

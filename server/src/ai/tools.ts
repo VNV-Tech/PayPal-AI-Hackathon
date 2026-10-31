@@ -1,5 +1,5 @@
 // Herramientas que Claude puede usar en el chat.
-// - Lectura (list_invoices, get_invoice, get_savings, get_tax_info_link): se
+// - Lectura (list_invoices, get_invoice, list_payments, get_savings, get_tax_info_link): se
 //   ejecutan al momento. get_tax_info_link puede crear el link, pero eso no
 //   cambia nada en PayPal ni le avisa al cliente.
 // - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
@@ -20,7 +20,16 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
-import { decidePayment, decidePayments, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
+import { MAX_HISTORY_DAYS, getPaymentsSince } from '../paypal/overview.js';
+import {
+  decidePayment,
+  decidePayments,
+  findPendingPayment,
+  getSavings,
+  paymentDecisions,
+  savePlan,
+  savingsPlanSchema,
+} from '../savings.js';
 import {
   CFDI_USES,
   TAX_REGIMES,
@@ -121,6 +130,19 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     description: 'Propose cancelling a SENT/unpaid invoice. The client is notified. Requires user approval.',
     strict: true,
     input_schema: invoiceIdInput,
+  },
+  {
+    name: 'list_payments',
+    description: `Payment history: money actually received through PayPal in the last N days (max ${MAX_HISTORY_DAYS}), newest first, with the payment date, transaction id, invoice number, client and what the user decided to set aside from it. Use it for questions like "when did Ana pay me?" or "give me the details of Juan's payment".`,
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        days: { type: 'integer', description: `How many days back to look, 1 to ${MAX_HISTORY_DAYS}. Use 31 unless the user asks for older payments.` },
+      },
+      required: ['days'],
+      additionalProperties: false,
+    },
   },
   {
     name: 'get_savings',
@@ -287,6 +309,33 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
   if (name === 'get_invoice') {
     const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
     return JSON.stringify(forModel(await getInvoice(id)));
+  }
+  if (name === 'list_payments') {
+    const [{ invoices, payments }, decisions] = await Promise.all([
+      getPaymentsSince((input as { days: number }).days),
+      paymentDecisions(),
+    ]);
+    const byNumber = new Map(invoices.map((inv) => [inv.number, inv]));
+    return JSON.stringify({
+      count: payments.length,
+      payments: payments.slice(0, 100).map((p) => {
+        const inv = p.invoiceNumber ? byNumber.get(p.invoiceNumber) : undefined;
+        const d = decisions[p.id];
+        return {
+          payment_id: p.id,
+          date: p.date,
+          amount: money(p.amount.value, p.amount.currency_code),
+          invoice_number: p.invoiceNumber,
+          invoice_id: inv?.id ?? null,
+          client: inv ? clientLabel(inv.customer) : null,
+          set_aside: !d
+            ? 'not decided yet'
+            : d.status === 'declined'
+              ? 'skipped'
+              : d.allocations.map((a) => `${a.name}: ${money(a.amount.value, a.amount.currency_code)}`).join(', '),
+        };
+      }),
+    });
   }
   if (name === 'get_savings') {
     const s = await getSavings();

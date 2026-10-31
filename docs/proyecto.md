@@ -52,7 +52,7 @@ El premio al que apuntamos es **"Best Use of PayPal + AI"**.
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS 4 + React Router (carpeta `client/`).
 - **Backend:** Node.js + Express 5 + TypeScript + zod (carpeta `server/`).
 - **PayPal:** API REST de Invoicing v2 y Transaction Search (esta última con el SDK oficial `@paypal/paypal-server-sdk`, hecho por APIMatic), además de webhooks. **Solo Sandbox**: está bloqueado en el código para que nunca se use dinero real.
-- **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
+- **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El caché tiene dos puntos: uno fijo al final de las instrucciones, que comparten **todas** las pláticas (desde el 30 oct el primer mensaje de una plática nueva también lo lee, ~1 centavo menos), y el automático para la plática que va creciendo. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
 
 ---
 
@@ -185,6 +185,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - *"Juan te pagó $1,000, que incluyen $137.93 de IVA. Ya tengo sus datos fiscales: ¿emito su factura? ¿Aparto $300 para impuestos?"*
   - Claude tarda unos segundos en pensar, así que al instante sale un aviso abajo a la derecha, **"Your copilot is on it"** con puntitos que se mueven (evento en vivo `copilot.thinking`). Cuando está lista cambia a **"Your copilot has a suggestion"**, y aparece una tarjeta en Home. Si falla, el aviso se quita solo. Con **Review** se abre en el chat con las tarjetas para aprobar.
 - **Nunca hace nada solo:** sigue pidiendo tu aprobación para todo. La diferencia es que él da el primer paso.
+- **Si además tenías pagos sin responder** (30 oct): la misma sugerencia trae **un solo ticket** con el pago nuevo arriba y palomeado, y abajo los pendientes, para ponerte al día sin ir a otro lado. Si solo está el pago nuevo, queda igual que antes.
 - **🔧 En técnico:**
   - El webhook `INVOICING.INVOICE.PAID` llama a `onInvoicePaid`, que **no bloquea** la respuesta a PayPal.
   - `paidInvoiceFacts` junta los datos: la factura, el IVA, si ya hay datos fiscales o CFDI, y si el pago espera decisión de apartado.
@@ -202,6 +203,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 ### Copilot (el chat)
 - **Archivo:** `client/src/pages/Copilot.tsx`
 - **Para qué:** pedir cosas en lenguaje normal.
+- **Historial de pagos** (30 oct): le puedes preguntar *"¿cuándo me pagó Juan?"* o *"dame los datos del pago de Test Buyer"* y contesta con la fecha, el número de transacción, la factura y lo que apartaste. No es "memoria": busca en PayPal cada vez (herramienta de solo lectura `list_payments`, hasta 93 días atrás). **Memoria entre pláticas no**, a propósito: la demo es pública y todos los jueces comparten la cuenta, así que verían las pláticas de otros, y cada mensaje costaría más.
 - **Qué tiene:**
   - Burbujas de conversación: las del usuario en azul a la derecha y las de la IA a la izquierda.
   - Saludo y sugerencias que cambian según el modo.
@@ -425,6 +427,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 30 oct | Víctor | ✅ Pasó (factura #0014). La sugerencia tardaba unos segundos sin aviso: ahora sale "Your copilot is on it" al instante |
 | 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | 30 oct | Víctor | ✅ Ahora se pueden presionar y abren en otra pestaña |
 | 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho; botón "Review all with AI" en Savings (~5 s) |
+| 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
