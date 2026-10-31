@@ -281,6 +281,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - **No se guardan las respuestas de PayPal unos segundos para acelerar:** medido, ahorraba menos de 1 segundo y podía retrasar que apareciera un pago nuevo.
 - **Antes de agregar o quitar algo, Claude dice primero si conviene o no,** con sinceridad, y espera tu OK.
 - **El video:** Claude hace el guion, las tomas limpias de la app y los subtítulos. Natalia (o tú) narra con su voz y edita en CapCut o Clipchamp. La toma del pago se graba en pantalla. Detalle en `proyecto.md` → "Ideas guardadas".
+- **App en español o inglés:** buena idea, pero va después del rediseño de Vanessa y solo si sobra tiempo. Mientras, en el README y el video se destaca que el copiloto ya habla español.
 - **Desde el 31 de octubre: no más funciones nuevas.** Lo que sigue es README, video, Devpost y el diseño de Vanessa.
 
 **Lo aprendido:**
