@@ -92,7 +92,7 @@ flowchart LR
 
 **Cosas importantes que hay que saber:**
 
-- **No hay base de datos.** Las facturas se leen siempre directo de PayPal. Las conversaciones del chat viven en memoria y se borran al reiniciar el servidor. El plan de ahorro se guarda en un archivo (`server/data/savings.json`). Para la demo basta así.
+- **Base de datos chiquita (Neon).** Las facturas se leen siempre directo de PayPal. Los apartados y los datos fiscales (con la marca de "CFDI emitido") se guardan en **Neon**, un Postgres gratis, para que no se borren cuando Render se reinicia. Es una sola tabla, `app_store`, con una fila por tipo de dato. Sin la variable `DATABASE_URL` (en tu compu) se guardan en archivos de `server/data/`, como antes. Las conversaciones del chat y las sugerencias siguen en memoria y se borran al reiniciar: para la demo basta así.
 - **No hay login.** Cualquiera con el link puede usar la demo; es a propósito para que el jurado entre fácil. Por eso hay límites de uso (por ejemplo, 20 acciones por minuto).
 - **Solo Sandbox.** El servidor no arranca si alguien intenta usar PayPal real.
 
@@ -415,9 +415,9 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5i | Que la guía y el copiloto no hablen al mismo tiempo: tutorial de bienvenida detallado y guía apagada por defecto | 29 oct | Víctor | ✅ PR #25 |
 | 5j | Que se vea bien en celular (facturas en tarjetas, tutorial que no tapa) | — | Víctor | ✅ PR #26 |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ✅ Adelantado: https://vnv-copilot.onrender.com (28 oct) |
-| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis): hoy se pierden con cada reinicio (al publicar, al despertar o por mantenimiento) el plan de apartados, lo apartado, los datos fiscales, la marca de "CFDI emitido" y las pláticas. Facturas y pagos no (viven en PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
+| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis) | 30 oct | Víctor | ✅ Se guardan en Neon (Postgres gratis). Las pláticas del copiloto siguen en memoria |
 | 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 30 oct | Víctor | ✅ Pasó (factura #0014). La sugerencia tardaba unos segundos sin aviso: ahora sale "Your copilot is on it" al instante |
-| 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | — | Víctor | ⏳ Pendiente |
+| 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | 30 oct | Víctor | ✅ Ahora se pueden presionar y abren en otra pestaña |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |

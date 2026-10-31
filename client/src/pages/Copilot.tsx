@@ -173,7 +173,7 @@ export function Copilot() {
                       : 'border border-line bg-surface'
                 }`}
               >
-                {msg.text}
+                <Linkified text={msg.text} />
               </p>
             )}
           </li>
@@ -264,5 +264,21 @@ function ActionCard({
         </div>
       )}
     </Card>
+  )
+}
+
+// Links dentro del texto (por ejemplo el de datos fiscales): se pueden presionar
+// y abren en otra pestaña. El punto o paréntesis final no es parte del link.
+const URL_RE = /(https?:\/\/[^\s<>"]+[^\s<>".,;:!?)\]'])/g
+
+function Linkified({ text }: { text: string }) {
+  return text.split(URL_RE).map((part, i) =>
+    i % 2 === 1 ? (
+      <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="break-all underline underline-offset-2">
+        {part}
+      </a>
+    ) : (
+      part
+    ),
   )
 }
