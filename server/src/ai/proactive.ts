@@ -7,7 +7,7 @@
 // jalón desde Savings (propone un solo ticket).
 import { publish } from '../events.js';
 import { getInvoice } from '../paypal/invoices.js';
-import { getSavings } from '../savings.js';
+import { type PaymentReview, getSavings } from '../savings.js';
 import { getOrCreateTaxRequest, taxLinkUrl } from '../taxInfo.js';
 import { ChatLimitError, createSuggestion } from './copilot.js';
 import { allInvoices } from './tools.js';
@@ -21,6 +21,8 @@ const IVA_RATE = 0.16;
 // más rápido, gasta menos y no se distrae con otras facturas.
 export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: string; event: string }> {
   const [invoice, tax, savings] = await Promise.all([getInvoice(invoiceId), getOrCreateTaxRequest(invoiceId), getSavings()]);
+  // Otros pagos que se quedaron sin respuesta: van en el mismo ticket para ponerse al día.
+  const others = savings.pending.filter((p) => p.invoiceNumber !== invoice.number);
   const label = `#${invoice.number ?? '—'}`;
   const client = invoice.customer.company ?? invoice.customer.name ?? invoice.customer.email ?? 'the client';
   const amount = invoice.amount ? Number(invoice.amount.value) : 0;
@@ -43,9 +45,19 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
           .join(' and ')}.`
       : 'There is no set-aside decision pending for this payment.',
   ];
+  const title = `${client} paid invoice ${label}`;
+  if (!payment || !others.length) {
+    return {
+      title,
+      event: `${facts.join(' ')} Propose only what applies to this invoice: issue_cfdi if possible, and review_payment with set_aside if a decision is pending. If the tax info is missing, share the link instead.`,
+    };
+  }
+
+  // Hay más pagos pendientes: un solo ticket con el nuevo arriba y palomeado.
+  const lines = (await pendingPaymentLines(others)).map((l) => `- ${l}`).join('\n');
   return {
-    title: `${client} paid invoice ${label}`,
-    event: `${facts.join(' ')} Propose only what applies to this invoice: issue_cfdi if possible, and review_payment with set_aside if a decision is pending. If the tax info is missing, share the link instead.`,
+    title,
+    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose the cards: issue_cfdi if possible, and for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend.`,
   };
 }
 
@@ -80,12 +92,20 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
 // Todos los pagos que esperan decisión, con el nombre del cliente, para que
 // Claude arme el ticket en una sola vuelta. null si no hay ninguno.
 export async function pendingPaymentsFacts(): Promise<string | null> {
-  // Las facturas solo dan el nombre del cliente; si fallan, se omite.
-  const [savings, invoices] = await Promise.all([getSavings(), allInvoices().catch(() => [])]);
+  const savings = await getSavings();
   if (!savings.pending.length) return null;
-  const clients = new Map(invoices.map((inv) => [inv.number, inv.customer.company ?? inv.customer.name ?? inv.customer.email]));
   const plan = savings.plan.map((b) => `${b.name} ${b.percent}%`).join(', ') || 'no set-asides';
-  const lines = savings.pending.map((p) =>
+  const lines = await pendingPaymentLines(savings.pending);
+  return `The user pressed "Review all with AI" on the Savings screen. Their plan: ${plan}. Payments waiting for a set-aside decision:\n${lines.map((l) => `- ${l}`).join('\n')}\nPropose ONE review_payments card with all of them (check the ones you recommend, short reason each). Write one short sentence before it.`;
+}
+
+// Un renglón por pago pendiente, con el nombre del cliente para que Claude no
+// tenga que buscarlo.
+async function pendingPaymentLines(pending: PaymentReview[]): Promise<string[]> {
+  // Las facturas solo dan el nombre del cliente; si fallan, se omite.
+  const invoices = await allInvoices().catch(() => []);
+  const clients = new Map(invoices.map((inv) => [inv.number, inv.customer.company ?? inv.customer.name ?? inv.customer.email]));
+  return pending.map((p) =>
     [
       `payment_id ${p.id}`,
       p.invoiceNumber ? `invoice #${p.invoiceNumber}` : null,
@@ -97,5 +117,4 @@ export async function pendingPaymentsFacts(): Promise<string | null> {
       .filter(Boolean)
       .join(', '),
   );
-  return `The user pressed "Review all with AI" on the Savings screen. Their plan: ${plan}. Payments waiting for a set-aside decision:\n${lines.map((l) => `- ${l}`).join('\n')}\nPropose ONE review_payments card with all of them (check the ones you recommend, short reason each). Write one short sentence before it.`;
 }
