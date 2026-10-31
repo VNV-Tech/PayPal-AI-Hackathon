@@ -3,10 +3,21 @@ import { api } from './api'
 // Mismos tipos que server/src/ai/copilot.ts.
 export type ActionStatus = 'pending' | 'running' | 'approved' | 'rejected' | 'failed'
 
+// Un renglón con casilla en una tarjeta tipo ticket (por ejemplo, varios pagos).
+export interface ActionChoice {
+  id: string
+  label: string
+  detail: string
+  amount: string
+  setAside: { name: string; value: string; currency: string }[]
+  checked: boolean
+}
+
 export interface ActionView {
   id: string
   title: string
   details: [string, string][]
+  choices?: ActionChoice[]
   status: ActionStatus
   result?: string
 }
@@ -29,9 +40,9 @@ export const chatApi = {
       method: 'POST',
       body: JSON.stringify({ message, ...(conversationId ? { conversationId } : {}) }),
     }),
-  resolve: (actionId: string, decision: 'approve' | 'reject') =>
+  resolve: (actionId: string, decision: 'approve' | 'reject', selected?: string[]) =>
     api<{ action: ActionView; items: ChatItem[] }>(`/chat/actions/${actionId}`, {
       method: 'POST',
-      body: JSON.stringify({ decision }),
+      body: JSON.stringify({ decision, ...(selected ? { selected } : {}) }),
     }),
 }

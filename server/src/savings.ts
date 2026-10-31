@@ -184,3 +184,24 @@ export async function decidePayment(paymentId: string, accept: boolean): Promise
   }
   return getSavings();
 }
+
+// Varias respuestas de un jalón (la tarjeta tipo ticket del copiloto): una
+// sola consulta a PayPal y una sola escritura. Los pagos que ya tenían
+// respuesta o que ya no están pendientes se saltan.
+export async function decidePayments(answers: { paymentId: string; accept: boolean }[]): Promise<void> {
+  const summary = await getSavings();
+  const d = await load();
+  const decisions = { ...d.decisions };
+  for (const { paymentId, accept } of answers) {
+    const payment = summary.pending.find((p) => p.id === paymentId);
+    if (decisions[paymentId] || !payment) continue;
+    decisions[paymentId] = {
+      status: accept ? 'accepted' : 'declined',
+      decidedAt: new Date().toISOString(),
+      allocations: accept ? proposeAllocations(d.plan, payment.amount) : [],
+    } satisfies Decision;
+  }
+  const ids = Object.keys(decisions);
+  for (const old of ids.slice(0, Math.max(0, ids.length - MAX_DECISIONS))) delete decisions[old];
+  await persist({ ...(await load()), decisions });
+}

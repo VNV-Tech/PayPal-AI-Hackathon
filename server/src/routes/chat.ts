@@ -14,7 +14,11 @@ const messageSchema = z.object({
   message: z.string().trim().min(1).max(2000),
 });
 
-const decisionSchema = z.object({ decision: z.enum(['approve', 'reject']) });
+const decisionSchema = z.object({
+  decision: z.enum(['approve', 'reject']),
+  // Tarjetas con casillas: lo que el usuario dejó palomeado.
+  selected: z.array(z.string().max(100)).max(100).optional(),
+});
 
 router.post('/chat', async (req, res) => {
   const { conversationId, message } = messageSchema.parse(req.body);
@@ -23,8 +27,8 @@ router.post('/chat', async (req, res) => {
 
 router.post('/chat/actions/:id', async (req, res) => {
   const id = z.uuid().parse(req.params.id);
-  const { decision } = decisionSchema.parse(req.body);
-  res.json(await resolveAction(id, decision));
+  const { decision, selected } = decisionSchema.parse(req.body);
+  res.json(await resolveAction(id, decision, selected));
 });
 
 // Lo que el copiloto preparó por su cuenta (por ejemplo, al llegar un pago).
