@@ -52,7 +52,7 @@ El premio al que apuntamos es **"Best Use of PayPal + AI"**.
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS 4 + React Router (carpeta `client/`).
 - **Backend:** Node.js + Express 5 + TypeScript + zod (carpeta `server/`).
 - **PayPal:** API REST de Invoicing v2 y Transaction Search (esta última con el SDK oficial `@paypal/paypal-server-sdk`, hecho por APIMatic), además de webhooks. **Solo Sandbox**: está bloqueado en el código para que nunca se use dinero real.
-- **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
+- **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El caché tiene dos puntos: uno fijo al final de las instrucciones, que comparten **todas** las pláticas (desde el 30 oct el primer mensaje de una plática nueva también lo lee, ~1 centavo menos), y el automático para la plática que va creciendo. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
 
 ---
 

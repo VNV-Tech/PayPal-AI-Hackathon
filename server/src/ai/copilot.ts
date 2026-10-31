@@ -127,7 +127,10 @@ async function callClaude(messages: Anthropic.Beta.BetaMessageParam[], effort: C
     // Caché automático: herramientas, instrucciones e historial ya enviados se
     // cobran ~90% más barato en la siguiente llamada (cada ronda reenvía todo).
     cache_control: { type: 'ephemeral' },
-    system: systemPrompt(),
+    // Y un punto fijo al final de las instrucciones: herramientas + instrucciones
+    // son iguales en todas las pláticas, así que el primer mensaje de una plática
+    // nueva también las lee del caché (el automático solo sirve dentro de una).
+    system: [{ type: 'text', text: systemPrompt(), cache_control: { type: 'ephemeral' } }],
     tools: TOOLS,
     messages,
     output_config: { effort },
