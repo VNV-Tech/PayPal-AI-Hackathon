@@ -428,6 +428,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | 30 oct | Víctor | ✅ Ahora se pueden presionar y abren en otra pestaña |
 | 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho; botón "Review all with AI" en Savings (~5 s) |
 | 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
+| 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
@@ -466,6 +467,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **Ticket para emitir varios CFDI a la vez** (idea de Víctor, 30 oct): como el de apartados, pero para las facturas del SAT. Quedó para después del video: emitir un CFDI sella un documento y le escribe al cliente (no se puede "desaprobar"), y en grupo hay que mostrar bien cuáles salieron y cuáles fallaron (~45–60 min).
 - **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
 - ~~Base de datos para que nada se pierda al reiniciar~~: hecho el 30 oct con Neon para apartados y datos fiscales. Falta, si sobra tiempo: guardar también las **pláticas y sugerencias del copiloto** (hoy viven en memoria y se borran al reiniciar Render).
 - Login real, si el proyecto sigue después del hackathon.
@@ -510,6 +512,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #34 | Botón "Review all with AI" en Savings: el ticket sale en ~5 s |
 | #35 | Historial de pagos en el chat, la sugerencia al pagar incluye los pagos pendientes, y caché compartido entre pláticas |
 | #36 | Bitácora del 30 oct y documentos al día |
+| #37 | Un cliente da sus datos fiscales una sola vez: se completan todas sus facturas pendientes |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

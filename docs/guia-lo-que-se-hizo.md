@@ -272,6 +272,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - **La sugerencia te pone al día** (PR #35): si cuando te pagan ya tenías pagos sin responder, la misma sugerencia trae el ticket con el pago nuevo arriba y los viejos abajo.
 - **Historial de pagos** (PR #35): le puedes preguntar *"¿cuándo me pagó Juan?"* y contesta con fecha, número de transacción y lo que apartaste. No es memoria: lo busca en PayPal cada vez.
 - **IA más barata** (PR #35): las pláticas nuevas ya reusan el "manual de instrucciones" guardado en caché. Ahorra ~1 centavo por plática.
+- **Datos fiscales una sola vez** (PR #37): al probar viste que el copiloto pedía otra vez los datos de Test Buyer. Era un error: si el cliente llenaba el link de **una** factura, sus otras facturas que ya existían se quedaban "esperando". Ahora todas quedan listas, y las que estaban atoradas se corrigen solas cuando Render arranca. Si Test Buyer llenó sus datos antes de las ~6:25 p. m. del 30 oct, se borraron con el cambio a Neon y hay que llenarlos una vez más.
 
 **Decisiones del día:**
 - **Neon gratis** en vez de pagar Render (~$11). Si algo falla en diciembre, se puede pagar Render solo esas dos semanas.
@@ -293,6 +294,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - Historial: herramienta de solo lectura `list_payments` → `getPaymentsSince` en `overview.ts` (Transaction Search en ventanas de 31 días, hasta 93, más pagos de facturas).
 - Caché: `cache_control` explícito en el bloque `system`, junto al automático. Medido: la 2.ª y la 3.ª plática nueva leen 4,471 tokens del caché.
 - `invoicesApi.list` comparte los pedidos iguales que están en camino; `useJourney(mode, off)` no carga nada con la guía apagada.
+- Datos fiscales: `fillFromKnownClients` en `server/src/taxInfo.ts` completa los links "waiting" de un cliente conocido (por correo). Se usa en `submitTaxInfo` y al cargar el archivo o la fila de Neon.
 
 ---
 
