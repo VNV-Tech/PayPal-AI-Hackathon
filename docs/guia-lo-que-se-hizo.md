@@ -272,7 +272,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - **La sugerencia te pone al día** (PR #35): si cuando te pagan ya tenías pagos sin responder, la misma sugerencia trae el ticket con el pago nuevo arriba y los viejos abajo.
 - **Historial de pagos** (PR #35): le puedes preguntar *"¿cuándo me pagó Juan?"* y contesta con fecha, número de transacción y lo que apartaste. No es memoria: lo busca en PayPal cada vez.
 - **IA más barata** (PR #35): las pláticas nuevas ya reusan el "manual de instrucciones" guardado en caché. Ahorra ~1 centavo por plática.
-- **Datos fiscales una sola vez** (PR #37): al probar viste que el copiloto pedía otra vez los datos de Test Buyer. Era un error: si el cliente llenaba el link de **una** factura, sus otras facturas que ya existían se quedaban "esperando". Ahora todas quedan listas, y las que estaban atoradas se corrigen solas cuando Render arranca. Si Test Buyer llenó sus datos antes de las ~6:25 p. m. del 30 oct, se borraron con el cambio a Neon y hay que llenarlos una vez más.
+- **Datos fiscales una sola vez** (PR #36): al probar viste que el copiloto pedía otra vez los datos de Test Buyer. Era un error: si el cliente llenaba el link de **una** factura, sus otras facturas que ya existían se quedaban "esperando". Ahora todas quedan listas, y las que estaban atoradas se corrigen solas cuando Render arranca. Si Test Buyer llenó sus datos antes de las ~6:25 p. m. del 30 oct, se borraron con el cambio a Neon y hay que llenarlos una vez más.
 
 **Decisiones del día:**
 - **Neon gratis** en vez de pagar Render (~$11). Si algo falla en diciembre, se puede pagar Render solo esas dos semanas.

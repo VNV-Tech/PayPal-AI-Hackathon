@@ -511,8 +511,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #33 | Varios pagos en una sola tarjeta tipo ticket, con casillas, totales y la IA recomendando cuáles apartar |
 | #34 | Botón "Review all with AI" en Savings: el ticket sale en ~5 s |
 | #35 | Historial de pagos en el chat, la sugerencia al pagar incluye los pagos pendientes, y caché compartido entre pláticas |
-| #36 | Bitácora del 30 oct y documentos al día |
-| #37 | Un cliente da sus datos fiscales una sola vez: se completan todas sus facturas pendientes |
+| #36 | Bitácora del 30 oct, documentos al día, y un cliente da sus datos fiscales una sola vez (se completan todas sus facturas pendientes) |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
