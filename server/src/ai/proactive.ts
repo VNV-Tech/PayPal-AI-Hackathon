@@ -2,13 +2,15 @@
 // prepara propuestas sin que el usuario abra el chat. Nada se ejecuta solo:
 // todo llega como tarjetas para aprobar.
 //
-// Por ahora, un momento: cuando una factura se paga, propone emitir el CFDI
-// (si ya están los datos fiscales del cliente) y apartar parte del pago.
+// Momentos: cuando una factura se paga (propone emitir el CFDI y apartar parte
+// del pago) y cuando el usuario pide revisar todos los pagos pendientes de un
+// jalón desde Savings (propone un solo ticket).
 import { publish } from '../events.js';
 import { getInvoice } from '../paypal/invoices.js';
 import { getSavings } from '../savings.js';
 import { getOrCreateTaxRequest, taxLinkUrl } from '../taxInfo.js';
 import { ChatLimitError, createSuggestion } from './copilot.js';
+import { allInvoices } from './tools.js';
 
 // PayPal puede mandar el mismo aviso más de una vez: una sugerencia por factura.
 const handled = new Set<string>();
@@ -73,4 +75,27 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
         if (!(err instanceof ChatLimitError)) console.error('[copilot] No se pudo preparar la sugerencia:', err);
       },
     );
+}
+
+// Todos los pagos que esperan decisión, con el nombre del cliente, para que
+// Claude arme el ticket en una sola vuelta. null si no hay ninguno.
+export async function pendingPaymentsFacts(): Promise<string | null> {
+  // Las facturas solo dan el nombre del cliente; si fallan, se omite.
+  const [savings, invoices] = await Promise.all([getSavings(), allInvoices().catch(() => [])]);
+  if (!savings.pending.length) return null;
+  const clients = new Map(invoices.map((inv) => [inv.number, inv.customer.company ?? inv.customer.name ?? inv.customer.email]));
+  const plan = savings.plan.map((b) => `${b.name} ${b.percent}%`).join(', ') || 'no set-asides';
+  const lines = savings.pending.map((p) =>
+    [
+      `payment_id ${p.id}`,
+      p.invoiceNumber ? `invoice #${p.invoiceNumber}` : null,
+      p.invoiceNumber && clients.get(p.invoiceNumber) ? `client ${clients.get(p.invoiceNumber)}` : null,
+      `${p.amount.value} ${p.amount.currency_code}`,
+      p.date,
+      `would set aside ${p.proposal.map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`).join(' and ') || 'nothing'}`,
+    ]
+      .filter(Boolean)
+      .join(', '),
+  );
+  return `The user pressed "Review all with AI" on the Savings screen. Their plan: ${plan}. Payments waiting for a set-aside decision:\n${lines.map((l) => `- ${l}`).join('\n')}\nPropose ONE review_payments card with all of them (check the ones you recommend, short reason each). Write one short sentence before it.`;
 }

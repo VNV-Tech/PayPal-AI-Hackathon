@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { Pencil, RefreshCw } from 'lucide-react'
-import { Badge, Button, Card, EmptyState, Modal, Notice, PageHeader, Skeleton } from '../components/ui'
+import { Pencil, RefreshCw, Sparkles } from 'lucide-react'
+import { Badge, Button, ButtonLink, Card, EmptyState, Modal, Notice, PageHeader, Skeleton } from '../components/ui'
 import { useLiveEvents } from '../lib/events'
 import { formatTotals } from '../lib/overview'
 import { formatMoney } from '../lib/config'
@@ -117,9 +117,18 @@ function SavingsView({
     <>
       {data.pending.length > 0 && (
         <section aria-labelledby="to-review" className="mb-8">
-          <h2 id="to-review" className="mb-3 font-semibold text-ink">
-            New payments · set aside part of them?
-          </h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 id="to-review" className="font-semibold text-ink">
+              New payments · set aside part of them?
+            </h2>
+            {/* Con varios pagos, uno por uno cansa: el copiloto arma un solo ticket. */}
+            {data.pending.length > 1 && (
+              <ButtonLink to="/copilot?review=payments" variant="secondary">
+                <Sparkles aria-hidden className="size-4" />
+                Review all with AI
+              </ButtonLink>
+            )}
+          </div>
           <div className="space-y-3">
             {data.pending.map((p, i) => (
               // La guía ilumina el primer pago por revisar.

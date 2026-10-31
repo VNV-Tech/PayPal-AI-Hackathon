@@ -265,7 +265,7 @@ function forModel(inv: InvoiceSummary) {
 }
 
 // Hasta 5 páginas (100 facturas): suficiente para la demo.
-async function allInvoices(): Promise<InvoiceSummary[]> {
+export async function allInvoices(): Promise<InvoiceSummary[]> {
   const first = await listInvoices(1);
   const rest = [];
   for (let p = 2; p <= Math.min(first.totalPages, 5); p++) rest.push(listInvoices(p));

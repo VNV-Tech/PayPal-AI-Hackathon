@@ -40,6 +40,9 @@ export const chatApi = {
       method: 'POST',
       body: JSON.stringify({ message, ...(conversationId ? { conversationId } : {}) }),
     }),
+  // Botón "Review all with AI" de Savings: el copiloto arma un ticket con los pagos pendientes.
+  reviewPayments: () =>
+    api<{ conversationId?: string; items: ChatItem[] }>('/copilot/review-payments', { method: 'POST' }),
   resolve: (actionId: string, decision: 'approve' | 'reject', selected?: string[]) =>
     api<{ action: ActionView; items: ChatItem[] }>(`/chat/actions/${actionId}`, {
       method: 'POST',

@@ -290,6 +290,14 @@ interface Suggestion {
 const MAX_SUGGESTIONS = 20;
 const suggestions: Suggestion[] = []; // la más nueva primero
 
+// Conversación nueva que arranca la app con los datos ya listos (por ejemplo,
+// el botón "Review all with AI" de Savings). Piensa menos: no tiene que buscar nada.
+export async function startFromEvent(event: string) {
+  const conv = getConversation(undefined);
+  conv.effort = 'low';
+  return { conversationId: conv.id, items: await run(conv, [{ type: 'text', text: `[App event] ${event}` }]) };
+}
+
 export async function createSuggestion(title: string, event: string): Promise<Suggestion> {
   const conv = getConversation(undefined);
   conv.effort = 'low';

@@ -194,9 +194,10 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Ideas para más momentos proactivos:** factura vencida → "¿le mando un recordatorio amable?"; cliente nuevo sin datos fiscales → "¿le pido sus datos?".
 
 ### Varios pagos en una sola tarjeta (tipo ticket)
-- **🍎 En simple:** si tienes varios pagos esperando, aceptarlos uno por uno cansa (idea de Víctor, 30 oct). Le dices al copiloto *"Help me set aside money from my pending payments"* y te arma **un ticket** con todos: cliente, fecha, monto y cuánto iría a cada apartado. Ya trae palomeados los que te recomienda, con una razón corta (por ejemplo *"Tiny amount, optional"*). Tú palomeas o despalomeas, ves el **total** cambiar abajo y apruebas una sola vez (**"Approve 3 of 5"**). Lo no palomeado se salta esta vez.
+- **🍎 En simple:** si tienes varios pagos esperando, aceptarlos uno por uno cansa (idea de Víctor, 30 oct). En **Savings** presionas **"Review all with AI"** (sale cuando hay 2 o más pagos pendientes), o le dices al copiloto *"Help me set aside money from my pending payments"*, y te arma **un ticket** con todos: cliente, fecha, monto y cuánto iría a cada apartado. Ya trae palomeados los que te recomienda, con una razón corta (por ejemplo *"Tiny amount, optional"*). Tú palomeas o despalomeas, ves el **total** cambiar abajo y apruebas una sola vez (**"Approve 3 of 5"**). Lo no palomeado se salta esta vez.
 - **Nunca hace nada solo:** la IA solo propone la selección; la última palabra es tuya.
 - **🔧 En técnico:** herramienta `review_payments` en `server/src/ai/tools.ts` (`payment_id`, `set_aside`, `reason` por pago). La propuesta trae `choices` y, al aprobar, el cliente manda `selected` (`POST /api/chat/actions/:id`). El servidor solo acepta ids que estaban en la tarjeta. Se guarda todo de un jalón con `decidePayments` en `server/src/savings.ts`: una consulta a PayPal y una escritura. Tarjeta: `PaymentTicket` en `client/src/pages/Copilot.tsx`.
+- **Por qué el botón es más rápido (~5 s contra ~23 s escribiéndolo):** `POST /api/copilot/review-payments` le manda a Claude los pagos pendientes ya listos (`pendingPaymentsFacts` en `server/src/ai/proactive.ts`, con el nombre del cliente) como `[App event]` con `effort: low`, así que arma el ticket en una sola vuelta sin tener que buscar. El chat lo abre con `/copilot?review=payments`. Tiene el mismo límite por minuto que el chat.
 
 ### Copilot (el chat)
 - **Archivo:** `client/src/pages/Copilot.tsx`
@@ -423,7 +424,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis) | 30 oct | Víctor | ✅ Se guardan en Neon (Postgres gratis). Las pláticas del copiloto siguen en memoria |
 | 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 30 oct | Víctor | ✅ Pasó (factura #0014). La sugerencia tardaba unos segundos sin aviso: ahora sale "Your copilot is on it" al instante |
 | 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | 30 oct | Víctor | ✅ Ahora se pueden presionar y abren en otra pestaña |
-| 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho |
+| 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho; botón "Review all with AI" en Savings (~5 s) |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
