@@ -467,6 +467,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **App en español o inglés (botón ES/EN)** (idea de Víctor, 30 oct): el usuario es un freelancer mexicano, así que tiene sentido. **Cuándo:** después del rediseño de Vanessa, cuando los textos ya no cambien, y solo si sobra tiempo antes del video (~6–9 nov). **Por qué no antes:** son cientos de frases en todas las pantallas (~3–5 h con pruebas), el español es ~20–30% más largo y puede desbordar el diseño en celular, y si se traduce antes del rediseño se hace dos veces. El inglés se queda como idioma principal porque el jurado es internacional. **Mientras:** el copiloto ya entiende y contesta en español, y la página de datos fiscales del cliente ya está en español. Destacarlo en el README y el video (*"The copilot speaks Spanish"*).
 - **Cómo hacer el video** (tarea 7; acordado el 30 oct, falta que lo vean Natalia y Vanessa):
   - **Claude:** el guion escena por escena (qué se ve, qué se dice y cuántos segundos, para no pasar de 3 minutos), **tomas limpias** de la app grabadas con el navegador automático (sin errores ni mouse temblando), subtítulos en inglés (`.srt`) y textos de pantalla. Si hace falta juntar clips por comandos, se usa `ffmpeg` (instalarlo con `sudo apt install ffmpeg`).
   - **Natalia (o Víctor):** la **narración con voz** (una voz humana conecta más con el jurado) y la edición final en un editor sencillo y gratis (CapCut o Clipchamp): ritmo y música.
@@ -517,6 +518,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #34 | Botón "Review all with AI" en Savings: el ticket sale en ~5 s |
 | #35 | Historial de pagos en el chat, la sugerencia al pagar incluye los pagos pendientes, y caché compartido entre pláticas |
 | #36 | Bitácora del 30 oct, documentos al día, y un cliente da sus datos fiscales una sola vez (se completan todas sus facturas pendientes) |
+| #37 | Plan del video: Claude hace guion, tomas limpias y subtítulos; el equipo narra y edita |
+| #38 | Botón ES/EN guardado para después del rediseño; revisión final de documentos del 30 oct |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

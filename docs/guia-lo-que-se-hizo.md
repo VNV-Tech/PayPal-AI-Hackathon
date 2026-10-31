@@ -137,7 +137,7 @@ Un servicio para **publicar la app en internet**, para que el jurado la abra con
 - Cuenta de Render con tu GitHub (que tiene verificación en dos pasos). Servicio **VNV-Copilot**, plan **Free**, región Oregon.
 - **Se actualiza sola:** Render publica lo que haya en `dev` cada vez que fusionas un PR (tarda unos 5 minutos). Antes de entregar se cambia a `main`.
 - **Las claves** viven en Render → tu servicio → **Environment**. Solo tú las ves; Claude no tiene acceso. Si cambias una, Render reinicia la app solo.
-- **Plan gratis:** se duerme si nadie la usa en 15 minutos (la primera visita espera ~1 minuto) y **puede borrar los apartados y los datos fiscales** al reiniciarse. Las facturas no se pierden: viven en PayPal. Pendiente de resolver.
+- **Plan gratis:** se duerme si nadie la usa en 15 minutos (la primera visita espera ~1 minuto). Antes, cada reinicio borraba los apartados y los datos fiscales; **desde el 30 de octubre se guardan en Neon** (base de datos gratis, variable `DATABASE_URL` en Environment) y ya no se pierden. Las facturas viven en PayPal. Para que no se duerma mientras se graba el video y del 1 al 15 de diciembre, se usará un "despertador" gratis.
 - **En la versión pública no se usan correos reales:** cualquiera la puede ver.
 
 ---
@@ -281,6 +281,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - **No se guardan las respuestas de PayPal unos segundos para acelerar:** medido, ahorraba menos de 1 segundo y podía retrasar que apareciera un pago nuevo.
 - **Antes de agregar o quitar algo, Claude dice primero si conviene o no,** con sinceridad, y espera tu OK.
 - **El video:** Claude hace el guion, las tomas limpias de la app y los subtítulos. Natalia (o tú) narra con su voz y edita en CapCut o Clipchamp. La toma del pago se graba en pantalla. Detalle en `proyecto.md` → "Ideas guardadas".
+- **App en español o inglés:** buena idea, pero va después del rediseño de Vanessa y solo si sobra tiempo. Mientras, en el README y el video se destaca que el copiloto ya habla español.
 - **Desde el 31 de octubre: no más funciones nuevas.** Lo que sigue es README, video, Devpost y el diseño de Vanessa.
 
 **Lo aprendido:**
@@ -304,6 +305,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 **Esta semana (del 31 de oct al 5 de nov):**
 - [ ] **Decidir si van por el premio de AG Grid.** Si sí, activar su prueba gratis **entre el 1 y el 5 de noviembre** (dura 45 días y debe llegar al 15 de diciembre).
 - [ ] Reunión con Vanessa y Natalia: enseñarles la app en Render (modos, tutorial, ticket de pagos, historial). **Desde ahí el diseño lo decide Vanessa.** Pedirles que `main` solo se actualice desde `dev`.
+- [ ] Contarle a Natalia el plan del video (ella narra y edita; Claude hace guion, tomas y subtítulos). Está en `proyecto.md` → "Ideas guardadas".
 - [ ] Pedirle a Natalia la frase de la historia (por ejemplo *"el copiloto que ayuda a los freelancers mexicanos a cobrar y cumplir con el SAT"*) y que empiece a pensar el video.
 - [ ] Preguntarles si quieren aparecer en el aviso de autoría del código (`LICENSE`).
 
