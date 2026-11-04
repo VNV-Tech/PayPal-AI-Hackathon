@@ -235,7 +235,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Nivel 2: emitir la factura.** Cuando la factura de PayPal ya está **pagada** y tenemos los datos del cliente, en la ventana **Tax info** aparece **Issue CFDI**. Pide confirmación, Facturama la sella y **le llega al cliente por correo** (PDF y XML). Tú la puedes descargar ahí mismo, y el cliente desde su link. El copiloto también la puede proponer, con tarjeta de aprobación.
 - **Nunca se emite sola:** siempre la aprueba el usuario, igual que todo lo demás.
 - **Es de prueba:** Facturama Sandbox con datos de prueba del SAT. Las facturas se ven reales (folio fiscal, sellos, QR), pero **no tienen validez fiscal**.
-- **Reglas fiscales de la demo (pendientes de revisar con la asesoría de finanzas):**
+- **Reglas fiscales de la demo (sin revisar: el equipo no tiene asesoría de finanzas por ahora; el README lo dice claro):**
   - El monto cobrado en PayPal **ya incluye IVA del 16%** (por ejemplo, $500 = $431.03 + $68.97 de IVA).
   - **Sin retenciones** de ISR o IVA (aplican, por ejemplo, cuando una persona física le factura a una empresa).
   - Una sola **clave de producto genérica** (`80101500`, servicios de consultoría) para todo.
@@ -433,7 +433,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 15 dic (despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | 🟡 README nuevo (4 nov); faltan el link del video y las imágenes. Video y Devpost pendientes |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -450,6 +450,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 ### Preguntas abiertas para la asesoría
 
+> **4 nov:** el equipo no tiene asesoría de finanzas ni grupo de freelancers por ahora. Estas preguntas siguen sin respuesta; el README lo aclara y no se afirma que la app cumpla con el SAT.
+
 **Finanzas**
 - ¿Las facturas deben llevar IVA incluido en el precio, o sumarse aparte? ¿Cuándo aplican retenciones?
 - ¿Qué clave de producto/servicio del SAT conviene para un freelancer?
@@ -463,6 +465,9 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ¿Nombre final, logo y colores?
 
 ### Ideas guardadas para después (si sobra tiempo)
+
+- **CFDI en dólares para clientes extranjeros** (platicado el 4 nov): se puede con moneda USD, tipo de cambio de Banxico, RFC genérico `XEXX010101000`, régimen `616` y uso `S01`, sin mandarle link al cliente (~1 día más pruebas). **No antes de entregar:** no hay asesoría que confirme si lleva IVA de 0% o 16%. Va en "What's next" del README.
+- **Facturas fiscales en otros países** (platicado el 4 nov): con intermediarios como Avalara, Sovos o Fonoa, no con una API por país. Pero cada país necesita sus reglas de impuestos, sus datos y su validación. Va en "What's next" del README; el cobro por PayPal ya es internacional.
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
@@ -520,6 +525,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #36 | Bitácora del 30 oct, documentos al día, y un cliente da sus datos fiscales una sola vez (se completan todas sus facturas pendientes) |
 | #37 | Plan del video: Claude hace guion, tomas limpias y subtítulos; el equipo narra y edita |
 | #38 | Botón ES/EN guardado para después del rediseño; revisión final de documentos del 30 oct |
+| #39 | README nuevo con la historia "el copiloto da el primer paso cuando te pagan", para clientes en México y en el extranjero |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
