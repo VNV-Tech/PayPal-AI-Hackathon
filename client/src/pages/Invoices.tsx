@@ -437,7 +437,7 @@ function TaxInfoPanel({
     <>
       <p className="text-sm text-ink-muted">
         {isForeign
-          ? "Your client abroad doesn't need a Mexican tax invoice (CFDI), so there's nothing for them to fill in. You may still need one for your own taxes."
+          ? "Your client abroad doesn't need this tax invoice (CFDI), so there's nothing for them to fill in. You issue it to them to report this income, and you keep the copy."
           : 'In Mexico, clients often need an official tax invoice (CFDI). Send this link to your client so they can fill in their tax details. We save them for their next invoices too.'}
       </p>
 
@@ -549,7 +549,7 @@ function CfdiSection({
         <p className="mt-1 text-xs break-all">UUID {cfdi.uuid}</p>
         <p className="mt-1 text-xs">
           {cfdi.foreign
-            ? `Issued in USD at ${cfdi.foreign.exchangeRate.rate} MXN per USD (${cfdi.foreign.exchangeRate.source}), VAT ${cfdi.foreign.vatRate * 100}%. Keep it for your records.`
+            ? `Issued in USD at ${cfdi.foreign.exchangeRate.rate} MXN per USD (${cfdi.foreign.exchangeRate.source}), VAT ${cfdi.foreign.vatRate * 100}%. Download your copy; nothing was emailed to your client.`
             : cfdi.emailedTo
               ? `Emailed to ${cfdi.emailedTo}.`
               : "The email couldn't be sent; download it and share it."}{' '}
@@ -599,8 +599,8 @@ function CfdiSection({
       {isForeign ? (
         <>
           <p className="mt-1 text-xs text-ink-muted">
-            Facturama (test mode) will stamp it in USD at today's exchange rate. It's for your records, so nothing is
-            emailed to your client.
+            Facturama (test mode) will stamp it in USD at today's exchange rate. You'll appear as the issuer and your
+            client as the recipient, but nothing is emailed to them.
           </p>
           <fieldset className="mt-3" disabled={confirming}>
             <legend className="text-xs font-semibold">VAT on this service</legend>

@@ -249,7 +249,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'issue_cfdi',
     description:
-      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice. MXN invoice: the client must have sent their tax info, 16% VAT is treated as included in the price, and it is emailed to the client. USD invoice: the client is abroad, so no tax info link is needed and nothing is emailed (the user keeps it for their own taxes), but vat_rate and client_country are required and must come from the user: never choose or suggest them yourself, ask. Test environment: the CFDI has no legal validity. Requires user approval.",
+      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice. MXN invoice: the client must have sent their tax info, 16% VAT is treated as included in the price, and it is emailed to the client. USD invoice: the client is abroad, so no tax info link is needed and nothing is emailed (the user issues it to report the income and keeps the copy), but vat_rate and client_country are required and must come from the user: never choose or suggest them yourself, ask. Test environment: the CFDI has no legal validity. Requires user approval.",
     strict: true,
     input_schema: {
       type: 'object',
@@ -602,7 +602,7 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         ...(rate
           ? ([
               ['Exchange rate', `${rate.rate} MXN per USD (${rate.source}, ${rate.date})`],
-              ['Delivery', 'For your records; not emailed to the client'],
+              ['Delivery', 'You keep the copy; not emailed to the client'],
             ] as [string, string][])
           : ([['Email to', preview.emailTo ?? '—']] as [string, string][])),
       ],

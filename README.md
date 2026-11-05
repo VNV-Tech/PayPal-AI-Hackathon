@@ -20,7 +20,7 @@ A client in Texas pays your **$1,000 USD** invoice:
 2. **The copilot speaks first.** It looks at the payment and suggests what comes next, such as setting part of it aside for taxes.
 3. **You stay in control.** Proposals arrive as approval cards, and nothing changes until you press *Approve*.
 
-Your client in Texas doesn't need a Mexican tax invoice, but you may need one for your own taxes. The copilot can prepare it in USD at the day's exchange rate. You choose the VAT rate, because that depends on the service you provide.
+Your client in Texas doesn't need a Mexican tax invoice, but you may need to issue one to report the income. The copilot can prepare it in USD at the day's exchange rate. You choose the VAT rate, because that depends on the service you provide.
 
 If your client is in Monterrey and pays in pesos, the copilot collects their tax details and issues the CFDI for them, again only after your approval.
 
@@ -30,7 +30,7 @@ If your client is in Monterrey and pays in pesos, the copilot collects their tax
 - **AI copilot chat:** ask about your income or tell it what to bill, in English or Spanish.
 - **PayPal invoices in USD or MXN:** create, send, remind and cancel, from the chat or the Invoices page.
 - **Live updates:** invoice status changes as soon as the client pays.
-- **CFDI 4.0 for clients abroad (USD):** nothing for your client to fill in. You choose the VAT rate and their country, and the app adds the exchange rate. You keep the stamped PDF and XML.
+- **CFDI 4.0 for clients abroad (USD):** nothing for your client to fill in. You choose the VAT rate and their country, and the app adds the exchange rate. You issue it to report the income and keep the stamped PDF and XML.
 - **CFDI 4.0 for clients in Mexico (MXN):** your client fills in a Spanish form once through a private link, and the app remembers their details for future invoices. You approve, and it's stamped and emailed to them.
 
 ### Personal mode: keep what you earn

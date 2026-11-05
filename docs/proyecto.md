@@ -530,6 +530,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #38 | Botón ES/EN guardado para después del rediseño; revisión final de documentos del 30 oct |
 | #39 | README nuevo con la historia "el copiloto da el primer paso cuando te pagan", para clientes en México y en el extranjero |
 | #40 | CFDI en dólares para clientes en el extranjero: el usuario elige el IVA y el país, con tipo de cambio automático |
+| #41 | Textos más claros del CFDI en dólares: el freelancer lo emite para reportar el ingreso y se queda con la copia |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
