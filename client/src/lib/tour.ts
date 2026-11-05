@@ -91,7 +91,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/invoices',
     target: 'tax-*',
     title: 'Tax invoices (CFDI), handled',
-    body: "Many clients in Mexico need an official tax invoice. With Tax info you get a link where your client fills in their tax details just once. When they pay, issue the CFDI with one click and it's emailed to them with the PDF and XML. Client abroad paying in USD? They fill in nothing: you choose the VAT and keep the CFDI for your own taxes. In this demo CFDIs are test documents.",
+    body: "Many clients in Mexico need an official tax invoice. With Tax info you get a link where your client fills in their tax details just once. When they pay, issue the CFDI with one click and it's emailed to them with the PDF and XML. Client abroad paying in USD? They fill in nothing: you issue the CFDI to report that income and keep the copy. In this demo CFDIs are test documents.",
   },
   // Personal: organizar lo que te pagan.
   {

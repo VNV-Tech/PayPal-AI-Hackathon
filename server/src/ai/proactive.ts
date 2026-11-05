@@ -35,7 +35,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
     ? 'issue_cfdi if possible'
     : tax.cfdi
       ? 'nothing more for the CFDI'
-      : "no issue_cfdi card yet (end your message asking if they want a CFDI for their own taxes and, if so, the VAT rate, 0% or 16%, and the client's country; it depends on the service, so if unsure they should check with an accountant)";
+      : "no issue_cfdi card yet (end your message asking if they want to issue a CFDI to report this income and, if so, the VAT rate, 0% or 16%, and the client's country; it depends on the service, so if unsure they should check with an accountant)";
 
   const facts = [
     `Invoice ${label} (id ${invoice.id}) from ${client} was just paid through PayPal: ${amount.toFixed(2)} ${currency}.`,
@@ -43,7 +43,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
     tax.cfdi
       ? `The CFDI was already issued (folio ${tax.cfdi.folio}).`
       : !isMxn
-        ? 'The client is abroad, so they need no tax info link and nothing is emailed to them, but the user may need a CFDI in USD for their own taxes.'
+        ? 'The client is abroad, so they need no tax info link and nothing is emailed to them, but the user may need to issue a CFDI in USD to report this income.'
         : tax.status === 'received'
           ? `We have the client's tax info (${tax.taxInfo?.name}, RFC ${tax.taxInfo?.rfc}): the CFDI can be issued with issue_cfdi.`
           : `We don't have the client's tax info yet. Their link: ${taxLinkUrl(tax.token)}`,
