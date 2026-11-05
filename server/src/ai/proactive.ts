@@ -29,16 +29,24 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   const currency = invoice.amount?.currency_code ?? 'MXN';
   const payment = savings.pending.find((p) => p.invoiceNumber === invoice.number);
 
+  const isMxn = currency === 'MXN';
+  // En USD no se propone la tarjeta todavía: el IVA y el país los decide el usuario.
+  const cfdiStep = isMxn
+    ? 'issue_cfdi if possible'
+    : tax.cfdi
+      ? 'nothing more for the CFDI'
+      : "no issue_cfdi card yet (end your message asking if they want a CFDI for their own taxes and, if so, the VAT rate, 0% or 16%, and the client's country; it depends on the service, so if unsure they should check with an accountant)";
+
   const facts = [
     `Invoice ${label} (id ${invoice.id}) from ${client} was just paid through PayPal: ${amount.toFixed(2)} ${currency}.`,
-    currency === 'MXN'
-      ? `The price includes 16% VAT: ${(amount - amount / (1 + IVA_RATE)).toFixed(2)} MXN of it is VAT.`
-      : 'It is not in MXN, so no CFDI can be issued for it yet.',
+    ...(isMxn ? [`The price includes 16% VAT: ${(amount - amount / (1 + IVA_RATE)).toFixed(2)} MXN of it is VAT.`] : []),
     tax.cfdi
       ? `The CFDI was already issued (folio ${tax.cfdi.folio}).`
-      : tax.status === 'received'
-        ? `We have the client's tax info (${tax.taxInfo?.name}, RFC ${tax.taxInfo?.rfc}): the CFDI can be issued with issue_cfdi.`
-        : `We don't have the client's tax info yet. Their link: ${taxLinkUrl(tax.token)}`,
+      : !isMxn
+        ? 'The client is abroad, so they need no tax info link and nothing is emailed to them, but the user may need a CFDI in USD for their own taxes.'
+        : tax.status === 'received'
+          ? `We have the client's tax info (${tax.taxInfo?.name}, RFC ${tax.taxInfo?.rfc}): the CFDI can be issued with issue_cfdi.`
+          : `We don't have the client's tax info yet. Their link: ${taxLinkUrl(tax.token)}`,
     payment
       ? `The payment is waiting for a set-aside decision (payment_id ${payment.id}); the current plan would set aside ${payment.proposal
           .map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`)
@@ -49,7 +57,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   if (!payment || !others.length) {
     return {
       title,
-      event: `${facts.join(' ')} Propose only what applies to this invoice: issue_cfdi if possible, and review_payment with set_aside if a decision is pending. If the tax info is missing, share the link instead.`,
+      event: `${facts.join(' ')} Propose only what applies to this invoice: ${cfdiStep}, and review_payment with set_aside if a decision is pending.${isMxn ? ' If the tax info is missing, share the link instead.' : ''}`,
     };
   }
 
@@ -57,7 +65,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   const lines = (await pendingPaymentLines(others)).map((l) => `- ${l}`).join('\n');
   return {
     title,
-    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose the cards: issue_cfdi if possible, and for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend.`,
+    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose: ${cfdiStep}, and for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend.`,
   };
 }
 

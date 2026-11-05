@@ -51,6 +51,10 @@ const envSchema = z.object({
   // ella se guardan en archivos de server/data/ (en Render se borrarían).
   DATABASE_URL: z.url().optional(),
 
+  // Token gratis de Banxico para el tipo de cambio oficial de los CFDI en USD.
+  // Opcional: sin él se usa una referencia del Banco Central Europeo.
+  BANXICO_TOKEN: z.string().min(1).optional(),
+
   ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY es obligatorio'),
   // Modelo del chat. Cambiarlo aquí no requiere tocar código.
   // Sonnet 5.5 cuesta la mitad que Opus y alcanza para los créditos de la demo.

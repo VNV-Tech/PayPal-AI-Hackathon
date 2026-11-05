@@ -54,11 +54,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 // Cuerpo de POST /3/cfdis (API Web, CFDI 4.0). El emisor sale del perfil de la cuenta.
 export interface CfdiRequest {
   Currency: string;
+  CurrencyExchangeRate?: number; // obligatorio si no es MXN
+  Exportation?: string; // c_Exportacion
   ExpeditionPlace: string;
   CfdiType: 'I'; // ingreso
   PaymentForm: string; // c_FormaPago
   PaymentMethod: 'PUE'; // pago en una sola exhibición
-  Receiver: { Rfc: string; Name: string; CfdiUse: string; FiscalRegime: string; TaxZipCode: string };
+  Receiver: { Rfc: string; Name: string; CfdiUse: string; FiscalRegime: string; TaxZipCode: string; TaxResidence?: string; TaxRegistrationNumber?: string };
   Items: {
     ProductCode: string;
     Description: string;

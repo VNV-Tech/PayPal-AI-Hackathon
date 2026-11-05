@@ -98,7 +98,8 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   `tools.ts` (herramientas; `review_payments` = ticket con casillas,
   `list_payments` = historial de pagos), `proactive.ts` (la IA da el primer
   paso al pagar y arma el ticket del botón "Review all with AI" de Savings).
-- `server/src/taxInfo.ts` + `facturama.ts`: datos fiscales y CFDI.
+- `server/src/taxInfo.ts` + `facturama.ts`: datos fiscales y CFDI (en MXN, y en
+  USD para clientes en el extranjero, con `exchangeRate.ts`).
 - `server/src/savings.ts`: apartados. `server/src/store.ts`: guardado en Neon
   (tabla `app_store`, una fila por "archivo") o, sin `DATABASE_URL`, en
   `server/data/*.json` (no se sube a git).
