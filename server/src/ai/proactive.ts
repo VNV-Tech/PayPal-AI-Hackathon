@@ -19,7 +19,7 @@ const IVA_RATE = 0.16;
 
 // Se juntan los datos aquí para que Claude no tenga que buscarlos: responde
 // más rápido, gasta menos y no se distrae con otras facturas.
-export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: string; event: string }> {
+export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: string; event: string; note?: string }> {
   const [invoice, tax, savings] = await Promise.all([getInvoice(invoiceId), getOrCreateTaxRequest(invoiceId), getSavings()]);
   // Otros pagos que se quedaron sin respuesta: van en el mismo ticket para ponerse al día.
   const others = savings.pending.filter((p) => p.invoiceNumber !== invoice.number);
@@ -30,12 +30,16 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   const payment = savings.pending.find((p) => p.invoiceNumber === invoice.number);
 
   const isMxn = currency === 'MXN';
-  // En USD no se propone la tarjeta todavía: el IVA y el país los decide el usuario.
-  const cfdiStep = isMxn
-    ? 'issue_cfdi if possible'
-    : tax.cfdi
-      ? 'nothing more for the CFDI'
-      : "no issue_cfdi card yet (end your message asking if they want to issue a CFDI to report this income and, if so, the VAT rate, 0% or 16%, and the client's country; it depends on the service, so if unsure they should check with an accountant)";
+  // En USD no se propone la tarjeta: el IVA y el país los decide el usuario. La
+  // pregunta la agrega la app, porque con tarjetas Claude a veces no escribe nada.
+  const cfdiStep = isMxn ? 'issue_cfdi if possible, and ' : '';
+  const note =
+    !isMxn && !tax.cfdi
+      ? "Want to issue your CFDI to report this income? Tell me the VAT rate (0% or 16%) and your client's country. The rate depends on the service, so if you're not sure, check with an accountant."
+      : undefined;
+  const noCfdiQuestion = note
+    ? ' Do not propose issue_cfdi or ask about the CFDI in this message: the app adds that question after your cards. If the user later gives the VAT rate and country, propose issue_cfdi.'
+    : '';
 
   const facts = [
     `Invoice ${label} (id ${invoice.id}) from ${client} was just paid through PayPal: ${amount.toFixed(2)} ${currency}.`,
@@ -57,7 +61,8 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   if (!payment || !others.length) {
     return {
       title,
-      event: `${facts.join(' ')} Propose only what applies to this invoice: ${cfdiStep}, and review_payment with set_aside if a decision is pending.${isMxn ? ' If the tax info is missing, share the link instead.' : ''}`,
+      note,
+      event: `${facts.join(' ')} Propose only what applies to this invoice: ${cfdiStep}review_payment with set_aside if a decision is pending.${isMxn ? ' If the tax info is missing, share the link instead.' : ''}${noCfdiQuestion}`,
     };
   }
 
@@ -65,7 +70,8 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   const lines = (await pendingPaymentLines(others)).map((l) => `- ${l}`).join('\n');
   return {
     title,
-    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose: ${cfdiStep}, and for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend.`,
+    note,
+    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose the cards: ${cfdiStep}for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend.${noCfdiQuestion}`,
   };
 }
 
@@ -78,7 +84,7 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
 
   // Sin await: el webhook le responde a PayPal de inmediato.
   void paidInvoiceFacts(invoiceId)
-    .then(({ title, event }) => createSuggestion(title, event))
+    .then(({ title, event, note }) => createSuggestion(title, event, note))
     .then(
       (suggestion) =>
         publish({
