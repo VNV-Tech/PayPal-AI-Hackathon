@@ -36,6 +36,8 @@ import {
   createInvoiceWithTaxLink,
   describeTaxInfo,
   getOrCreateTaxRequest,
+  FOREIGN_COUNTRIES,
+  foreignCfdiSchema,
   issueCfdi,
   prepareCfdi,
   saveClientTaxInfo,
@@ -247,9 +249,19 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'issue_cfdi',
     description:
-      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice in MXN whose client already sent their tax info, and emailing it to the client. The price charged in PayPal is treated as including 16% VAT. Test environment: the CFDI has no legal validity. Requires user approval.",
+      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice. MXN invoice: the client must have sent their tax info, 16% VAT is treated as included in the price, and it is emailed to the client. USD invoice: the client is abroad, so no tax info link is needed and nothing is emailed (the user keeps it for their own taxes), but vat_rate and client_country are required and must come from the user: never choose or suggest them yourself, ask. Test environment: the CFDI has no legal validity. Requires user approval.",
     strict: true,
-    input_schema: invoiceIdInput,
+    input_schema: {
+      type: 'object',
+      properties: {
+        invoice_id: invoiceIdInput.properties.invoice_id,
+        vat_rate: { type: 'string', enum: ['0', '16'], description: 'USD invoices only. The percentage the user chose' },
+        client_country: { type: 'string', enum: Object.keys(FOREIGN_COUNTRIES), description: "USD invoices only. The client's country" },
+        client_tax_id: { type: 'string', description: "USD invoices only, optional. The client's foreign tax ID, if the user gave it" },
+      },
+      required: ['invoice_id'],
+      additionalProperties: false,
+    },
   },
 ];
 
@@ -566,25 +578,43 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
   }
 
   if (name === 'issue_cfdi') {
-    const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
-    const preview = await prepareCfdi(id);
-    const info = preview.request.taxInfo;
+    const { invoice_id, vat_rate, client_country, client_tax_id } = input as {
+      invoice_id: string;
+      vat_rate?: string;
+      client_country?: string;
+      client_tax_id?: string;
+    };
+    const id = invoiceIdSchema.parse(invoice_id);
+    const foreign = vat_rate && client_country
+      ? foreignCfdiSchema.parse({ vatRate: vat_rate, country: client_country, taxId: client_tax_id || undefined })
+      : undefined;
+    const preview = await prepareCfdi(id, foreign);
+    const currency = preview.total.currency_code;
+    const rate = preview.foreign?.exchangeRate;
     return {
       title: 'Issue tax invoice (CFDI)',
       details: [
         ['Invoice', `#${preview.request.invoiceNumber ?? '—'}`],
-        ['Client', `${info.name} · ${info.rfc}`],
-        ['Subtotal', money(preview.subtotal, 'MXN')],
-        ['VAT 16%', money(preview.iva, 'MXN')],
-        ['Total', money(preview.total.value, 'MXN')],
-        ['Email to', info.email],
+        ['Client', preview.client],
+        ['Subtotal', money(preview.subtotal, currency)],
+        [`VAT ${preview.vatRate * 100}%`, money(preview.iva, currency)],
+        ['Total', money(preview.total.value, currency)],
+        ...(rate
+          ? ([
+              ['Exchange rate', `${rate.rate} MXN per USD (${rate.source}, ${rate.date})`],
+              ['Delivery', 'For your records; not emailed to the client'],
+            ] as [string, string][])
+          : ([['Email to', preview.emailTo ?? '—']] as [string, string][])),
       ],
       execute: async () => {
-        const issued = await issueCfdi(id);
+        const issued = await issueCfdi(id, foreign);
         const cfdi = issued.cfdi!;
-        return `CFDI issued for invoice #${issued.invoiceNumber} (folio ${cfdi.folio}, UUID ${cfdi.uuid}). ${
-          cfdi.emailedTo ? `Emailed to ${cfdi.emailedTo}.` : 'The email could not be sent.'
-        } Test environment: no legal validity.`;
+        const delivery = cfdi.foreign
+          ? 'It was not emailed: the user can download it from Tax info on the Invoices page.'
+          : cfdi.emailedTo
+            ? `Emailed to ${cfdi.emailedTo}.`
+            : 'The email could not be sent.';
+        return `CFDI issued for invoice #${issued.invoiceNumber} (folio ${cfdi.folio}, UUID ${cfdi.uuid}). ${delivery} Test environment: no legal validity.`;
       },
     };
   }

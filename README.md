@@ -18,9 +18,11 @@ A client in Texas pays your **$1,000 USD** invoice:
 
 1. **PayPal notifies the app** through a webhook, and the invoice turns to *Paid* on its own, with no refresh.
 2. **The copilot speaks first.** It looks at the payment and suggests what comes next, such as setting part of it aside for taxes.
-3. **You stay in control.** The suggestion arrives as an approval card. Nothing changes until you press *Approve*.
+3. **You stay in control.** Proposals arrive as approval cards, and nothing changes until you press *Approve*.
 
-If your client is in Monterrey and pays in pesos, the copilot can also collect their tax details and issue the CFDI, again only after your approval.
+Your client in Texas doesn't need a Mexican tax invoice, but you may need one for your own taxes. The copilot can prepare it in USD at the day's exchange rate. You choose the VAT rate, because that depends on the service you provide.
+
+If your client is in Monterrey and pays in pesos, the copilot collects their tax details and issues the CFDI for them, again only after your approval.
 
 ## Features
 
@@ -28,7 +30,8 @@ If your client is in Monterrey and pays in pesos, the copilot can also collect t
 - **AI copilot chat:** ask about your income or tell it what to bill, in English or Spanish.
 - **PayPal invoices in USD or MXN:** create, send, remind and cancel, from the chat or the Invoices page.
 - **Live updates:** invoice status changes as soon as the client pays.
-- **CFDI 4.0 tax invoices (MXN):** your client fills in a Spanish form once through a private link, and the app remembers their details for future invoices. You approve, and the stamped PDF and XML are ready.
+- **CFDI 4.0 for clients abroad (USD):** nothing for your client to fill in. You choose the VAT rate and their country, and the app adds the exchange rate. You keep the stamped PDF and XML.
+- **CFDI 4.0 for clients in Mexico (MXN):** your client fills in a Spanish form once through a private link, and the app remembers their details for future invoices. You approve, and it's stamped and emailed to them.
 
 ### Personal mode: keep what you earn
 - **Savings buckets:** when you get paid, the app proposes how much to set aside for each goal, such as taxes. The buckets are virtual; no money moves.
@@ -83,7 +86,7 @@ flowchart LR
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, React Router |
 | Backend | Node.js, Express 5, TypeScript, Zod |
 | AI | Claude Sonnet 5.5 (Anthropic API) with tool use and prompt caching |
-| Tax invoices | Facturama Sandbox (CFDI 4.0) |
+| Tax invoices | Facturama Sandbox (CFDI 4.0), exchange rate from Banxico or an ECB reference |
 | Data | Neon Postgres in the demo, local JSON files in development |
 | Hosting | Render |
 
@@ -100,13 +103,13 @@ flowchart LR
 We would rather be clear about this than oversell it:
 
 - **The CFDI flow is a demonstration.** It follows the real CFDI 4.0 format and is stamped by Facturama's sandbox with SAT test data, but it has no legal validity and **a tax professional has not reviewed it**.
-- **It covers the simple case only:** MXN invoices, 16% VAT included in the price, no withholdings, one generic product code, and paid in full.
-- **USD invoices can't get a CFDI yet.** Getting paid and setting money aside work in USD; the tax invoice does not.
+- **It covers the simple case only:** VAT included in the price, no withholdings, one generic product code, and paid in full.
+- **The app doesn't decide your taxes.** On USD invoices you choose 0% or 16% VAT. A client abroad doesn't guarantee 0%: it depends on the service, and whether a payment through PayPal qualifies needs professional review.
+- **USD is treated as a client abroad,** so a Mexican client paying in USD isn't covered.
 - **It's a single-user demo:** no accounts or login, and chats are reset when the server restarts.
 
 ## What's next
 
-- CFDI for USD payments from foreign clients.
 - Withholdings and more tax scenarios, reviewed by a tax professional.
 - Accounts, so each freelancer has their own PayPal connection and tax certificates.
 - Other countries, by plugging in e-invoicing providers with each country's rules.
@@ -119,6 +122,7 @@ You'll need:
 - A [PayPal Developer](https://developer.paypal.com) Sandbox app
 - An [Anthropic API key](https://console.anthropic.com)
 - Optional: a [Facturama sandbox](https://dev.facturama.mx) account (without it, only CFDI issuing is turned off)
+- Optional: a free [Banxico token](https://www.banxico.org.mx/SieAPIRest/service/v1/token) for the official exchange rate (without it, USD CFDIs use an ECB reference rate)
 
 ```bash
 git clone https://github.com/VNV-Tech/PayPal-AI-Hackathon.git

@@ -57,6 +57,29 @@ export const TEST_TAX_INFO: TaxInfo = {
   email: 'facturas@example.com',
 }
 
+// Países más comunes de un cliente en el extranjero (catálogo c_Pais del SAT).
+export const FOREIGN_COUNTRIES: Record<string, string> = {
+  USA: 'United States',
+  CAN: 'Canada',
+  GBR: 'United Kingdom',
+  ESP: 'Spain',
+  DEU: 'Germany',
+  FRA: 'France',
+  NLD: 'Netherlands',
+  AUS: 'Australia',
+  COL: 'Colombia',
+  ARG: 'Argentina',
+  CHL: 'Chile',
+  BRA: 'Brazil',
+}
+
+// Lo que decide el usuario en un CFDI en USD.
+export interface ForeignCfdi {
+  vatRate: '0' | '16'
+  country: string
+  taxId?: string
+}
+
 export interface IssuedTaxInvoice {
   id: string
   uuid: string // folio fiscal del SAT
@@ -64,6 +87,7 @@ export interface IssuedTaxInvoice {
   total: Money
   issuedAt: string
   emailedTo: string | null
+  foreign?: { country: string; vatRate: number; exchangeRate: { rate: number; date: string; source: string } }
 }
 
 export interface TaxRequest {
@@ -92,7 +116,8 @@ export const taxInfoApi = {
   // cfdiEnabled: false si el servidor no tiene las credenciales de Facturama.
   // knownClients: correos de clientes cuyos datos fiscales ya tenemos.
   list: () => api<{ requests: TaxRequest[]; knownClients: string[]; cfdiEnabled: boolean }>('/tax-info'),
-  issue: (invoiceId: string) => api<TaxRequest>('/tax-info/cfdi', { method: 'POST', body: JSON.stringify({ invoiceId }) }),
+  issue: (invoiceId: string, foreign?: ForeignCfdi) =>
+    api<TaxRequest>('/tax-info/cfdi', { method: 'POST', body: JSON.stringify({ invoiceId, foreign }) }),
   fileUrl: (invoiceId: string, format: 'pdf' | 'xml') => `/api/tax-info/cfdi/${invoiceId}/${format}`,
   publicFileUrl: (token: string, format: 'pdf' | 'xml') => `/api/tax-info/public/${encodeURIComponent(token)}/${format}`,
   link: (invoiceId: string) => api<TaxRequest>('/tax-info/requests', { method: 'POST', body: JSON.stringify({ invoiceId }) }),

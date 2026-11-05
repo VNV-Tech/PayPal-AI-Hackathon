@@ -235,6 +235,9 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Nivel 2: emitir la factura.** Cuando la factura de PayPal ya está **pagada** y tenemos los datos del cliente, en la ventana **Tax info** aparece **Issue CFDI**. Pide confirmación, Facturama la sella y **le llega al cliente por correo** (PDF y XML). Tú la puedes descargar ahí mismo, y el cliente desde su link. El copiloto también la puede proponer, con tarjeta de aprobación.
 - **Nunca se emite sola:** siempre la aprueba el usuario, igual que todo lo demás.
 - **Es de prueba:** Facturama Sandbox con datos de prueba del SAT. Las facturas se ven reales (folio fiscal, sellos, QR), pero **no tienen validez fiscal**.
+- **Clientes en el extranjero (facturas en USD; 4 nov, decisión de Víctor):** al cliente no le sirve el CFDI, pero el freelancer puede necesitarlo para sus impuestos. No hay link ni correo. En **Tax info** el usuario elige el **IVA (0% o 16%, sin valor por defecto)**, el país y, si quiere, el número fiscal del cliente; la app agrega el tipo de cambio. El copiloto pregunta esos datos antes de poner la tarjeta y nunca los elige. Lo emitido se descarga (PDF y XML). Probado en Facturama sandbox.
+  - **Por qué el IVA no es automático:** según blogs de contadores (sin fuente oficial), el 0% solo aplica a ciertos servicios (art. 29 de la Ley del IVA): software y asistencia técnica sí; diseño, consultoría o coaching, probablemente 16%. Además, un contador advierte que el pago debe venir directo del extranjero; no se sabe cómo aplica por PayPal.
+  - **🔧 Técnico:** `Currency: USD`, `CurrencyExchangeRate`, `Exportation: 01`, RFC `XEXX010101000`, régimen `616`, uso `S01`, código postal del emisor, `TaxResidence` y `TaxRegistrationNumber` (sin guiones). Tipo de cambio en `server/src/exchangeRate.ts`: Banxico (serie `SF60653`) con `BANXICO_TOKEN`; sin él, referencia del BCE. Cualquier factura en USD se trata como cliente en el extranjero.
 - **Reglas fiscales de la demo (sin revisar: el equipo no tiene asesoría de finanzas por ahora; el README lo dice claro):**
   - El monto cobrado en PayPal **ya incluye IVA del 16%** (por ejemplo, $500 = $431.03 + $68.97 de IVA).
   - **Sin retenciones** de ISR o IVA (aplican, por ejemplo, cuando una persona física le factura a una empresa).
@@ -429,6 +432,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho; botón "Review all with AI" en Savings (~5 s) |
 | 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
 | 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
+| 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Falta probarlo con el token de Banxico y con un pago real por PayPal |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
@@ -466,7 +470,6 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 ### Ideas guardadas para después (si sobra tiempo)
 
-- **CFDI en dólares para clientes extranjeros** (platicado el 4 nov): se puede con moneda USD, tipo de cambio de Banxico, RFC genérico `XEXX010101000`, régimen `616` y uso `S01`, sin mandarle link al cliente (~1 día más pruebas). **No antes de entregar:** no hay asesoría que confirme si lleva IVA de 0% o 16%. Va en "What's next" del README.
 - **Facturas fiscales en otros países** (platicado el 4 nov): con intermediarios como Avalara, Sovos o Fonoa, no con una API por país. Pero cada país necesita sus reglas de impuestos, sus datos y su validación. Va en "What's next" del README; el cobro por PayPal ya es internacional.
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
@@ -526,6 +529,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #37 | Plan del video: Claude hace guion, tomas limpias y subtítulos; el equipo narra y edita |
 | #38 | Botón ES/EN guardado para después del rediseño; revisión final de documentos del 30 oct |
 | #39 | README nuevo con la historia "el copiloto da el primer paso cuando te pagan", para clientes en México y en el extranjero |
+| #40 | CFDI en dólares para clientes en el extranjero: el usuario elige el IVA y el país, con tipo de cambio automático |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
