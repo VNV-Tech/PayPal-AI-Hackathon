@@ -236,6 +236,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Nunca se emite sola:** siempre la aprueba el usuario, igual que todo lo demás.
 - **Es de prueba:** Facturama Sandbox con datos de prueba del SAT. Las facturas se ven reales (folio fiscal, sellos, QR), pero **no tienen validez fiscal**.
 - **Clientes en el extranjero (facturas en USD; 4 nov, decisión de Víctor):** al cliente no le sirve el CFDI, pero el freelancer puede necesitarlo para sus impuestos. No hay link ni correo. En **Tax info** el usuario elige el **IVA (0% o 16%, sin valor por defecto)**, el país y, si quiere, el número fiscal del cliente; la app agrega el tipo de cambio. El copiloto pregunta esos datos antes de poner la tarjeta y nunca los elige. Lo emitido se descarga (PDF y XML). Probado en Facturama sandbox.
+  - **Al pagar el cliente:** la sugerencia trae la pregunta del CFDI como texto fijo de la app, después de las tarjetas, porque Claude a veces solo pone las tarjetas. Para grabar el video, pagar con una cuenta de prueba **de Estados Unidos**: con una mexicana, PayPal muestra el cobro en pesos.
   - **Por qué el IVA no es automático:** según blogs de contadores (sin fuente oficial), el 0% solo aplica a ciertos servicios (art. 29 de la Ley del IVA): software y asistencia técnica sí; diseño, consultoría o coaching, probablemente 16%. Además, un contador advierte que el pago debe venir directo del extranjero; no se sabe cómo aplica por PayPal.
   - **🔧 Técnico:** `Currency: USD`, `CurrencyExchangeRate`, `Exportation: 01`, RFC `XEXX010101000`, régimen `616`, uso `S01`, código postal del emisor, `TaxResidence` y `TaxRegistrationNumber` (sin guiones). Tipo de cambio en `server/src/exchangeRate.ts`: Banxico (serie `SF60653`) con `BANXICO_TOKEN`; sin él, referencia del BCE. Cualquier factura en USD se trata como cliente en el extranjero.
 - **Reglas fiscales de la demo (sin revisar: el equipo no tiene asesoría de finanzas por ahora; el README lo dice claro):**
@@ -531,6 +532,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #39 | README nuevo con la historia "el copiloto da el primer paso cuando te pagan", para clientes en México y en el extranjero |
 | #40 | CFDI en dólares para clientes en el extranjero: el usuario elige el IVA y el país, con tipo de cambio automático |
 | #41 | Textos más claros del CFDI en dólares: el freelancer lo emite para reportar el ingreso y se queda con la copia |
+| #42 | Al recibir un pago en USD, la app siempre pregunta por el CFDI, incluso cuando el copiloto solo pone tarjetas |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

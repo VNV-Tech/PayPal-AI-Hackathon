@@ -301,10 +301,16 @@ export async function startFromEvent(event: string) {
   return { conversationId: conv.id, items: await run(conv, [{ type: 'text', text: `[App event] ${event}` }]) };
 }
 
-export async function createSuggestion(title: string, event: string): Promise<Suggestion> {
+// note: pregunta fija de la app que se muestra después de lo que diga Claude.
+export async function createSuggestion(title: string, event: string, note?: string): Promise<Suggestion> {
   const conv = getConversation(undefined);
   conv.effort = 'low';
   const items = await run(conv, [{ type: 'text', text: `[App event] ${event}` }]);
+  if (note) {
+    // Escribir con una tarjeta pendiente la rechaza: primero hay que contestarla.
+    const hasCards = items.some((i) => i.type === 'action');
+    items.push({ type: 'text', text: hasCards ? `After you answer the card above: ${note}` : note });
+  }
   const suggestion: Suggestion = {
     id: conv.id,
     createdAt: new Date().toISOString(),
