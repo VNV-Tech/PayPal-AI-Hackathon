@@ -7,10 +7,11 @@ Este archivo es público (el repo es público): nada secreto aquí.
 
 ## Qué es
 
-Copiloto financiero con IA para freelancers en México, hecho para el PayPal AI
-Hackathon (Devpost). Cobra con PayPal Invoicing, se actualiza solo con webhooks,
-aparta impuestos (modo Personal), emite facturas del SAT (CFDI) con Facturama y
-la IA da el primer paso cuando te pagan. Entrega: **12 nov 2026, 12:00 PT
+Copiloto financiero con IA para freelancers mexicanos, hecho para el PayPal AI
+Hackathon (Devpost). La IA da el primer paso cuando te pagan. Cobra con PayPal
+Invoicing, se actualiza solo con webhooks, aparta impuestos (modo Personal) y
+emite facturas del SAT (CFDI) con Facturama. **Desde el 4 nov**, el caso
+principal son clientes en el extranjero que pagan en USD; México va en segundo lugar. Entrega: **12 nov 2026, 12:00 PT
 (14:00 CDMX)**. El jurado revisa del 1 al 15 dic: la demo debe seguir en línea.
 
 Detalle de pantallas, arquitectura y reglas de diseño: `docs/proyecto.md`.
@@ -131,5 +132,20 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   "despertador" del 1 al 15 dic.
 - `main` recibió una copia de `dev` el 29 oct (#29, desde la rama de Vanessa).
   `main` solo debe actualizarse desde `dev`.
-- Premio de AG Grid: activar su prueba de 45 días **entre el 1 y el 5 de
-  noviembre** para que dure hasta el 15 de diciembre (si el equipo va por él).
+- **Validación (4 nov):** no hay asesoría de finanzas ni grupo de freelancers.
+  Dos freelancers prefieren transferencia con clientes mexicanos. No afirmar
+  que la app cumple con el SAT ni que hay usuarios que la pidan. Entregar sí o
+  sí; si sigue como negocio se decide después del 12 nov.
+- **CFDI en USD:** excepción a "no más funciones", decisión de Víctor. El
+  usuario elige IVA y país; la app nunca decide el IVA. Falta probar
+  `BANXICO_TOKEN` (opcional): sin él usa una referencia del BCE.
+- **Para el video:** pagar con la cuenta de prueba de **Estados Unidos**; con
+  Test Buyer (mexicana), PayPal muestra el cobro en pesos.
+- Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
+  demo antes del 1 dic y dejar una factura pagada en USD.
+- **Pendiente de Víctor:** la idea de diseño (ya la platicó con el equipo, pero
+  falta pasarla), el OK para el guion del video, que Natalia revise la historia
+  y una segunda duda que no llegó a contar.
+- Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y
+  Devpost ya están. La prueba de 45 días no vence el 5 nov: cualquier fecha
+  desde el 1 nov llega al 15 dic.
