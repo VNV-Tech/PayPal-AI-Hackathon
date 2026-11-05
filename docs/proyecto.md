@@ -22,6 +22,8 @@
 
 ### 🍎 En simple
 
+> **Enfoque desde el 4 nov:** *el copiloto da el primer paso cuando te pagan*. El caso principal es un freelancer mexicano con **clientes en el extranjero** que paga en dólares; los clientes en México quedan en segundo lugar. Motivo: dos freelancers dijeron que con clientes mexicanos prefieren la transferencia, porque PayPal cobra comisión. Sigue siendo una hipótesis, y falta que Natalia revise la historia.
+
 **VNV Copilot es un asistente de dinero para freelancers**: personas que cobran por su cuenta, como diseñadoras, programadores o fotógrafos.
 
 Con la app puedes:
@@ -433,10 +435,10 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho; botón "Review all with AI" en Savings (~5 s) |
 | 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
 | 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
-| 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Falta probarlo con el token de Banxico y con un pago real por PayPal |
+| 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Probado en Render con cuenta de Estados Unidos (#0028). Falta probar el token de Banxico |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
-| 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
+| 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | Antes del 1 dic | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 15 dic (despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1 dic | Víctor | ⏳ Pendiente |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | 🟡 README nuevo (4 nov); faltan el link del video y las imágenes. Video y Devpost pendientes |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
@@ -446,12 +448,13 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | Fechas | Qué |
 |---|---|
 | 29 oct – 1 nov | ✅ Prueba de pago en Render y datos en Neon (30 oct). Diseño de Vanessa. **Desde el 31 oct: no más funciones nuevas** salvo que algo esté roto; las ideas van a "Ideas guardadas" |
-| 1 – 5 nov | AG Grid (si el equipo va por ese premio) y pulir |
-| 6 – 10 nov | README en inglés, video y Devpost |
+| 4 nov | ✅ README nuevo, CFDI en dólares y prueba completa con cuenta de Estados Unidos |
+| 5 – 7 nov | Idea de diseño de Vanessa y guion del video. **Si el diseño no está el 7, se graba con el actual** |
+| 7 – 10 nov | Grabar y editar el video, Devpost, y link y capturas en el README. **9 nov:** revisar AG Grid, solo si esto ya va listo |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 
-**Lo que más pesa ahora** no son funciones nuevas: es **diseño** (Vanessa), **historia** (una frase clara) y **presentación** (el video).
+**Lo que más pesa ahora** no son funciones nuevas: es **diseño** (Vanessa), **historia** (ya hay una propuesta; falta que Natalia la revise) y **presentación** (el video).
 
 ### Preguntas abiertas para la asesoría
 
@@ -475,7 +478,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
-- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 1 de noviembre llega al 15 de diciembre (se había dicho que vencía el 5: era un error). **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están. Antes hay que leer sus requisitos en Devpost: las notas hablan de AG Studio y su framework de agentes, no solo de cambiar una tabla.
+- **Ver cuánto se pierde en el tipo de cambio** (idea de Víctor, 4 nov): mostrarle al freelancer cuántos pesos pierde al convertir sus dólares. Es un dolor concreto, pero a veces la mejor recomendación sería usar otro servicio y no PayPal. Se puede mencionar en el pitch como idea a futuro.
 - **App en español o inglés (botón ES/EN)** (idea de Víctor, 30 oct): el usuario es un freelancer mexicano, así que tiene sentido. **Cuándo:** después del rediseño de Vanessa, cuando los textos ya no cambien, y solo si sobra tiempo antes del video (~6–9 nov). **Por qué no antes:** son cientos de frases en todas las pantallas (~3–5 h con pruebas), el español es ~20–30% más largo y puede desbordar el diseño en celular, y si se traduce antes del rediseño se hace dos veces. El inglés se queda como idioma principal porque el jurado es internacional. **Mientras:** el copiloto ya entiende y contesta en español, y la página de datos fiscales del cliente ya está en español. Destacarlo en el README y el video (*"The copilot speaks Spanish"*).
 - **Cómo hacer el video** (tarea 7; acordado el 30 oct, falta que lo vean Natalia y Vanessa):
   - **Claude:** el guion escena por escena (qué se ve, qué se dice y cuántos segundos, para no pasar de 3 minutos), **tomas limpias** de la app grabadas con el navegador automático (sin errores ni mouse temblando), subtítulos en inglés (`.srt`) y textos de pantalla. Si hace falta juntar clips por comandos, se usa `ffmpeg` (instalarlo con `sudo apt install ffmpeg`).
@@ -533,6 +537,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #40 | CFDI en dólares para clientes en el extranjero: el usuario elige el IVA y el país, con tipo de cambio automático |
 | #41 | Textos más claros del CFDI en dólares: el freelancer lo emite para reportar el ingreso y se queda con la copia |
 | #42 | Al recibir un pago en USD, la app siempre pregunta por el CFDI, incluso cuando el copiloto solo pone tarjetas |
+| #43 | Bitácora del 4 nov y documentos al día: nuevo enfoque, pendientes y corrección de la fecha de AG Grid |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

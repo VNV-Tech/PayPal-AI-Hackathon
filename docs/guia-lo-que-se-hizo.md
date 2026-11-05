@@ -170,7 +170,7 @@ El SDK oficial de PayPal para servidor (`@paypal/paypal-server-sdk`) **lo genera
 Según las reglas que leímos, **solo se puede ganar un premio de patrocinador** (Render, APIMatic, AG Grid, etc.) además de uno de los premios generales.
 
 - **Premios generales que nos quedan bien:** Best Use of PayPal + AI, Most Impactful y Best Demo Delivery.
-- **Patrocinador con más potencial: AG Grid** (hasta $5,000; 5 ganadores). Uno de sus ejemplos es casi nuestra app: *"un agente que lee las facturas sin pagar y muestra quién debe qué"*. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **Patrocinador con más potencial: AG Grid** (hasta $5,000; 5 ganadores). Uno de sus ejemplos es casi nuestra app: *"un agente que lee las facturas sin pagar y muestra quién debe qué"*. Su prueba gratis dura 45 días, así que cualquier fecha desde el 1 de noviembre llega al 15 de diciembre. **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están.
 - **Ya usamos:** APIMatic (el SDK de PayPal en el Inicio) y pronto Render.
 
 **Fecha límite de entrega:** 12 de noviembre de 2026, 2:00 p. m. hora de CDMX.
@@ -300,25 +300,65 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 ---
 
+### 📅 4 de noviembre de 2026
+
+**🍎 En simple:** nos preguntamos en serio si alguien usaría la app. Decidimos **terminarla y entregarla**, pero enfocada en freelancers mexicanos con **clientes en el extranjero**. Hoy ya se puede cobrar en dólares y **emitir el CFDI en dólares**, y lo probaste con una cuenta de prueba de Estados Unidos. Hay un **README nuevo**.
+
+- **La duda de fondo:** hablaste con tu equipo y con dos freelancers, y ellos prefieren la transferencia porque PayPal cobra comisión. Conclusión: con clientes mexicanos, la idea tiene poco sentido como negocio. Con clientes en el extranjero puede tenerlo, pero **nadie lo ha comprobado todavía**.
+- **México pasa a segundo lugar:** la historia ahora es *"el copiloto da el primer paso cuando te pagan"*. Abre con un cliente de Texas y luego muestra a un cliente de Monterrey. Falta que Natalia la revise.
+- **README nuevo** (PR #39): cuenta esa historia, la regla de aprobación, cómo probar la demo y las limitaciones, sin prometer de más.
+- **CFDI en dólares** (PR #40): decisión tuya, como excepción a "no más funciones". Al cliente no se le pide ni se le manda nada. Tú eliges el IVA y el país, y la app agrega el tipo de cambio.
+- **Textos más claros** (PR #41): tú emites el CFDI para reportar tu ingreso. Tú sales como emisor, el cliente como receptor, y tú te quedas con la copia.
+- **La pregunta del CFDI ya sale siempre** (PR #42): en tu prueba, el copiloto puso la tarjeta sin preguntar. Ahora esa pregunta la agrega la app.
+- **Prueba de punta a punta en Render ✅:** factura #0028 de $20 USD a "Texas Client", pagada con la cuenta de prueba de Estados Unidos. Se vio en dólares, cambió sola a **Paid**, y el copiloto propuso apartar y preguntó por el CFDI. El CFDI en dólares también se emitió y se descargó en la #0025 y la #0027.
+
+**Decisiones del día:**
+- **Entregar sí o sí.** Si la idea sigue como negocio se decide después del 12 de noviembre.
+- **No tenemos asesoría de finanzas ni un grupo de freelancers.** Por eso no decimos que la app cumpla con el SAT ni que haya usuarios que la pidan.
+- **La app no decide el IVA.** Según blogs de contadores (no es fuente oficial), que el cliente esté fuera no basta para el 0%: depende del servicio. En el video conviene el ejemplo de un **programador**.
+- **Facturar en otros países:** no se hace. Quedó en "Ideas guardadas", y como visión en el README.
+- **AG Grid:** por ahora no. Se reconsidera el 9 de noviembre, solo si el video y Devpost ya están.
+- **Tipo de cambio de los freelancers** (idea tuya): mostrar cuánto se pierde en la conversión. Quedó en "Ideas guardadas".
+
+**Lo aprendido:**
+- **Corrección sobre AG Grid:** se dijo que la prueba vencía el 5 de noviembre, y no es cierto. Dura 45 días, así que activarla después también llega al 15 de diciembre. El límite real es tener tiempo de construirlo.
+- **Con la cuenta mexicana, PayPal muestra el cobro en pesos**, aunque la factura esté en dólares. Con la de Estados Unidos sale en dólares, y además aparecen sus opciones, como Pay in 4. Eso son datos de prueba de PayPal, no de la app. **Para el video hay que usar la cuenta de Estados Unidos.**
+- **Escribir en el chat con una tarjeta pendiente la rechaza.** Por eso la pregunta dice *"After you answer the card above"*.
+- **Con esfuerzo bajo, Claude a veces pone tarjetas sin escribir nada,** aunque se le pida el mensaje primero. Lo que debe salir siempre, lo agrega la app.
+
+**🔧 En técnico:**
+- `server/src/exchangeRate.ts`: Banxico (serie `SF60653`) con `BANXICO_TOKEN`, sin token o si falla usa la referencia del BCE (frankfurter); caché de 1 hora. **El camino de Banxico aún no se prueba.**
+- `prepareCfdi(invoiceId, foreign?)` e `issueCfdi(invoiceId, foreign?)` en `taxInfo.ts`. USD: `CurrencyExchangeRate` (Facturama rechaza `ExchangeRate`), `Exportation: 01`, RFC `XEXX010101000`, régimen `616`, uso `S01`, código postal del emisor, `TaxResidence` y `TaxRegistrationNumber` (sin guiones). Se guarda en `cfdi.foreign`.
+- `issue_cfdi` acepta `vat_rate`, `client_country` y `client_tax_id`. `createSuggestion(title, event, note?)` agrega el texto fijo después de las tarjetas.
+- Ventana de **Tax info** en USD: `CfdiSection` con IVA sin valor por defecto (el botón sigue apagado), país y número fiscal opcional.
+- Probado en Facturama sandbox: 0% y 16%, XML revisado, negativas (sin IVA, país inválido, doble emisión), número con guion, y regresión en MXN.
+- Las pruebas locales dejaron las facturas #0020–#0024 ("QA ...") en el Sandbox; se ven en Render.
+
+---
+
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Esta semana (del 31 de oct al 5 de nov):**
-- [ ] **Decidir si van por el premio de AG Grid.** Si sí, activar su prueba gratis **entre el 1 y el 5 de noviembre** (dura 45 días y debe llegar al 15 de diciembre).
-- [ ] Reunión con Vanessa y Natalia: enseñarles la app en Render (modos, tutorial, ticket de pagos, historial). **Desde ahí el diseño lo decide Vanessa.** Pedirles que `main` solo se actualice desde `dev`.
-- [ ] Contarle a Natalia el plan del video (ella narra y edita; Claude hace guion, tomas y subtítulos). Está en `proyecto.md` → "Ideas guardadas".
-- [ ] Pedirle a Natalia la frase de la historia (por ejemplo *"el copiloto que ayuda a los freelancers mexicanos a cobrar y cumplir con el SAT"*) y que empiece a pensar el video.
-- [ ] Preguntarles si quieren aparecer en el aviso de autoría del código (`LICENSE`).
+**Para seguir mañana (lo que falta decidir):**
+- [ ] **Pasarle a Claude la idea de diseño** con su fecha. Es lo que más puede mover el calendario. Sugerencia: si no está para el 7 de noviembre, se graba con el diseño actual.
+- [ ] **Decirle "sí" a Claude para empezar el guion del video**, con el cliente de Texas y un programador como ejemplo.
+- [ ] **Contarle a Natalia** la nueva historia, lo de los freelancers y que México queda en segundo lugar. La historia es decisión suya.
+- [ ] **Decirle a Claude tu otra duda** (dijiste que tenías dos).
+- [ ] Opcional: sacar el **token gratis de Banxico** y ponerlo como `BANXICO_TOKEN` en tu `.env` y en Render. Sin pegárselo a Claude. Sirve para que el video muestre el tipo de cambio oficial.
+- [ ] Preguntarles a Vanessa y Natalia si quieren aparecer en el aviso de autoría del código (`LICENSE`).
 
-**Con Claude (desde el 31 de oct, sin funciones nuevas):**
-- [ ] **README en inglés** y el texto de **Devpost**.
-- [ ] Guion y grabación del **video** (menos de 3 minutos). Mientras se graba, prender el "despertador" de Render.
+**Con Claude:**
+- [ ] Guion del **video** (menos de 3 minutos) y que Natalia lo revise.
+- [ ] Grabar el video y prender mientras tanto el "despertador" de Render. El pago se graba con la **cuenta de prueba de Estados Unidos**.
+- [ ] Texto de **Devpost**.
+- [ ] Agregar al **README** el link del video y capturas.
 - [ ] Revisar los detalles de **cómo se ve en celular** (tarea 6d).
-- [ ] Cerrar y abrir Claude Code y correr `/paypal:setup`, para ver si el conector de PayPal ya funciona.
-- [x] ~~Prueba de pago completa en Render~~ (30 oct)
-- [x] ~~Que los apartados y los datos fiscales no se borren en Render~~ (30 oct, Neon)
+- [ ] **9 de noviembre:** revisar AG Grid, solo si el video y Devpost ya están.
+- [ ] **11 de noviembre:** pasar todo a `main` y entregar, con un día de margen.
+- [x] ~~README en inglés~~ (4 nov)
+- [x] ~~CFDI en dólares y prueba completa con cuenta de Estados Unidos~~ (4 nov)
 
 **Antes del 1 de diciembre (revisión del jurado):**
-- [ ] Dejar **3 o 4 pagos sin responder** en Render, para que el jurado vea el ticket y el botón "Review all with AI".
+- [ ] Dejar la demo presentable: que las facturas "QA ..." (#0020–#0024) no estorben, **3 o 4 pagos sin responder** y una factura pagada en dólares, para que el jurado pruebe el ticket y el CFDI.
 - [ ] Prender el **"despertador"** (cron-job.org o UptimeRobot) del 1 al 15 de dic, y revisar las horas en Render → **Billing**.
 - [ ] Cambiar Render para que publique desde `main` en vez de `dev`.
 
@@ -327,7 +367,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - [ ] Para prender la app: `npm run dev`. Para que los pagos se actualicen solos también hace falta el túnel; dile a Claude *"prende todo"*.
 - [ ] En tu compu, **no** pongas `DATABASE_URL` en el `.env`: esa variable solo va en Render.
 
-**Para la asesoría de finanzas:** las preguntas están en [`proyecto.md`](proyecto.md), sección 6. Por ejemplo, si el IVA va incluido en el precio y cuándo hay retenciones.
+**Sobre impuestos:** el equipo no tiene asesoría de finanzas por ahora. Las preguntas pendientes están en [`proyecto.md`](proyecto.md), sección 6, por si algún día consiguen un contador.
 
 ---
 
