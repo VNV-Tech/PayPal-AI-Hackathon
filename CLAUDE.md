@@ -149,9 +149,13 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   Test Buyer (mexicana), PayPal muestra el cobro en pesos.
 - Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
   demo antes de entregar y dejar una factura pagada en USD.
-- **Pendiente de Víctor:** la idea de diseño (ya la platicó con el equipo, pero
-  falta pasarla), el OK para el guion del video, que Natalia revise la historia
-  y una segunda duda que no llegó a contar.
+- **Pendiente de Víctor (7 nov):** lo último del diseño de Vanessa (sin fecha
+  aún; sugerencia: si no está el 9 nov, se graba con el actual), que Natalia
+  decida la historia del guion (borrador 1 en `docs/video-script.md`, en
+  pausa), `CHAT_DAILY_LIMIT=50` en Render, el saldo de Anthropic y una segunda
+  duda que no llegó a contar.
+- **Devpost:** proyecto en borrador con todo menos el video (sin él no deja
+  dar Submit). Textos fuera del repo en `~/Documentos/devpost-*.txt`.
 - Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y
   Devpost ya están. La prueba de 45 días no vence el 5 nov: cualquier fecha
   desde el 6 nov llega al 21 dic.

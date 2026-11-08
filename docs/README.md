@@ -8,8 +8,7 @@ Ideas de archivos:
 
 - `research.md`: problema, público objetivo (freelancers en México) y competencia.
 - `pitch.md`: narrativa: problema → solución → por qué importa.
-- `video-script.md`: guion del video de demo (**menos de 3 minutos**, en inglés, sin música con copyright).
-- `devpost-submission.md`: borrador del texto para Devpost (en inglés).
+- `video-script.md`: guion del video de demo (**menos de 3 minutos**, en inglés, sin música con copyright). Borrador 1 del 7 nov.
 
 ## Requisitos clave del hackathon (resumen)
 
