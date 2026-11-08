@@ -118,7 +118,8 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 ## Estado conocido
 
 - **Costos de IA:** la app usa ~$10 de créditos de la API de Anthropic
-  (~1 centavo por mensaje, tope `CHAT_DAILY_LIMIT`). Víctor programa con
+  (~1 centavo por mensaje, tope `CHAT_DAILY_LIMIT`: 50 al día en Render desde
+  el 7 nov, ~$0.50 el peor día). Víctor programa con
   Claude Pro: son cuentas separadas.
 - **AWS Bedrock descartado (30 oct):** AWS contestó el caso, pero hubo
   complicaciones y no se usará; la IA sigue con Anthropic directo. Los restos
@@ -152,8 +153,8 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 - **Pendiente de Víctor (7 nov):** lo último del diseño de Vanessa (sin fecha
   aún; sugerencia: si no está el 9 nov, se graba con el actual), que Natalia
   decida la historia del guion (borrador 1 en `docs/video-script.md`, en
-  pausa), `CHAT_DAILY_LIMIT=50` en Render, el saldo de Anthropic y una segunda
-  duda que no llegó a contar.
+  pausa), decir el saldo de Anthropic, que su hermana acepte la invitación de
+  Devpost y una segunda duda que no llegó a contar.
 - **Devpost:** proyecto en borrador con todo menos el video (sin él no deja
   dar Submit). Textos fuera del repo en `~/Documentos/devpost-*.txt`.
 - Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y

@@ -340,7 +340,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 - **El correo de Devpost:** la demo, las cuentas de prueba y los créditos deben seguir activos hasta que anuncien a los ganadores, el **21 de diciembre**. Después de la entrega, Devpost bloquea el proyecto y pide **no editar el repo, el video ni nada enlazado** hasta esa fecha. Es como entregar un examen: ya no se puede corregir.
 - **Qué cambia por eso:** dejar la demo presentable (pagos esperando, una factura pagada en dólares y sin las facturas "QA") pasa del 1 de diciembre al **11 de noviembre**. Tampoco habrá PRs de bitácora después del 12.
-- **¿Alcanzan los servicios gratis hasta el 21?** Sí: Render despierto del 1 al 21 de diciembre gasta 504 de 750 horas, Neon no se despierta con el "despertador" (toca `/api/health`, que no usa la base de datos), y PayPal y Facturama Sandbox son gratis. **El único riesgo son los créditos de la IA:** con el tope de 200 mensajes al día, un mal día costaría ~$2. Recomendación: bajarlo a **50** en Render.
+- **¿Alcanzan los servicios gratis hasta el 21?** Sí: Render despierto del 1 al 21 de diciembre gasta 504 de 750 horas, Neon no se despierta con el "despertador" (toca `/api/health`, que no usa la base de datos), y PayPal y Facturama Sandbox son gratis. **El único riesgo son los créditos de la IA:** con el tope de 200 mensajes al día, un mal día costaría ~$2. **Ya lo bajaste a 50** en Render (7 nov): el peor día cuesta ~$0.50.
 - **Proyecto en Devpost ✅ (borrador):** nombre, frase corta, historia completa, "Built with", links, patrocinadores (APIMatic y Render) e instrucciones para el jurado. Al darle Submit, Devpost no dejó mandarlo **porque falta el video**. Todo se puede editar hasta el 12 a las 14:00, incluso después de mandarlo.
 - **Equipo en Devpost:** invitaste a tu hermana. Tiene que **aceptar** antes de entregar y ser mayor de edad (lo pide la regla).
 - **Guion del video (borrador 1):** en `docs/video-script.md`. Son 8 escenas en 2:48, con el cliente de Texas, la IA hablando primero al pagar y el CFDI en dólares. **En pausa:** antes se espera lo último del diseño de Vanessa y la opinión de Natalia sobre qué historia contar.
@@ -354,7 +354,9 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - Las respuestas de Devpost (pasos 1 a 4) se guardan solas como borrador; no hace falta terminarlas el mismo día.
 
 **🔧 En técnico:**
-- PR #44: fechas del jurado (activo hasta el 21 dic), regla de no editar después de la entrega, limpieza de la demo movida al 11 nov y "despertador" del 1 al 21 dic (504 h).
+- `CHAT_DAILY_LIMIT=50` en Render (antes 200, el valor por defecto del código).
+- PR #44 (fusionado): fechas del jurado (activo hasta el 21 dic), regla de no editar después de la entrega, limpieza de la demo movida al 11 nov y "despertador" del 1 al 21 dic (504 h).
+- PR #45: esta bitácora y el guion. El #44 se fusionó antes de subir esta parte, por eso van separados.
 - `docs/video-script.md`: guion con escenas, tiempos, narración en inglés (~290 palabras) y lista de tomas (Claude: tomas limpias con navegador automático; Víctor: el pago en pantalla con OBS).
 - Los textos de Devpost quedaron en `~/Documentos/devpost-about.txt` y `~/Documentos/devpost-paso4.txt` (fuera del repo).
 
@@ -366,7 +368,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - [ ] **Hablar con Vanessa** sobre lo último del diseño y **ponerle fecha**. Sinceramente: cada día que pasa le quita tiempo al video, y el 12 todo se congela. Sugerencia: si no está integrado para el **9 de noviembre**, se graba con el diseño actual.
 - [ ] **Hablar con Natalia** sobre qué historia contar y pasarle el borrador del guion (`docs/video-script.md`). Decidir quién narra.
 - [ ] Que tu hermana **acepte la invitación** en Devpost antes del 11 de noviembre.
-- [ ] En **Render → Environment**, poner `CHAT_DAILY_LIMIT` = `50`.
+- [x] ~~En **Render → Environment**, poner `CHAT_DAILY_LIMIT` = `50`~~ (7 nov)
 - [ ] Decirle a Claude **cuánto saldo queda** en console.anthropic.com → Billing (solo el número) y, si puedes, poner una alerta de gasto.
 - [ ] Revisar en Render → **Billing** las horas usadas y que no haya otro servicio gratis prendido.
 - [ ] **Decirle a Claude tu otra duda** (dijiste que tenías dos).

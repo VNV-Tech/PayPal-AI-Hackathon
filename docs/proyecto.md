@@ -538,6 +538,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #41 | Textos más claros del CFDI en dólares: el freelancer lo emite para reportar el ingreso y se queda con la copia |
 | #42 | Al recibir un pago en USD, la app siempre pregunta por el CFDI, incluso cuando el copiloto solo pone tarjetas |
 | #43 | Bitácora del 4 nov y documentos al día: nuevo enfoque, pendientes y corrección de la fecha de AG Grid |
+| #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
+| #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
