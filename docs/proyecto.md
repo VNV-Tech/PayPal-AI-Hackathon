@@ -35,7 +35,7 @@ Con la app puedes:
 
 ### Por qué
 
-Es para el **PayPal AI Hackathon**. Se entrega el **12 de noviembre de 2026** (14:00 hora de CDMX) y el jurado lo revisa del 1 al 15 de diciembre.
+Es para el **PayPal AI Hackathon**. Se entrega el **12 de noviembre de 2026** (14:00 hora de CDMX) y el jurado lo revisa del 1 al 15 de diciembre. La demo, las cuentas de prueba y los créditos deben seguir activos hasta el **21 de diciembre** (anuncio de ganadores), y desde la entrega no se edita el repo ni el video.
 
 El jurado califica 5 cosas, **todas valen lo mismo**:
 
@@ -438,8 +438,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Probado en Render con cuenta de Estados Unidos (#0028). Falta probar el token de Banxico |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
-| 6i | Dejar 3–4 pagos **sin responder** en Render antes del 1 dic, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | Antes del 1 dic | Víctor | ⏳ Pendiente |
-| 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 15 dic (despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1 dic | Víctor | ⏳ Pendiente |
+| 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
+| 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
 | 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | 🟡 README nuevo (4 nov); faltan el link del video y las imágenes. Video y Devpost pendientes |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
@@ -478,7 +478,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
-- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 1 de noviembre llega al 15 de diciembre (se había dicho que vencía el 5: era un error). **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están. Antes hay que leer sus requisitos en Devpost: las notas hablan de AG Studio y su framework de agentes, no solo de cambiar una tabla.
+- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 6 de noviembre llega al 21 de diciembre (se había dicho que vencía el 5: era un error). **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están. Antes hay que leer sus requisitos en Devpost: las notas hablan de AG Studio y su framework de agentes, no solo de cambiar una tabla.
 - **Ver cuánto se pierde en el tipo de cambio** (idea de Víctor, 4 nov): mostrarle al freelancer cuántos pesos pierde al convertir sus dólares. Es un dolor concreto, pero a veces la mejor recomendación sería usar otro servicio y no PayPal. Se puede mencionar en el pitch como idea a futuro.
 - **App en español o inglés (botón ES/EN)** (idea de Víctor, 30 oct): el usuario es un freelancer mexicano, así que tiene sentido. **Cuándo:** después del rediseño de Vanessa, cuando los textos ya no cambien, y solo si sobra tiempo antes del video (~6–9 nov). **Por qué no antes:** son cientos de frases en todas las pantallas (~3–5 h con pruebas), el español es ~20–30% más largo y puede desbordar el diseño en celular, y si se traduce antes del rediseño se hace dos veces. El inglés se queda como idioma principal porque el jurado es internacional. **Mientras:** el copiloto ya entiende y contesta en español, y la página de datos fiscales del cliente ya está en español. Destacarlo en el README y el video (*"The copilot speaks Spanish"*).
 - **Cómo hacer el video** (tarea 7; acordado el 30 oct, falta que lo vean Natalia y Vanessa):
