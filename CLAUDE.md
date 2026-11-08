@@ -118,7 +118,8 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 ## Estado conocido
 
 - **Costos de IA:** la app usa ~$10 de créditos de la API de Anthropic
-  (~1 centavo por mensaje, tope `CHAT_DAILY_LIMIT`). Víctor programa con
+  (~1 centavo por mensaje, tope `CHAT_DAILY_LIMIT`: 50 al día en Render desde
+  el 7 nov, ~$0.50 el peor día). Víctor programa con
   Claude Pro: son cuentas separadas.
 - **AWS Bedrock descartado (30 oct):** AWS contestó el caso, pero hubo
   complicaciones y no se usará; la IA sigue con Anthropic directo. Los restos
@@ -149,9 +150,13 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   Test Buyer (mexicana), PayPal muestra el cobro en pesos.
 - Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
   demo antes de entregar y dejar una factura pagada en USD.
-- **Pendiente de Víctor:** la idea de diseño (ya la platicó con el equipo, pero
-  falta pasarla), el OK para el guion del video, que Natalia revise la historia
-  y una segunda duda que no llegó a contar.
+- **Pendiente de Víctor (7 nov):** lo último del diseño de Vanessa (sin fecha
+  aún; sugerencia: si no está el 9 nov, se graba con el actual), que Natalia
+  decida la historia del guion (borrador 1 en `docs/video-script.md`, en
+  pausa), decir el saldo de Anthropic, que su hermana acepte la invitación de
+  Devpost y una segunda duda que no llegó a contar.
+- **Devpost:** proyecto en borrador con todo menos el video (sin él no deja
+  dar Submit). Textos fuera del repo en `~/Documentos/devpost-*.txt`.
 - Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y
   Devpost ya están. La prueba de 45 días no vence el 5 nov: cualquier fecha
   desde el 6 nov llega al 21 dic.

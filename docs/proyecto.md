@@ -440,7 +440,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | 🟡 README nuevo (4 nov); faltan el link del video y las imágenes. Video y Devpost pendientes |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | 🟡 README nuevo (4 nov). Devpost en borrador (7 nov): sin el video no deja mandarlo. Guion: borrador 1 en `docs/video-script.md`, en espera de Natalia y Vanessa. Faltan el video, las capturas y el link en el README |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -538,6 +538,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #41 | Textos más claros del CFDI en dólares: el freelancer lo emite para reportar el ingreso y se queda con la copia |
 | #42 | Al recibir un pago en USD, la app siempre pregunta por el CFDI, incluso cuando el copiloto solo pone tarjetas |
 | #43 | Bitácora del 4 nov y documentos al día: nuevo enfoque, pendientes y corrección de la fecha de AG Grid |
+| #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
+| #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
