@@ -130,14 +130,14 @@ Tú no tienes que memorizar los comandos: cuando avancemos, yo hago esta parte y
 Un servicio para **publicar la app en internet**, para que el jurado la abra con un link desde cualquier lugar.
 
 ### ¿Por qué?
-- Las reglas piden que la demo **siga en línea y gratis hasta el 15 de diciembre**.
+- Las reglas piden que la demo **siga en línea hasta que anuncien a los ganadores, el 21 de diciembre** (según un correo de Devpost). También las cuentas de prueba y los créditos.
 - Render es patrocinador del hackathon y da premios en créditos ($1,000, $750 o $500).
 
 ### Estado: ✅ publicada el 28 de octubre en https://vnv-copilot.onrender.com
 - Cuenta de Render con tu GitHub (que tiene verificación en dos pasos). Servicio **VNV-Copilot**, plan **Free**, región Oregon.
 - **Se actualiza sola:** Render publica lo que haya en `dev` cada vez que fusionas un PR (tarda unos 5 minutos). Antes de entregar se cambia a `main`.
 - **Las claves** viven en Render → tu servicio → **Environment**. Solo tú las ves; Claude no tiene acceso. Si cambias una, Render reinicia la app solo.
-- **Plan gratis:** se duerme si nadie la usa en 15 minutos (la primera visita espera ~1 minuto). Antes, cada reinicio borraba los apartados y los datos fiscales; **desde el 30 de octubre se guardan en Neon** (base de datos gratis, variable `DATABASE_URL` en Environment) y ya no se pierden. Las facturas viven en PayPal. Para que no se duerma mientras se graba el video y del 1 al 15 de diciembre, se usará un "despertador" gratis.
+- **Plan gratis:** se duerme si nadie la usa en 15 minutos (la primera visita espera ~1 minuto). Antes, cada reinicio borraba los apartados y los datos fiscales; **desde el 30 de octubre se guardan en Neon** (base de datos gratis, variable `DATABASE_URL` en Environment) y ya no se pierden. Las facturas viven en PayPal. Para que no se duerma mientras se graba el video y del 1 al 21 de diciembre, se usará un "despertador" gratis.
 - **En la versión pública no se usan correos reales:** cualquiera la puede ver.
 
 ---
@@ -170,7 +170,7 @@ El SDK oficial de PayPal para servidor (`@paypal/paypal-server-sdk`) **lo genera
 Según las reglas que leímos, **solo se puede ganar un premio de patrocinador** (Render, APIMatic, AG Grid, etc.) además de uno de los premios generales.
 
 - **Premios generales que nos quedan bien:** Best Use of PayPal + AI, Most Impactful y Best Demo Delivery.
-- **Patrocinador con más potencial: AG Grid** (hasta $5,000; 5 ganadores). Uno de sus ejemplos es casi nuestra app: *"un agente que lee las facturas sin pagar y muestra quién debe qué"*. Su prueba gratis dura 45 días, así que cualquier fecha desde el 1 de noviembre llega al 15 de diciembre. **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están.
+- **Patrocinador con más potencial: AG Grid** (hasta $5,000; 5 ganadores). Uno de sus ejemplos es casi nuestra app: *"un agente que lee las facturas sin pagar y muestra quién debe qué"*. Su prueba gratis dura 45 días, así que cualquier fecha desde el 6 de noviembre llega al 21 de diciembre. **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están.
 - **Ya usamos:** APIMatic (el SDK de PayPal en el Inicio) y pronto Render.
 
 **Fecha límite de entrega:** 12 de noviembre de 2026, 2:00 p. m. hora de CDMX.
@@ -357,9 +357,9 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - [x] ~~README en inglés~~ (4 nov)
 - [x] ~~CFDI en dólares y prueba completa con cuenta de Estados Unidos~~ (4 nov)
 
-**Antes del 1 de diciembre (revisión del jurado):**
+**Antes de entregar (después ya no se puede tocar nada) y durante la revisión del jurado (1–21 dic):**
 - [ ] Dejar la demo presentable: que las facturas "QA ..." (#0020–#0024) no estorben, **3 o 4 pagos sin responder** y una factura pagada en dólares, para que el jurado pruebe el ticket y el CFDI.
-- [ ] Prender el **"despertador"** (cron-job.org o UptimeRobot) del 1 al 15 de dic, y revisar las horas en Render → **Billing**.
+- [ ] Prender el **"despertador"** (cron-job.org o UptimeRobot) del 1 al 21 de dic, y revisar las horas en Render → **Billing**.
 - [ ] Cambiar Render para que publique desde `main` en vez de `dev`.
 
 **Siempre:**

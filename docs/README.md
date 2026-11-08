@@ -14,7 +14,8 @@ Ideas de archivos:
 ## Requisitos clave del hackathon (resumen)
 
 - Entrega: **12 nov 2026, 12:00 pm PT (14:00 CDMX)**.
-- Evaluación: 1–15 dic 2026. La demo debe seguir en línea hasta el 15 de diciembre.
+- Evaluación: 1–15 dic 2026. Ganadores: 21 dic. La demo, las cuentas de prueba y los créditos deben seguir activos hasta el 21 de diciembre.
+- Después de la entrega no se edita el repo, el video ni nada enlazado hasta el anuncio de ganadores.
 - Criterios con el mismo peso: implementación técnica, diseño, impacto, innovación, presentación.
 - Todo en inglés: video, descripción e instrucciones de prueba.
 - Reglas completas: https://paypalaihackathon.devpost.com/rules

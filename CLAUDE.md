@@ -12,7 +12,9 @@ Hackathon (Devpost). La IA da el primer paso cuando te pagan. Cobra con PayPal
 Invoicing, se actualiza solo con webhooks, aparta impuestos (modo Personal) y
 emite facturas del SAT (CFDI) con Facturama. **Desde el 4 nov**, el caso
 principal son clientes en el extranjero que pagan en USD; México va en segundo lugar. Entrega: **12 nov 2026, 12:00 PT
-(14:00 CDMX)**. El jurado revisa del 1 al 15 dic: la demo debe seguir en línea.
+(14:00 CDMX)**. El jurado revisa del 1 al 15 dic, pero **la demo, las cuentas
+de prueba y los créditos deben seguir activos hasta el 21 dic** (anuncio de
+ganadores; correo de Devpost).
 
 Detalle de pantallas, arquitectura y reglas de diseño: `docs/proyecto.md`.
 
@@ -41,6 +43,9 @@ Detalle de pantallas, arquitectura y reglas de diseño: `docs/proyecto.md`.
 - **Enfoque**: seguir el plan; las ideas nuevas se anotan en `docs/proyecto.md`
   ("Ideas guardadas") en vez de construirlas. **Desde el 31 oct no hay
   funciones nuevas** (salvo que algo esté roto): toca README, video y Devpost.
+- **Después del 12 nov (14:00 CDMX) no se toca el repo ni el video** hasta el
+  21 dic: Devpost bloquea la entrega y pide no editar nada enlazado. Tampoco
+  hay PRs de bitácora; si hace falta, se anota fuera del repo.
 - **Antes de agregar o quitar algo**, decirle a Víctor con sinceridad si
   conviene o no (beneficio contra tiempo, costo y riesgo) y esperar su OK.
 
@@ -79,7 +84,8 @@ solo borra webhooks viejos de `trycloudflare.com`: el de Render no se toca.
   cambia; Claude no tiene acceso. Si el chat dice "unavailable", pedirle la
   línea `[claude] ...` de los Logs (401 = clave, 404 = modelo).
 - Plan gratis: se duerme a los 15 min (750 h gratis al mes; dormida no gasta).
-  Plan: un "despertador" externo solo para el video y del 1 al 15 de dic.
+  Plan: un "despertador" externo solo para el video y del 1 al 21 de dic
+  (504 h; cada mes se cuenta aparte).
 - Apartados y datos fiscales se guardan en **Neon** (Postgres gratis, proyecto
   `vnv-copilot`, Oregon) con `DATABASE_URL` en Render. En local, dejarla
   vacía: así se usan archivos y las pruebas no se mezclan con la demo. Al
@@ -127,9 +133,9 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   depende de él.
 - Pendiente chico: el copiloto contestó una vez en español a una pregunta en
   inglés.
-- **Antes del 1 dic:** dejar 3–4 pagos sin responder en Render (el jurado no
-  puede pagar facturas, así que lo que prueba es el ticket) y prender el
-  "despertador" del 1 al 15 dic.
+- **Antes de entregar (11 nov):** dejar 3–4 pagos sin responder en Render (el
+  jurado no puede pagar facturas, así que lo que prueba es el ticket). Del 1 al
+  21 dic, prender el "despertador".
 - `main` recibió una copia de `dev` el 29 oct (#29, desde la rama de Vanessa).
   `main` solo debe actualizarse desde `dev`.
 - **Validación (4 nov):** no hay asesoría de finanzas ni grupo de freelancers.
@@ -142,10 +148,10 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 - **Para el video:** pagar con la cuenta de prueba de **Estados Unidos**; con
   Test Buyer (mexicana), PayPal muestra el cobro en pesos.
 - Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
-  demo antes del 1 dic y dejar una factura pagada en USD.
+  demo antes de entregar y dejar una factura pagada en USD.
 - **Pendiente de Víctor:** la idea de diseño (ya la platicó con el equipo, pero
   falta pasarla), el OK para el guion del video, que Natalia revise la historia
   y una segunda duda que no llegó a contar.
 - Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y
   Devpost ya están. La prueba de 45 días no vence el 5 nov: cualquier fecha
-  desde el 1 nov llega al 15 dic.
+  desde el 6 nov llega al 21 dic.
