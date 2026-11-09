@@ -39,7 +39,7 @@ export function TaxForm() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-navy-900 text-white">
+      <header className="on-brand-scope bg-brand-solid text-white">
         <div className="mx-auto flex h-16 max-w-xl items-center gap-2 px-4 text-lg font-bold tracking-tight">
           <img src="/favicon.svg" alt="" className="size-8 rounded-lg ring-1 ring-white/20" />
           {APP_NAME}

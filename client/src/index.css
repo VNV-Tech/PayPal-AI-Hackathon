@@ -55,6 +55,14 @@
     --color-on-brand: #001435;
   }
 
+  /* Superficies del color del modo (barra de arriba, tarjeta grande de Home,
+     aviso del copiloto): lo "blanco" de adentro (text-white, bg-white/10...)
+     toma la letra que se lee sobre ese color: blanco sobre vino, azul marino
+     sobre amarillo. Para un blanco de verdad ahí dentro, usar bg-surface. */
+  .on-brand-scope {
+    --color-white: var(--color-on-brand);
+  }
+
   html {
     @apply bg-canvas text-ink antialiased;
   }

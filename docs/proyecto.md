@@ -358,8 +358,8 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 
 | Nombre | Business | Personal | Dónde se usa |
 |---|---|---|---|
-| `navy-900` | `#001c64` | (igual) | Barra de arriba y tarjeta grande de Home |
-| `brand-solid` | `#882336` | `#fcee52` | Relleno de botones principales, modo activo, globo del chat |
+| `navy-900` | `#001c64` | (igual) | Ya casi no se usa (antes: barra de arriba y tarjeta grande) |
+| `brand-solid` | `#882336` | `#fcee52` | Barra de arriba, tarjeta grande de Home, aviso del copiloto, botones principales y globo del chat |
 | `on-brand` | `#ffffff` | `#001435` | Letra encima de `brand-solid` |
 | `brand-900` | `#4a0f1c` | `#4a4000` | Textos sobre fondos de acento suave |
 | `brand-800` | `#6b1a2a` | `#5c5000` | Letras dentro de los círculos de inicial |
@@ -376,6 +376,8 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 | `warning` / `warning-bg` | `#a35d00` / `#fff4e0` | (igual) | Pendiente |
 | `danger` / `danger-bg` | `#c4002b` / `#fde8ec` | (igual) | Vencido, errores |
 
+> Dentro de la barra, la tarjeta grande y el aviso del copiloto (clase `on-brand-scope` en `index.css`), lo "blanco" se vuelve solo la letra correcta del modo: blanco sobre vino y azul marino sobre amarillo. Para un blanco de verdad ahí dentro se usa `bg-surface`.
+>
 > Colores elegidos el 8 nov (vino para Business, amarillo para Personal). El amarillo `#FCEE52` es muy claro: con letra blanca encima no se lee (contraste 1.2; lo mínimo recomendado es 4.5). Por eso los botones amarillos llevan letra azul marino (`on-brand`, contraste 15) y los textos y links del modo Personal usan un mostaza oscuro de la misma familia (`#736400`, contraste 5.9). El vino con letra blanca da 9.
 
 **De Figma al código:** si en Figma los colores, tamaños de letra y espaciados tienen **nombre** (por ejemplo "Primary / 600" o "Spacing / 24"), pasarlos al código es casi directo. Mientras más consistente sea Figma, más rápido se programa.
@@ -388,7 +390,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 **Generales**
 - ~~Menú que no sirve en celular, letra que no se cargaba, sin íconos, Home con 3 números sueltos, ejemplos que no se podían presionar~~ → **arreglado en el PR #16**.
-- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores de acento son vino y amarillo (8 nov) sobre la base azul marino.
+- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y desde el 8 nov toda la app toma el color del modo (vino o amarillo) en vez del azul marino estilo PayPal. El logo "V" sigue en azul.
 - **Sin modo oscuro.**
 - El modo **Personal** tiene poco todavía (solo Savings). Lo que le falta lo decidirá la asesoría de finanzas.
 
@@ -547,7 +549,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
 | #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
 | #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
-| #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en los botones amarillos |
+| #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en lo amarillo. La barra de arriba y la tarjeta grande también toman el color del modo (adiós al azul marino estilo PayPal) |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

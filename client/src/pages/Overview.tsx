@@ -304,10 +304,10 @@ function Hero({ label, value, hint, actions }: { label: string; value: string | 
   return (
     <section
       data-tour="home-hero"
-      className="relative overflow-hidden rounded-3xl bg-navy-900 p-6 text-white shadow-lg sm:p-8"
+      className="on-brand-scope relative overflow-hidden rounded-3xl bg-brand-solid p-6 text-white shadow-lg sm:p-8"
     >
-      {/* Brillo del color del modo en la esquina. */}
-      <div aria-hidden className="absolute -top-24 -right-24 size-72 rounded-full bg-brand-500/40 blur-3xl" />
+      {/* Brillo suave en la esquina. */}
+      <div aria-hidden className="absolute -top-24 -right-24 size-72 rounded-full bg-surface/20 blur-3xl" />
       <div className="relative flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="text-sm font-medium text-white/70">{label}</p>
@@ -333,7 +333,7 @@ function HeroLink({ to, icon: Icon, primary, children }: { to: string; icon: Luc
     <Link
       to={to}
       className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-        primary ? 'bg-white text-navy-900 hover:bg-brand-50' : 'bg-white/10 text-white hover:bg-white/20'
+        primary ? 'bg-surface text-ink hover:bg-brand-50' : 'bg-white/10 text-white hover:bg-white/20'
       }`}
     >
       <Icon aria-hidden className="size-4" />
