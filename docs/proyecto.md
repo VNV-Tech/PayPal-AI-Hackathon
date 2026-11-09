@@ -390,7 +390,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 **Generales**
 - ~~Menú que no sirve en celular, letra que no se cargaba, sin íconos, Home con 3 números sueltos, ejemplos que no se podían presionar~~ → **arreglado en el PR #16**.
-- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y desde el 8 nov toda la app toma el color del modo (vino o amarillo) en vez del azul marino estilo PayPal. El logo "V" sigue en azul.
+- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y desde el 8 nov toda la app toma el color del modo (vino o amarillo) en vez del azul marino estilo PayPal. El logo "V" pasó a azul marino muy oscuro (`#001435`) con punto amarillo, para verse bien en las dos barras.
 - **Sin modo oscuro.**
 - El modo **Personal** tiene poco todavía (solo Savings). Lo que le falta lo decidirá la asesoría de finanzas.
 
@@ -549,7 +549,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
 | #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
 | #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
-| #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en lo amarillo. La barra de arriba y la tarjeta grande también toman el color del modo (adiós al azul marino estilo PayPal) |
+| #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en lo amarillo. La barra de arriba y la tarjeta grande también toman el color del modo (adiós al azul marino estilo PayPal). Logo en azul marino muy oscuro con punto amarillo |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
