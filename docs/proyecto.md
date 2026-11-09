@@ -116,7 +116,9 @@ flowchart LR
 Cuando llega un webhook verificado, el servidor avisa a las pantallas abiertas (Server-Sent Events) y estas vuelven a pedir sus datos. En Invoices sale el mensaje: *"Invoice #0005 was just paid 🎉"*.
 
 **4. Apartados de ahorro**
-Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set aside $100 for Taxes and $50 for Emergency fund?"*. Solo cuenta lo que el usuario acepta. **No se mueve dinero en PayPal**: es una cuenta para saber cuánto de lo cobrado no es para gastar.
+Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set aside $100 for Taxes and $50 for Emergency fund?"*. Solo cuenta lo que el usuario acepta. **No se mueve dinero**: es como una libreta para saber cuánto de lo cobrado no es para gastar. Desde el 8 nov, los apartados llevan el nombre que quieras (Ahorro, Luz, Suscripciones...) y cada pago se puede repartir con **montos a la medida** ("$100 a Luz, $50 a Ahorro"), a mano o pidiéndoselo al copiloto (siempre con tarjeta de aprobación). Cada apartado muestra lo **juntado desde el principio**, como en un banco.
+
+> Dato (8 nov): en México, desde el 25 sep 2019, PayPal no deja tener saldo guardado: lo que recibes se pasa solo a tu banco (CLABE). Lo dicen notas de prensa de 2019; la página oficial no se pudo abrir para confirmarlo. Por eso los apartados son virtuales y los textos ya no dicen que el dinero "se queda en PayPal".
 
 ---
 
@@ -256,10 +258,10 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Para qué:** decidir cuánto de lo cobrado guardar.
 - **Qué tiene:**
   - Un aviso arriba: los apartados son **virtuales**, no se mueve dinero.
-  - Tarjetas "**You got paid…** Set aside…?" con **Set aside** / **Not this time**.
+  - Tarjetas "**You got paid…** Set aside…?" con **Set aside** (usa los % del plan), **Choose amounts** (ventana para escribir cuánto va a cada apartado; no deja pasar del pago) y **Not this time**.
   - **Collected** (cobrado del mes) y **Left to spend** (lo que queda para gastar).
-  - Una tarjeta por apartado con lo que llevas guardado.
-  - Botón **Edit plan**, que abre una ventana para cambiar nombres y porcentajes (hasta 6 apartados, máximo 100%).
+  - Una tarjeta por apartado con lo **juntado desde el principio** ("Saved so far") y lo de este mes.
+  - Botón **Edit plan**, que abre una ventana para crear, renombrar o borrar apartados y su % sugerido (hasta 6 apartados, máximo 100%; 0% = "solo montos que elijas").
 
 ---
 
@@ -436,7 +438,9 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
 | 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
 | 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Probado en Render con cuenta de Estados Unidos (#0028). Falta probar el token de Banxico |
-| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
+| 6m | Apartados como en la app del banco: nombres libres, montos a la medida por pago (a mano y con el copiloto) y total acumulado | 8 nov | Víctor | ✅ Hecho (última excepción a "no más funciones"; decisión de Víctor) |
+| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | 🟡 Revisado el 8 nov a 390×844: nada se sale de lo ancho. Arreglado: ceros en dólares (antes "MX$0.00" junto a montos en USD) y Description en su propio renglón en "New invoice". Quedan detalles menores para cuando llegue el diseño de Vanessa: el texto del chat se corta, "Needs your approval" en dos renglones, "Set aside" solo en un renglón en Savings y "Refresh" ocupando un renglón en Home |
+| 6n | Moneda por defecto **USD** (en el formulario y en el copiloto; MXN se sigue pudiendo elegir) y paso 1 del tutorial con el nuevo enfoque (clientes en el extranjero en dólares o en México en pesos; ya no dice "keep their taxes in order") | 8 nov | Víctor | ✅ Hecho |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
@@ -464,7 +468,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ¿Las facturas deben llevar IVA incluido en el precio, o sumarse aparte? ¿Cuándo aplican retenciones?
 - ¿Qué clave de producto/servicio del SAT conviene para un freelancer?
 - ¿Qué porcentajes tienen sentido para un freelancer en México? (impuestos, emergencias, otros)
-- ¿Los apartados deben reiniciarse cada mes o acumularse?
+- ~~¿Los apartados deben reiniciarse cada mes o acumularse?~~ Se acumulan (8 nov), y además se ve lo del mes.
 - ¿Qué más le serviría a un freelancer ver en Inicio?
 
 **Diseño** (decide Vanessa)
@@ -475,7 +479,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 ### Ideas guardadas para después (si sobra tiempo)
 
 - **Facturas fiscales en otros países** (platicado el 4 nov): con intermediarios como Avalara, Sovos o Fonoa, no con una API por país. Pero cada país necesita sus reglas de impuestos, sus datos y su validación. Va en "What's next" del README; el cobro por PayPal ya es internacional.
-- **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
+- **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual. **Parte hecha el 8 nov:** montos a la medida por pago (a mano y con el copiloto) y total acumulado; falta la meta con barrita y sacar dinero.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
 - **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 6 de noviembre llega al 21 de diciembre (se había dicho que vencía el 5: era un error). **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están. Antes hay que leer sus requisitos en Devpost: las notas hablan de AG Studio y su framework de agentes, no solo de cambiar una tabla.
@@ -540,6 +544,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #43 | Bitácora del 4 nov y documentos al día: nuevo enfoque, pendientes y corrección de la fecha de AG Grid |
 | #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
 | #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
+| #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, Copy, Download, ExternalLink, FileCheck2, Plus, Receipt, RefreshCw } from 'lucide-react'
 import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader, Skeleton } from '../components/ui'
-import { formatDate, formatMoney } from '../lib/config'
+import { DEFAULT_CURRENCY, formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import {
   CURRENCIES,
@@ -749,7 +749,7 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
   const [email, setEmail] = useState('')
   const [company, setCompany] = useState('')
   const [items, setItems] = useState<ItemRow[]>([newRow()])
-  const [currency, setCurrency] = useState<NewInvoice['currency']>('MXN')
+  const [currency, setCurrency] = useState<NewInvoice['currency']>(DEFAULT_CURRENCY)
   const [terms, setTerms] = useState<NewInvoice['terms']>('NET_15')
   const [note, setNote] = useState('')
   // Factura fiscal (CFDI): solo aplica a clientes de México, o sea, facturas en MXN.
@@ -805,8 +805,12 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
         <legend className="mb-2 text-sm font-semibold">Items</legend>
         <div className="space-y-2">
           {items.map((row, idx) => (
-            <div key={row.key} className="grid grid-cols-[1fr_4.5rem_6.5rem_auto] items-end gap-2">
-              <label className="text-sm">
+            // En celular, Description va en su propio renglón y Qty y Price abajo.
+            <div
+              key={row.key}
+              className={`grid grid-cols-[4.5rem_1fr_auto] items-end gap-2 sm:grid-cols-[1fr_4.5rem_6.5rem_auto] ${idx ? 'border-t border-line pt-2 sm:border-0 sm:pt-0' : ''}`}
+            >
+              <label className="col-span-3 text-sm sm:col-span-1">
                 <span className={idx ? 'sr-only' : 'mb-1 block text-ink-muted'}>Description</span>
                 <input required maxLength={200} value={row.name} onChange={(e) => updateItem(row.key, 'name', e.target.value)} className={inputClass} />
               </label>

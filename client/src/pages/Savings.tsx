@@ -5,6 +5,7 @@ import { useLiveEvents } from '../lib/events'
 import { formatTotals } from '../lib/overview'
 import { formatMoney } from '../lib/config'
 import {
+  type CustomAllocations,
   MAX_BUCKETS,
   type PaymentReview,
   type PlanBucket,
@@ -62,9 +63,9 @@ export function Savings() {
       />
 
       <Notice className="mb-6">
-        These set-asides are <strong>virtual</strong>: no money moves and nothing leaves your PayPal account. Every
-        time you get paid, you decide whether to set part of it aside. The percentages are just a starting point:
-        change them with Edit plan.
+        These set-asides are <strong>virtual</strong>, like a notebook: no money moves. Every time you get paid,
+        you decide how much of it goes to each one, using your plan's percentages or amounts you choose. Create
+        or delete set-asides with Edit plan.
       </Notice>
 
       {loadError ? (
@@ -133,7 +134,7 @@ function SavingsView({
             {data.pending.map((p, i) => (
               // La guía ilumina el primer pago por revisar.
               <div key={p.id} data-tour={i === 0 ? 'savings-review' : undefined}>
-                <ReviewCard payment={p} onDecided={onChange} onEditPlan={onEdit} />
+                <ReviewCard payment={p} plan={data.plan} onDecided={onChange} onEditPlan={onEdit} />
               </div>
             ))}
           </div>
@@ -155,7 +156,7 @@ function SavingsView({
         </Card>
       </div>
 
-      <h2 className="mt-8 mb-3 font-semibold text-ink">Set aside in {month}</h2>
+      <h2 className="mt-8 mb-3 font-semibold text-ink">Your set-asides</h2>
       {data.buckets.length === 0 ? (
         <EmptyState
           title="No set-asides yet"
@@ -165,7 +166,7 @@ function SavingsView({
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
           {data.buckets.map((b) => (
-            <BucketCard key={b.id} bucket={b} />
+            <BucketCard key={b.id} bucket={b} month={month} />
           ))}
         </div>
       )}
@@ -175,23 +176,26 @@ function SavingsView({
 
 function ReviewCard({
   payment,
+  plan,
   onDecided,
   onEditPlan,
 }: {
   payment: PaymentReview
+  plan: PlanBucket[]
   onDecided: (data: SavingsData) => void
   onEditPlan: () => void
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [choosing, setChoosing] = useState(false)
   const amount = formatMoney(Number(payment.amount.value), payment.amount.currency_code)
   const proposal = payment.proposal.filter((a) => Number(a.amount.value) > 0)
 
-  async function decide(decision: 'set_aside' | 'skip') {
+  async function decide(decision: 'set_aside' | 'skip', allocations?: CustomAllocations) {
     setBusy(true)
     setError(null)
     try {
-      onDecided(await savingsApi.decide(payment.id, decision))
+      onDecided(await savingsApi.decide(payment.id, decision, allocations))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your answer')
       setBusy(false)
@@ -218,6 +222,8 @@ function ReviewCard({
               ))}
               ?
             </p>
+          ) : plan.length > 0 ? (
+            <p className="mt-1 text-sm text-ink-muted">Choose how much goes to each set-aside.</p>
           ) : (
             <p className="mt-1 text-sm text-ink-muted">
               Your plan has no set-asides yet.{' '}
@@ -227,13 +233,18 @@ function ReviewCard({
             </p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="ghost" disabled={busy} onClick={() => decide('skip')}>
             Not this time
           </Button>
-          <Button disabled={busy || proposal.length === 0} onClick={() => decide('set_aside')}>
-            Set aside
+          <Button variant="secondary" disabled={busy || plan.length === 0} onClick={() => setChoosing(true)}>
+            Choose amounts
           </Button>
+          {proposal.length > 0 && (
+            <Button disabled={busy} onClick={() => decide('set_aside')}>
+              Set aside
+            </Button>
+          )}
         </div>
       </div>
       {error && (
@@ -241,20 +252,130 @@ function ReviewCard({
           {error}
         </p>
       )}
+      <Modal open={choosing} onClose={() => setChoosing(false)} title={`Split ${amount}`}>
+        <AmountsForm
+          payment={payment}
+          plan={plan}
+          onCancel={() => setChoosing(false)}
+          onSaved={(saved) => {
+            setChoosing(false)
+            onDecided(saved)
+          }}
+        />
+      </Modal>
     </Card>
   )
 }
 
-function BucketCard({ bucket }: { bucket: SavingsData['buckets'][number] }) {
+// Montos a la medida para un pago ("100 a Luz, 50 a Ahorro"). Empieza con lo
+// que propone el plan.
+function AmountsForm({
+  payment,
+  plan,
+  onCancel,
+  onSaved,
+}: {
+  payment: PaymentReview
+  plan: PlanBucket[]
+  onCancel: () => void
+  onSaved: (saved: SavingsData) => void
+}) {
+  const currency = payment.amount.currency_code
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      plan.map((b) => {
+        const proposed = payment.proposal.find((a) => a.bucketId === b.id)
+        return [b.id, proposed && Number(proposed.amount.value) > 0 ? proposed.amount.value : '']
+      }),
+    ),
+  )
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // En centavos para que la suma no tenga errores de redondeo.
+  const cents = (v: string) => Math.round((Number(v) || 0) * 100)
+  const total = Object.values(values).reduce((sum, v) => sum + cents(v), 0)
+  const paymentCents = cents(payment.amount.value)
+  const overLimit = total > paymentCents
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    const allocations: CustomAllocations = plan
+      .map((b) => ({ bucketId: b.id, amount: cents(values[b.id] ?? '') / 100 }))
+      .filter((a) => a.amount > 0)
+    try {
+      onSaved(await savingsApi.decide(payment.id, 'set_aside', allocations))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the amounts')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <p className="text-sm text-ink-muted">Write down how much of this payment goes to each set-aside. Leave the rest empty.</p>
+      <div className="space-y-2">
+        {plan.map((b) => (
+          <label key={b.id} className="flex items-center gap-3">
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{b.name}</span>
+            <div className="flex w-40 shrink-0 items-center gap-1">
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                inputMode="decimal"
+                placeholder="0.00"
+                value={values[b.id] ?? ''}
+                onChange={(e) => setValues((v) => ({ ...v, [b.id]: e.target.value }))}
+                className={inputClass}
+              />
+              <span className="text-sm text-ink-muted">{currency}</span>
+            </div>
+          </label>
+        ))}
+      </div>
+      <p className={`text-sm font-medium ${overLimit ? 'text-danger' : 'text-ink-muted'}`}>
+        Set aside: {formatMoney(total / 100, currency)} · Left to spend:{' '}
+        {formatMoney(Math.max(0, paymentCents - total) / 100, currency)}
+        {overLimit && ' — more than the payment'}
+      </p>
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={saving || overLimit || total === 0}>
+          {saving ? 'Saving…' : 'Set aside'}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function BucketCard({ bucket, month }: { bucket: SavingsData['buckets'][number]; month: string }) {
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
         <p className="font-semibold text-ink">{bucket.name}</p>
-        {bucket.percent !== null && <Badge tone="info">{bucket.percent}%</Badge>}
+        {bucket.percent ? <Badge tone="info">{bucket.percent}%</Badge> : null}
       </div>
-      <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{formatTotals(bucket.amounts)}</p>
+      {/* Como el saldo de un apartado en el banco: lo juntado desde el principio. */}
+      <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{formatTotals(bucket.total)}</p>
       <p className="mt-1 text-xs text-ink-muted">
-        {bucket.percent !== null ? `${bucket.percent}% of payments you accept` : 'No longer in your plan'}
+        Saved so far · {bucket.amounts.length ? formatTotals(bucket.amounts) : 'nothing'} in {month}
+      </p>
+      <p className="mt-1 text-xs text-ink-muted">
+        {bucket.percent === null
+          ? 'No longer in your plan'
+          : bucket.percent > 0
+            ? `${bucket.percent}% of payments you accept`
+            : 'Only amounts you choose'}
       </p>
     </Card>
   )
@@ -307,7 +428,10 @@ function PlanForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <p className="text-sm text-ink-muted">Choose what percent of every payment goes to each set-aside.</p>
+      <p className="text-sm text-ink-muted">
+        Name your set-asides (e.g. Savings, Subscriptions, Electricity) and the percent of every payment each one
+        suggests. Use 0% if you'd rather choose the amounts each time.
+      </p>
 
       <div className="space-y-2">
         {rows.map((r) => (

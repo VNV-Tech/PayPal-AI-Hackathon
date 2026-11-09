@@ -155,7 +155,7 @@ function PersonalHome() {
       <Guide title="Keep part of every payment" />
 
       <Notice className="mb-4">
-        Set-asides are <strong>virtual</strong>: your money stays in your PayPal account. They're a plan to help you budget.
+        Set-asides are <strong>virtual</strong>, like a notebook: no money moves. They're a plan to help you budget.
       </Notice>
 
       <Hero
