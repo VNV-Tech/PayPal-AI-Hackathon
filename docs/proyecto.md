@@ -115,6 +115,9 @@ flowchart LR
 **3. Todo se actualiza solo**
 Cuando llega un webhook verificado, el servidor avisa a las pantallas abiertas (Server-Sent Events) y estas vuelven a pedir sus datos. En Invoices sale el mensaje: *"Invoice #0005 was just paid 🎉"*.
 
+**Zaytun, la mascota (8 nov)**
+El copiloto tiene cara: **Zaytun**, un Cinnyris (pájaro sol) dibujado por Vanessa. Es el mismo copiloto de dos formas: **flotando** en la esquina de todas las pantallas (menos en el chat) y en la **pestaña Copilot** para platicar. Cuando la IA prepara algo sola (por ejemplo, al llegar un pago), a Zaytun le sale un **globito** con "Zaytun has a suggestion" y un puntito rojo: al tocarlo se abre la sugerencia. Mientras lo piensa dice "Zaytun is on it". Reemplaza al aviso rectangular de antes. Su cara sale también en sus mensajes del chat y en la pestaña Copilot. **El tutorial y la guía los da Zaytun:** cada paso lleva su cara y su nombre arriba ("Zaytun · Step 1 of 14"), y se presenta en el paso 1 ("I'm a sunbird and your AI copilot"). Imagen: `client/public/zaytun.webp` (recorte de 256 px de la cabeza; el original se queda fuera del repo). Código: `client/src/components/Zaytun.tsx`.
+
 **4. Apartados de ahorro**
 Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set aside $100 for Taxes and $50 for Emergency fund?"*. Solo cuenta lo que el usuario acepta. **No se mueve dinero**: es como una libreta para saber cuánto de lo cobrado no es para gastar. Desde el 8 nov, los apartados llevan el nombre que quieras (Ahorro, Luz, Suscripciones...) y cada pago se puede repartir con **montos a la medida** ("$100 a Luz, $50 a Ahorro"), a mano o pidiéndoselo al copiloto (siempre con tarjeta de aprobación). Cada apartado muestra lo **juntado desde el principio**, como en un banco.
 
@@ -483,6 +486,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 ### Ideas guardadas para después (si sobra tiempo)
 
 - **Facturas fiscales en otros países** (platicado el 4 nov): con intermediarios como Avalara, Sovos o Fonoa, no con una API por país. Pero cada país necesita sus reglas de impuestos, sus datos y su validación. Va en "What's next" del README; el cobro por PayPal ya es internacional.
+- **Zaytun con el chat encima de cualquier pantalla** (idea de Víctor, 8 nov): que al tocar a Zaytun se abra el chat como panel flotante, sin cambiar de pantalla, y quitar la pestaña Copilot. Se hizo la versión intermedia (Zaytun flota y abre la pestaña) porque la completa era rehacer el chat a 4 días de entregar (~5–6 h).
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual. **Parte hecha el 8 nov:** montos a la medida por pago (a mano y con el copiloto) y total acumulado; falta la meta con barrita y sacar dinero.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
@@ -550,6 +554,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
 | #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
 | #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en lo amarillo. La barra de arriba y la tarjeta grande también toman el color del modo (adiós al azul marino estilo PayPal). Logo en azul marino muy oscuro con punto amarillo |
+| #48 | Zaytun, la mascota: flota en todas las pantallas, avisa con un globito y es la cara del copiloto en el chat y el tutorial |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

@@ -113,7 +113,10 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 - `client/src/lib/tour.ts`: tutorial de bienvenida (14 pasos, sale la primera
   vez; es la forma principal de enseñar la app). `lib/journey.ts`: la guía
   (reglas, sin IA; **apagada por defecto**, se prende en Home). `lib/mode.ts`:
-  modos Business/Personal. `index.css`: colores y letra.
+  modos Business (vino) / Personal (amarillo). `index.css`: colores y letra.
+- `client/src/components/Zaytun.tsx`: **Zaytun**, la mascota (un Cinnyris de
+  Vanessa). Es el copiloto: flota en todas las pantallas, avisa con un globito
+  y es su cara en el chat. La IA también se presenta como Zaytun.
 
 ## Estado conocido
 

@@ -41,8 +41,8 @@ export function markTourDone() {
 export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: "Hi! I'm your copilot 👋",
-    body: "I help Mexican freelancers get paid by clients abroad (in dollars) or at home (in pesos), and plan what to set aside for taxes, bills and savings. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
+    title: "Hi! I'm Zaytun, your copilot 👋",
+    body: "I'm a sunbird and your AI copilot. I help Mexican freelancers get paid by clients abroad (in dollars) or at home (in pesos), and plan what to set aside for taxes, bills and savings. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
   },
   {
     id: 'modes',
@@ -50,7 +50,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/',
     target: 'mode-switch',
     title: 'Two modes, two colors',
-    body: 'Purple is Business: billing your clients and getting paid. Orange is Personal: deciding what to do with the money you receive. Switch anytime up here.',
+    body: 'Burgundy is Business: billing your clients and getting paid. Yellow is Personal: deciding what to do with the money you receive. Switch anytime up here, and I come along in both.',
   },
   // Business: cobrar.
   {
@@ -135,13 +135,15 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 'proactive',
-    title: 'I make the first move',
-    body: "When a client pays, I'll notice and prepare what comes next: issue their CFDI and set aside your taxes. You'll see \"Your copilot has a suggestion\" at the bottom of the screen and a card on Home. Just review and approve.",
+    route: '/',
+    target: 'zaytun',
+    title: "I'm always with you",
+    body: "Here I am! I fly with you on every screen. When a client pays, I'll notice and prepare what comes next: issue their CFDI and set money aside. A bubble pops up next to me: tap me to review and approve. The Copilot tab is me too, for when you want to chat.",
   },
   {
     id: 'done',
     target: 'tour-button',
     title: "You're all set",
-    body: 'Open this tour again anytime with this button. Prefer step-by-step hints while you learn? Turn on the guide from Home.',
+    body: "Open this tour again anytime with this button. Prefer step-by-step hints while you learn? Turn on the guide from Home and I'll walk with you. See you around!",
   },
 ]

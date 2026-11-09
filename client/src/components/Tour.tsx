@@ -2,6 +2,8 @@ import { type CSSProperties, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { Mode } from '../lib/mode'
 import { TOUR_STEPS, type TourStep } from '../lib/tour'
+import { MASCOT } from '../lib/config'
+import { ZaytunAvatar } from './Zaytun'
 import { Button } from './ui'
 
 // Tutorial de bienvenida: oscurece la pantalla, ilumina una parte y muestra
@@ -113,11 +115,15 @@ export function Tour({
         className="fixed max-h-[calc(100vh-2rem)] w-[min(360px,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-surface p-5 shadow-xl max-sm:right-4 max-sm:bottom-4 max-sm:left-4 max-sm:w-auto"
         style={cardPosition(rect)}
       >
+        {/* Quien habla en el tutorial es Zaytun: su cara y su nombre en cada paso. */}
         <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="" className="size-10 rounded-full" />
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {single ? 'Your next step' : `Step ${index + 1} of ${steps.length}`}
-          </p>
+          <ZaytunAvatar className={`${isFirst && !single ? 'size-14' : 'size-11'} ring-2 ring-brand-solid`} />
+          <div>
+            <p className="font-semibold text-ink">{MASCOT.name}</p>
+            <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+              {single ? 'Your next step' : `Step ${index + 1} of ${steps.length}`}
+            </p>
+          </div>
         </div>
         <h2 id="tour-title" className="mt-3 text-lg font-bold text-ink">
           {step.title}
