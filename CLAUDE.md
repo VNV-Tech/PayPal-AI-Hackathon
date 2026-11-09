@@ -41,8 +41,9 @@ Detalle de pantallas, arquitectura y reglas de diseño: `docs/proyecto.md`.
 - **Datos personales**: la demo es pública. Usar datos de prueba del SAT; nada
   de correos o RFC reales en la versión publicada.
 - **Enfoque**: seguir el plan; las ideas nuevas se anotan en `docs/proyecto.md`
-  ("Ideas guardadas") en vez de construirlas. **Desde el 31 oct no hay
-  funciones nuevas** (salvo que algo esté roto): toca README, video y Devpost.
+  ("Ideas guardadas") en vez de construirlas. **Desde el 8 nov no entra
+  ninguna función nueva** (decisión final de Víctor, tras los PRs #46–#49):
+  solo video, Devpost, README, limpiar la demo y arreglar lo que esté roto.
 - **Después del 12 nov (14:00 CDMX) no se toca el repo ni el video** hasta el
   21 dic: Devpost bloquea la entrega y pide no editar nada enlazado. Tampoco
   hay PRs de bitácora; si hace falta, se anota fuera del repo.
@@ -130,6 +131,11 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   se borraron.
 - Mientras Vanessa y Natalia no estén disponibles, **Víctor decide** (también
   el diseño); en sus reuniones se ajusta lo que ellas pidan.
+- **Diseño de Vanessa (8 nov), ya en la app:** vino `#882336` (Business) y
+  amarillo `#FCEE52` (Personal) en toda la app (barra y tarjeta grande
+  incluidas), logo en azul marino muy oscuro con punto amarillo y **Zaytun**,
+  la mascota (un Cinnyris), que es la cara del copiloto. En lo amarillo la
+  letra va oscura (con blanca no se lee).
 - El conector MCP de PayPal (plugin) falla desde el 27 oct (`Unsupported cache
   mode: default`; el 28 en la noche, `SSE error ... (500)` al abrir). Es del
   lado de PayPal. El token se renueva con `npm run paypal:token` (dura ~8 h y
@@ -154,11 +160,19 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   Test Buyer (mexicana), PayPal muestra el cobro en pesos.
 - Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
   demo antes de entregar y dejar una factura pagada en USD.
-- **Pendiente de Víctor (7 nov):** lo último del diseño de Vanessa (sin fecha
-  aún; sugerencia: si no está el 9 nov, se graba con el actual), que Natalia
-  decida la historia del guion (borrador 1 en `docs/video-script.md`, en
-  pausa), decir el saldo de Anthropic, que su hermana acepte la invitación de
-  Devpost y una segunda duda que no llegó a contar.
+- **Saldo de Anthropic (8 nov): $14.65.** Alcanza hasta el 21 dic aun en el
+  peor caso (~$10.50). Recargar solo si baja de ~$11 antes del 1 dic.
+- **Video (plan del 8 nov):** guion borrador 2 en `docs/video-script.md`, con
+  Zaytun como protagonista y una sola historia. Forma acordada: **Claude graba
+  la app** con el navegador automático (instalar `ffmpeg-static` y
+  `puppeteer-core` en el scratchpad, no en el proyecto; no hay OBS ni ffmpeg en
+  la compu) mientras **Víctor paga** la factura a mano con la cuenta de prueba
+  de EE. UU.; la voz la graba una persona y se edita en CapCut; Claude hace los
+  subtítulos. Primero una grabación de prueba de una escena corta. Por decidir:
+  Render o local (recomendado Render), quién narra y el nombre del cliente
+  (*Lone Star Apps*). Antes de grabar, responder los 3 pagos que esperan en
+  Savings para que no se mezclen en la escena del pago.
+- **Pendiente de Víctor:** que su hermana acepte la invitación de Devpost.
 - **Devpost:** proyecto en borrador con todo menos el video (sin él no deja
   dar Submit). Textos fuera del repo en `~/Documentos/devpost-*.txt`.
 - Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y

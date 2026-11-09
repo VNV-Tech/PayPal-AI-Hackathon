@@ -362,28 +362,73 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 ---
 
+### 📅 8 de noviembre de 2026
+
+**🍎 En simple:** día grande. Llegó el diseño de Vanessa y quedó en la app: **colores nuevos** (vino para Business y amarillo para Personal), **logo nuevo** y **Zaytun**, la mascota, que ahora es la cara del copiloto. Los **apartados** quedaron como en la app del banco, y **Zaytun propone cuánto apartar** cuando te pagan. Pusimos la clave de **Banxico** para el tipo de cambio oficial. Al final hicimos un repaso sincero de la app y decidimos: **no entra ninguna función más**. Mañana empezamos con el **video**.
+
+- **Apartados a la medida (#46):** cada pago se puede repartir con montos que tú eliges ("$100 a Luz, $50 a Ahorro"), a mano con **Choose amounts** o pidiéndoselo a Zaytun, siempre con tarjeta de aprobación. Cada apartado muestra lo **juntado desde el principio**, como un saldo del banco. Son **virtuales**, como una libreta: no se mueve dinero.
+- **PayPal México y el saldo:** revisamos que, desde el 25 sep 2019, PayPal México no deja tener saldo guardado y lo manda solo al banco (CLABE). Lo dicen notas de prensa de 2019; la página oficial no se pudo abrir. Por eso se corrigieron dos textos que decían que el dinero "se queda en PayPal".
+- **Revisión en celular (#46):** nada se sale de lo ancho. Se arreglaron los ceros que salían en pesos ("MX$0.00") junto a montos en dólares y el campo Description, que era muy angosto. **USD quedó por defecto** (MXN se sigue pudiendo elegir) y el paso 1 del tutorial habla de clientes en el extranjero.
+- **Colores y logo (#47):** toda la app toma el color del modo, ya no el azul marino estilo PayPal (eso también nos aleja de su marca). El amarillo es tan claro que con letra blanca no se lee, así que en lo amarillo la letra va oscura y los links van en mostaza oscuro. El logo pasó a azul marino muy oscuro con un punto amarillo.
+- **Zaytun (#48):** un Cinnyris dibujado por Vanessa. Flota en la esquina de todas las pantallas, avisa con un **globito** y un puntito rojo cuando tiene una sugerencia, y es el mismo de la pestaña Copilot (su cara en el menú, en el chat y en el tutorial). La IA se presenta como Zaytun y el tutorial lo da él.
+- **% opcional (#49):** en Edit plan el porcentaje ya no es obligatorio. Si un apartado no tiene %, Zaytun propone montos redondos al llegar un pago (en total, entre 10% y 20%). Para impuestos **nunca inventa** un monto: usa tu % o te pregunta.
+- **Banxico (#50):** pusiste la clave en el `.env` y en Render, y funciona (18.6297 pesos por dólar). La fecha venía como "10/11/2026" y se corrigió a "2026-11-10" para que el jurado no la lea como 11 de octubre.
+- **Repaso sincero:** como proyecto de hackathon, la app está por encima del promedio (IA que da el primer paso con permiso, uso a fondo de PayPal, el ángulo del CFDI). Como negocio todavía no está validada y depende de PayPal. Lo que más puede afectar ahora es un video confuso, no la app.
+- **Guion del video, borrador 2:** una sola historia (te paga un cliente de Texas → Zaytun aparece → propone cuánto apartar y tu CFDI en dólares → apruebas), con Zaytun de protagonista.
+
+**Decisiones del día:**
+- **Ya no entra ninguna función nueva.** Solo video, Devpost, README, limpiar la demo y arreglar lo que esté roto.
+- **Cómo se graba el video:** Claude graba la app con el navegador automático y tú pagas la factura a mano con la cuenta de prueba de Estados Unidos mientras se graba. La voz la graba una persona con el celular y se arma en CapCut; Claude hace los subtítulos. Primero, una grabación de prueba de una escena corta.
+- **Saldo de Anthropic:** $14.65, alcanza hasta el 21 dic aun en el peor caso. No hace falta recargar por ahora.
+- La versión completa de Zaytun (el chat abriéndose encima de cualquier pantalla) quedó en "Ideas guardadas".
+- La "segunda duda" del 7 nov se quitó de la lista: no la recordabas.
+
+**Lo aprendido:**
+- Un color muy claro (como el amarillo) no aguanta letra blanca: hay que revisar el contraste antes de usarlo en botones.
+- Cuando un comando trae un programa largo pegado adentro, Claude Code avisa de un posible borrado (`rm`) aunque no lo haya: es mejor crear el archivo primero y correrlo aparte.
+
+**🔧 En técnico:**
+- **#46:** `customAllocations` e `InvalidAllocationError` en `server/src/savings.ts`; `allocations` opcional en `POST /api/savings/payments/:id`; `review_payment` con `amounts`; total de siempre (`total`) por apartado. `DEFAULT_CURRENCY = 'USD'` en `client/src/lib/config.ts`.
+- **#47:** tokens `brand-solid`, `brand-solid-hover` y `on-brand` en `client/src/index.css`, y la clase `on-brand-scope`, que convierte el "blanco" de adentro en la letra correcta del modo. `favicon.svg` en `#001435` con punto `#fcee52`.
+- **#48:** `client/src/components/Zaytun.tsx` (`ZaytunAvatar`, `ZaytunBuddy`), imagen `client/public/zaytun.webp` (recorte de 256 px, 11 KB; el dibujo original no está en el repo). La IA se presenta como Zaytun (`server/src/ai/copilot.ts`).
+- **#49:** `review_payments` acepta `amounts` por pago; `splitPayment` en `server/src/ai/tools.ts` valida nombres y totales; reglas para sugerir montos en el prompt; `planFacts` y `proposalFacts` en `server/src/ai/proactive.ts`. Probado con la IA de verdad y con un plan todo en 0%: propuso $1 por apartado en pagos de $20 y $4/$2/$4 en el de $50, y dejó fuera Taxes.
+- **#50:** `server/src/exchangeRate.ts` convierte `DD/MM/AAAA` a `AAAA-MM-DD`.
+- **#51:** esta bitácora, `docs/proyecto.md`, `CLAUDE.md` y `docs/video-script.md` (borrador 2).
+- Las pruebas movieron datos solo en la compu (`server/data/savings.json`), siempre con respaldo, y quedaron como estaban. Render no se tocó.
+
+---
+
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Para seguir (lo que falta decidir):**
-- [ ] **Hablar con Vanessa** sobre lo último del diseño y **ponerle fecha**. Sinceramente: cada día que pasa le quita tiempo al video, y el 12 todo se congela. Sugerencia: si no está integrado para el **9 de noviembre**, se graba con el diseño actual.
-- [ ] **Hablar con Natalia** sobre qué historia contar y pasarle el borrador del guion (`docs/video-script.md`). Decidir quién narra.
+**Mañana, 9 nov (para empezar el día):**
+- [ ] Decidir con Claude: grabar en **Render** (recomendado) o en la compu, **quién narra** (tú o Natalia) y si el cliente de Texas se llama **Lone Star Apps**.
+- [ ] Revisar el **guion borrador 2** (`docs/video-script.md`) y, si puedes, pasárselo a Natalia.
+- [ ] Prender el **"despertador"** de Render mientras se graba.
+- [ ] Tener a la mano el usuario y la contraseña de la **cuenta de prueba de Estados Unidos** (no se los pases a Claude: tú pagas a mano).
+- [ ] Antes de grabar: **responder los 3 pagos** que esperan en Savings, para que no se mezclen en la escena del pago.
+
+**Para seguir:**
+- [ ] Enseñarles a **Vanessa** y **Natalia** cómo quedaron los colores, el logo y Zaytun.
 - [ ] Que tu hermana **acepte la invitación** en Devpost antes del 11 de noviembre.
-- [x] ~~En **Render → Environment**, poner `CHAT_DAILY_LIMIT` = `50`~~ (7 nov)
-- [ ] Decirle a Claude **cuánto saldo queda** en console.anthropic.com → Billing (solo el número) y, si puedes, poner una alerta de gasto.
 - [ ] Revisar en Render → **Billing** las horas usadas y que no haya otro servicio gratis prendido.
-- [ ] **Decirle a Claude tu otra duda** (dijiste que tenías dos).
-- [ ] Opcional: sacar el **token gratis de Banxico** y ponerlo como `BANXICO_TOKEN` en tu `.env` y en Render. Sin pegárselo a Claude. Sirve para que el video muestre el tipo de cambio oficial.
+- [ ] Opcional: poner una **alerta de gasto** en console.anthropic.com → Billing.
 - [ ] Preguntarles a Vanessa y Natalia si quieren aparecer en el aviso de autoría del código (`LICENSE`).
+- [x] ~~Lo último del diseño de Vanessa~~ (8 nov: colores, logo y Zaytun)
+- [x] ~~Decirle a Claude el saldo de Anthropic~~ (8 nov: $14.65, alcanza)
+- [x] ~~Token de Banxico en el `.env` y en Render~~ (8 nov)
+- [x] ~~La "segunda duda"~~ (se quitó: no la recordabas)
+- [x] ~~`CHAT_DAILY_LIMIT` = 50 en Render~~ (7 nov)
 
 **Con Claude:**
-- [ ] Guion del **video**: borrador 1 listo (7 nov); falta la opinión de Natalia y Vanessa.
-- [ ] Grabar el video y prender mientras tanto el "despertador" de Render. El pago se graba con la **cuenta de prueba de Estados Unidos**.
+- [ ] **9 nov:** grabación de prueba de una escena corta; si se ve bien, grabar todo (Claude la app, tú el pago).
+- [ ] Grabar la voz y armar el video en CapCut; Claude hace los subtítulos en inglés.
 - [ ] **Devpost:** borrador listo (7 nov); falta el link del video, las capturas y darle **Submit**.
 - [ ] Agregar al **README** el link del video y capturas.
-- [ ] Revisar los detalles de **cómo se ve en celular** (tarea 6d).
-- [ ] **9 de noviembre:** revisar AG Grid, solo si el video y Devpost ya están.
-- [ ] **11 de noviembre:** pasar todo a `main` y entregar, con un día de margen.
-- [x] ~~README en inglés~~ (4 nov)
+- [ ] **11 de noviembre:** limpiar la demo, pasar todo a `main` y entregar, con un día de margen.
+- [ ] AG Grid: solo si el video y Devpost ya están.
+- [x] ~~Guion borrador 2 con Zaytun~~ (8 nov)
+- [x] ~~Revisar cómo se ve en celular (6d)~~ (8 nov; quedan detalles menores)
+- [x] ~~README en inglés~~ (4 nov) y al día con Zaytun (8 nov)
 - [x] ~~CFDI en dólares y prueba completa con cuenta de Estados Unidos~~ (4 nov)
 
 **Antes de entregar (después ya no se puede tocar nada) y durante la revisión del jurado (1–21 dic):**
