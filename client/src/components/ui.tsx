@@ -8,7 +8,7 @@ import { Info } from 'lucide-react'
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
 
 const buttonStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-800',
+  primary: 'bg-brand-solid text-on-brand hover:bg-brand-solid-hover',
   secondary: 'border border-brand-600 text-brand-600 hover:bg-brand-50',
   ghost: 'text-ink-muted hover:bg-canvas hover:text-ink',
 }
