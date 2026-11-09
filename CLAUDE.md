@@ -147,8 +147,9 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   que la app cumple con el SAT ni que hay usuarios que la pidan. Entregar sí o
   sí; si sigue como negocio se decide después del 12 nov.
 - **CFDI en USD:** excepción a "no más funciones", decisión de Víctor. El
-  usuario elige IVA y país; la app nunca decide el IVA. Falta probar
-  `BANXICO_TOKEN` (opcional): sin él usa una referencia del BCE.
+  usuario elige IVA y país; la app nunca decide el IVA. `BANXICO_TOKEN`
+  puesto en el `.env` y en Render (8 nov) y probado: tipo de cambio FIX
+  oficial; si Banxico falla, usa una referencia del BCE.
 - **Para el video:** pagar con la cuenta de prueba de **Estados Unidos**; con
   Test Buyer (mexicana), PayPal muestra el cobro en pesos.
 - Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
