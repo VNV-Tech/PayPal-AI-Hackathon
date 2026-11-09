@@ -34,7 +34,7 @@ If your client is in Monterrey and pays in pesos, the copilot collects their tax
 - **CFDI 4.0 for clients in Mexico (MXN):** your client fills in a Spanish form once through a private link, and the app remembers their details for future invoices. You approve, and it's stamped and emailed to them.
 
 ### Personal mode: keep what you earn
-- **Savings buckets:** create buckets with any name (taxes, savings, electricity...). When you get paid, the app proposes how much to set aside, or you choose the exact amounts, by hand or by asking Zaytun. Each bucket shows its running total. The buckets are virtual; no money moves.
+- **Savings buckets:** create buckets with any name (taxes, savings, electricity...). When you get paid, Zaytun suggests how much to put in each bucket (following your fixed percent if you set one, never inventing a tax amount), or you choose the exact amounts yourself. Each bucket shows its running total. The buckets are virtual; no money moves.
 - **Review all with AI:** several payments waiting? One ticket lists them all with checkboxes and the AI's recommendation, and you approve once.
 - **Payment history:** ask *"When did Test Buyer pay me?"* and get the date, transaction ID and what you set aside.
 

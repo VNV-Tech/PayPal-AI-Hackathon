@@ -375,7 +375,7 @@ function BucketCard({ bucket, month }: { bucket: SavingsData['buckets'][number];
           ? 'No longer in your plan'
           : bucket.percent > 0
             ? `${bucket.percent}% of payments you accept`
-            : 'Only amounts you choose'}
+            : 'Zaytun suggests amounts, or you choose'}
       </p>
     </Card>
   )
@@ -401,7 +401,8 @@ function PlanForm({
   onSaved: (saved: SavingsData) => void
 }) {
   const [rows, setRows] = useState<Row[]>(() =>
-    buckets.map((b) => ({ key: b.id, id: b.id, name: b.name, percent: String(b.percent) })),
+    // 0% se muestra vacío: es un apartado sin % sugerido.
+    buckets.map((b) => ({ key: b.id, id: b.id, name: b.name, percent: b.percent ? String(b.percent) : '' })),
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -429,9 +430,15 @@ function PlanForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <p className="text-sm text-ink-muted">
-        Name your set-asides (e.g. Savings, Subscriptions, Electricity) and the percent of every payment each one
-        suggests. Use 0% if you'd rather choose the amounts each time.
+        Name your set-asides, like Savings, Subscriptions or Electricity. When you get paid, Zaytun suggests how much
+        to put in each one and you approve it. The percent is <strong>optional</strong>: fill it in if you always
+        want the same share of every payment, or leave it empty and decide each time.
       </p>
+      <div className="flex items-center gap-2 text-xs font-semibold text-ink-muted">
+        <span className="flex-1">Name</span>
+        <span className="w-28 shrink-0">Suggested %</span>
+        <span className="w-7 shrink-0" />
+      </div>
 
       <div className="space-y-2">
         {rows.map((r) => (
@@ -447,12 +454,12 @@ function PlanForm({
             />
             <div className="flex w-28 shrink-0 items-center gap-1">
               <input
-                required
                 type="number"
                 min={0}
                 max={100}
                 step={0.5}
-                aria-label={`Percent for ${r.name || 'set-aside'}`}
+                placeholder="—"
+                aria-label={`Suggested percent for ${r.name || 'set-aside'} (optional)`}
                 value={r.percent}
                 onChange={(e) => update(r.key, 'percent', e.target.value)}
                 className={inputClass}
@@ -475,14 +482,14 @@ function PlanForm({
         <Button
           type="button"
           variant="ghost"
-          onClick={() => setRows((list) => [...list, { key: crypto.randomUUID(), name: '', percent: '0' }])}
+          onClick={() => setRows((list) => [...list, { key: crypto.randomUUID(), name: '', percent: '' }])}
         >
           + Add set-aside
         </Button>
       )}
 
       <p className={`text-sm font-medium ${overLimit ? 'text-danger' : 'text-ink-muted'}`}>
-        Set aside: {total}% · Left to spend: {Math.max(0, 100 - total)}%
+        Suggested: {total}% of every payment · Left to spend: {Math.max(0, 100 - total)}%
         {overLimit && ' — the total can’t be more than 100%'}
       </p>
 

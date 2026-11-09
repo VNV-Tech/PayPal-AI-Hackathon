@@ -53,6 +53,8 @@ interface SavingsData {
   decisions: Record<string, Decision>; // por ID de pago
 }
 
+// percent es el % sugerido de cada pago; 0 = sin sugerencia fija: Zaytun
+// propone un monto al llegar el pago, o el usuario elige cuánto.
 // Valores de ejemplo para la demo. Los porcentajes reales dependen del régimen
 // fiscal de cada persona: pendiente de revisar con alguien de finanzas.
 const DEFAULT_PLAN: SavingsBucket[] = [
@@ -256,17 +258,23 @@ export async function decidePayment(
 // Varias respuestas de un jalón (la tarjeta tipo ticket del copiloto): una
 // sola consulta a PayPal y una sola escritura. Los pagos que ya tenían
 // respuesta o que ya no están pendientes se saltan.
-export async function decidePayments(answers: { paymentId: string; accept: boolean }[]): Promise<void> {
+export async function decidePayments(
+  answers: { paymentId: string; accept: boolean; custom?: CustomAllocations }[],
+): Promise<void> {
   const summary = await getSavings();
   const d = await load();
   const decisions = { ...d.decisions };
-  for (const { paymentId, accept } of answers) {
+  for (const { paymentId, accept, custom } of answers) {
     const payment = summary.pending.find((p) => p.id === paymentId);
     if (decisions[paymentId] || !payment) continue;
     decisions[paymentId] = {
       status: accept ? 'accepted' : 'declined',
       decidedAt: new Date().toISOString(),
-      allocations: accept ? proposeAllocations(d.plan, payment.amount) : [],
+      allocations: !accept
+        ? []
+        : custom
+          ? customAllocations(d.plan, payment.amount, custom)
+          : proposeAllocations(d.plan, payment.amount),
     } satisfies Decision;
   }
   const ids = Object.keys(decisions);

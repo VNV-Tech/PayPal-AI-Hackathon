@@ -366,7 +366,8 @@ function PaymentTicket({
                   type="checkbox"
                   className="mt-1 size-4 shrink-0 accent-brand-600"
                   checked={on}
-                  disabled={!editable}
+                  // Un pago sin nada propuesto no se puede palomear: no habría qué apartar.
+                  disabled={!editable || (!on && c.setAside.length === 0)}
                   onChange={() => onToggle(c.id)}
                 />
                 <span className="min-w-0 flex-1">

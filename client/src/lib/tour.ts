@@ -108,7 +108,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/savings',
     target: 'savings-plan',
     title: 'Your savings plan',
-    body: 'Create set-asides with any name, like Taxes, Savings or Electricity, each with a suggested percent. Add or delete them anytime with Edit plan.',
+    body: "Create set-asides with any name, like Taxes, Savings or Electricity. When you get paid, I'll suggest how much goes to each one. A fixed percent is optional. Add or delete them anytime with Edit plan.",
   },
   {
     id: 'savings-review',
