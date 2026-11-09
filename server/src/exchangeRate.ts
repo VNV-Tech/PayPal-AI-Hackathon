@@ -34,7 +34,11 @@ async function fromBanxico(token: string): Promise<ExchangeRate> {
   const rate = Number(dato);
   // Banxico manda "N/E" cuando no hay dato.
   if (!(rate > 0)) throw new Error(`invalid rate "${dato}"`);
-  return { rate, date: fecha, source: 'Banxico' };
+  // Banxico manda la fecha como DD/MM/AAAA; se pasa a AAAA-MM-DD, igual que la
+  // referencia, para que el jurado no lea "10/11" como 11 de octubre.
+  const [day, month, year] = fecha.split('/');
+  const date = day && month && year ? `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}` : fecha;
+  return { rate, date, source: 'Banxico' };
 }
 
 async function fromReference(): Promise<ExchangeRate> {
