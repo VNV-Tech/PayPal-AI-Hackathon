@@ -3,7 +3,7 @@
 > Documento vivo del equipo. Explica **qué estamos haciendo, por qué, cómo funciona y qué falta**, y sobre todo **qué se puede cambiar del diseño**.
 > Cada tema va dos veces: primero simple (🍎) y luego técnico (🔧), para que cualquiera del equipo lo entienda.
 >
-> Última actualización: 27 de octubre de 2026 (tutorial de bienvenida).
+> Última actualización: 8 de noviembre de 2026 (colores nuevos, Zaytun, apartados a la medida y plan del video).
 
 ## Índice
 
@@ -451,7 +451,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | 🟡 README nuevo (4 nov). Devpost en borrador (7 nov): sin el video no deja mandarlo. Guion: borrador 1 en `docs/video-script.md`, en espera de Natalia y Vanessa. Faltan el video, las capturas y el link en el README |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 9–11 nov | Natalia + Víctor | 🟡 README al día (8 nov, con Zaytun). Devpost en borrador (7 nov): sin el video no deja mandarlo. Guion: **borrador 2** en `docs/video-script.md` (8 nov, Zaytun protagonista). Plan: Claude graba la app con el navegador automático y Víctor paga a mano; voz de una persona; edición en CapCut. Faltan el video, las capturas y el link en el README |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -460,12 +460,12 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 |---|---|
 | 29 oct – 1 nov | ✅ Prueba de pago en Render y datos en Neon (30 oct). Diseño de Vanessa. **Desde el 31 oct: no más funciones nuevas** salvo que algo esté roto; las ideas van a "Ideas guardadas" |
 | 4 nov | ✅ README nuevo, CFDI en dólares y prueba completa con cuenta de Estados Unidos |
-| 5 – 7 nov | Idea de diseño de Vanessa y guion del video. **Si el diseño no está el 7, se graba con el actual** |
-| 7 – 10 nov | Grabar y editar el video, Devpost, y link y capturas en el README. **9 nov:** revisar AG Grid, solo si esto ya va listo |
+| 5 – 8 nov | ✅ Diseño de Vanessa en la app (8 nov): colores vino y amarillo, logo y Zaytun. Guion borrador 2. **Desde el 8 nov no entra ninguna función nueva** |
+| 9 – 10 nov | Grabar y editar el video (Claude graba la app, Víctor paga a mano), Devpost, y link y capturas en el README. AG Grid: solo si esto ya va listo |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 
-**Lo que más pesa ahora** no son funciones nuevas: es **diseño** (Vanessa), **historia** (ya hay una propuesta; falta que Natalia la revise) y **presentación** (el video).
+**Lo que más pesa ahora** no son funciones nuevas: es el **video** (una sola historia, Zaytun protagonista) y **Devpost**. El diseño de Vanessa ya está en la app.
 
 ### Preguntas abiertas para la asesoría
 
@@ -556,6 +556,8 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en lo amarillo. La barra de arriba y la tarjeta grande también toman el color del modo (adiós al azul marino estilo PayPal). Logo en azul marino muy oscuro con punto amarillo |
 | #48 | Zaytun, la mascota: flota en todas las pantallas, avisa con un globito y es la cara del copiloto en el chat y el tutorial |
 | #49 | % opcional en el plan: al llegar un pago Zaytun propone montos para cada apartado (también en el ticket "Review all"); nunca inventa el de impuestos |
+| #50 | Arreglo: la fecha del tipo de cambio de Banxico sale como AAAA-MM-DD (antes "10/11/2026", que se leía como 11 de octubre). Token de Banxico puesto y probado |
+| #51 | Bitácora del 8 nov, documentos al día y guion del video borrador 2 (Zaytun protagonista) |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
