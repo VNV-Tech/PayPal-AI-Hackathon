@@ -7,7 +7,7 @@
 // jalón desde Savings (propone un solo ticket).
 import { publish } from '../events.js';
 import { getInvoice } from '../paypal/invoices.js';
-import { type PaymentReview, getSavings } from '../savings.js';
+import { type PaymentReview, type SavingsBucket, getSavings } from '../savings.js';
 import { getOrCreateTaxRequest, taxLinkUrl } from '../taxInfo.js';
 import { ChatLimitError, createSuggestion } from './copilot.js';
 import { allInvoices } from './tools.js';
@@ -52,9 +52,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
           ? `We have the client's tax info (${tax.taxInfo?.name}, RFC ${tax.taxInfo?.rfc}): the CFDI can be issued with issue_cfdi.`
           : `We don't have the client's tax info yet. Their link: ${taxLinkUrl(tax.token)}`,
     payment
-      ? `The payment is waiting for a set-aside decision (payment_id ${payment.id}); the current plan would set aside ${payment.proposal
-          .map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`)
-          .join(' and ')}.`
+      ? `The payment is waiting for a set-aside decision (payment_id ${payment.id}). ${planFacts(savings.plan)} ${proposalFacts(payment)}`
       : 'There is no set-aside decision pending for this payment.',
   ];
   const title = `${client} paid invoice ${label}`;
@@ -62,7 +60,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
     return {
       title,
       note,
-      event: `${facts.join(' ')} Propose only what applies to this invoice: ${cfdiStep}review_payment with set_aside if a decision is pending.${isMxn ? ' If the tax info is missing, share the link instead.' : ''}${noCfdiQuestion}`,
+      event: `${facts.join(' ')} Propose only what applies to this invoice: ${cfdiStep}review_payment with set_aside if a decision is pending (with amounts you choose following the set-aside rules, or empty amounts to use the percentages).${isMxn ? ' If the tax info is missing, share the link instead.' : ''}${noCfdiQuestion}`,
     };
   }
 
@@ -71,7 +69,7 @@ export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: stri
   return {
     title,
     note,
-    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose the cards: ${cfdiStep}for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend.${noCfdiQuestion}`,
+    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose the cards: ${cfdiStep}for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend and giving amounts per payment when the percentages don't cover it.${noCfdiQuestion}`,
   };
 }
 
@@ -103,14 +101,27 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
     );
 }
 
+// El plan como lo ve Claude: nombres y % sugerido (0% = sin sugerencia fija).
+function planFacts(plan: SavingsBucket[]): string {
+  if (!plan.length) return 'The user has no set-asides yet.';
+  return `Their set-asides: ${plan.map((b) => (b.percent > 0 ? `${b.name} (default ${b.percent}%)` : `${b.name} (no default percent)`)).join(', ')}.`;
+}
+
+// Lo que apartarían los % del plan de un pago, o que no alcanza.
+function proposalFacts(p: PaymentReview): string {
+  const parts = p.proposal.filter((a) => Number(a.amount.value) > 0);
+  return parts.length
+    ? `With the percentages it would set aside ${parts.map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`).join(' and ')}.`
+    : 'The percentages set aside nothing: suggest amounts.';
+}
+
 // Todos los pagos que esperan decisión, con el nombre del cliente, para que
 // Claude arme el ticket en una sola vuelta. null si no hay ninguno.
 export async function pendingPaymentsFacts(): Promise<string | null> {
   const savings = await getSavings();
   if (!savings.pending.length) return null;
-  const plan = savings.plan.map((b) => `${b.name} ${b.percent}%`).join(', ') || 'no set-asides';
   const lines = await pendingPaymentLines(savings.pending);
-  return `The user pressed "Review all with AI" on the Savings screen. Their plan: ${plan}. Payments waiting for a set-aside decision:\n${lines.map((l) => `- ${l}`).join('\n')}\nPropose ONE review_payments card with all of them (check the ones you recommend, short reason each). Write one short sentence before it.`;
+  return `The user pressed "Review all with AI" on the Savings screen. ${planFacts(savings.plan)} Payments waiting for a set-aside decision:\n${lines.map((l) => `- ${l}`).join('\n')}\nPropose ONE review_payments card with all of them (check the ones you recommend, short reason each, and amounts per payment following the set-aside rules when the percentages don't cover it). Write one short sentence before it.`;
 }
 
 // Un renglón por pago pendiente, con el nombre del cliente para que Claude no
@@ -126,7 +137,7 @@ async function pendingPaymentLines(pending: PaymentReview[]): Promise<string[]> 
       p.invoiceNumber && clients.get(p.invoiceNumber) ? `client ${clients.get(p.invoiceNumber)}` : null,
       `${p.amount.value} ${p.amount.currency_code}`,
       p.date,
-      `would set aside ${p.proposal.map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`).join(' and ') || 'nothing'}`,
+      proposalFacts(p),
     ]
       .filter(Boolean)
       .join(', '),

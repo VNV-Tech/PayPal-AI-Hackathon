@@ -23,6 +23,8 @@ import {
 import { MAX_HISTORY_DAYS, getPaymentsSince } from '../paypal/overview.js';
 import {
   type CustomAllocations,
+  type PaymentReview,
+  type SavingsBucket,
   customAllocations,
   decidePayment,
   decidePayments,
@@ -52,6 +54,22 @@ const invoiceIdInput = {
   properties: { invoice_id: { type: 'string', description: 'PayPal invoice id, e.g. INV2-ABCD-EFGH-IJKL-MNOP' } },
   required: ['invoice_id'],
   additionalProperties: false,
+} as const;
+
+// Montos a la medida por apartado (review_payment y cada pago de review_payments).
+const AMOUNTS_SCHEMA = {
+  type: 'array',
+  description:
+    'Specific amounts per set-aside, in the payment currency. Empty to use the plan percentages (or when skipping / leaving unchecked).',
+  items: {
+    type: 'object',
+    properties: {
+      set_aside: { type: 'string', description: 'Name of a set-aside in the plan, e.g. Electricity' },
+      amount: { type: 'number', description: 'Amount to set aside, e.g. 100' },
+    },
+    required: ['set_aside', 'amount'],
+    additionalProperties: false,
+  },
 } as const;
 
 export const TOOLS: Anthropic.Beta.BetaTool[] = [
@@ -165,19 +183,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
       properties: {
         payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
         decision: { type: 'string', enum: ['set_aside', 'skip'] },
-        amounts: {
-          type: 'array',
-          description: 'Specific amounts per set-aside, in the payment currency. Empty to use the plan percentages (or when skipping).',
-          items: {
-            type: 'object',
-            properties: {
-              set_aside: { type: 'string', description: 'Name of a set-aside in the plan, e.g. Electricity' },
-              amount: { type: 'number', description: 'Amount to set aside, e.g. 100' },
-            },
-            required: ['set_aside', 'amount'],
-            additionalProperties: false,
-          },
-        },
+        amounts: AMOUNTS_SCHEMA,
       },
       required: ['payment_id', 'decision', 'amounts'],
       additionalProperties: false,
@@ -186,7 +192,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'review_payments',
     description:
-      'Propose answering several pending payments from get_savings in ONE card that looks like a receipt, with a checkbox per payment. Check (set_aside true) the ones you recommend setting aside with the current plan and leave the rest unchecked, each with a short reason (max 8 words). The user can change the checkboxes before approving: checked payments get the plan applied, unchecked ones are skipped this time. Prefer this over several review_payment calls when 2 or more payments are pending. Requires user approval.',
+      'Propose answering several pending payments from get_savings in ONE card that looks like a receipt, with a checkbox per payment. Check (set_aside true) the ones you recommend setting aside and leave the rest unchecked, each with a short reason (max 8 words). For each payment, amounts can list specific amounts per set-aside (same rules as review_payment); empty uses the plan percentages. The user can change the checkboxes before approving: checked payments get their amounts set aside, unchecked ones are skipped this time. Prefer this over several review_payment calls when 2 or more payments are pending. Requires user approval.',
     strict: true,
     input_schema: {
       type: 'object',
@@ -199,8 +205,9 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
               payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
               set_aside: { type: 'boolean', description: 'Whether the checkbox starts checked' },
               reason: { type: 'string', description: 'Short reason shown to the user, e.g. "Big payment, keep taxes safe"' },
+              amounts: AMOUNTS_SCHEMA,
             },
-            required: ['payment_id', 'set_aside', 'reason'],
+            required: ['payment_id', 'set_aside', 'reason', 'amounts'],
             additionalProperties: false,
           },
         },
@@ -436,6 +443,39 @@ function clientLabel(c: { name?: string | null; company?: string | null; email?:
   return [who, c.email].filter(Boolean).join(' · ');
 }
 
+type AmountInput = { set_aside: string; amount: number };
+
+// Reparte un pago: con montos de la IA (buscando los apartados por nombre) o,
+// sin montos, con los % del plan. Lanza Error con un mensaje para Claude si no
+// cuadra o si no queda nada que apartar.
+function splitPayment(plan: SavingsBucket[], payment: PaymentReview, amounts: AmountInput[]) {
+  let custom: CustomAllocations | undefined;
+  let split = payment.proposal;
+  if (amounts.length) {
+    custom = amounts.map((a) => {
+      const bucket = plan.find((b) => b.name.trim().toLowerCase() === a.set_aside.trim().toLowerCase());
+      if (!bucket) {
+        throw new Error(
+          `There is no set-aside called "${a.set_aside}". Existing ones: ${plan.map((b) => b.name).join(', ') || 'none'}. Create it first with update_savings_plan.`,
+        );
+      }
+      return { bucketId: bucket.id, amount: a.amount };
+    });
+    try {
+      split = customAllocations(plan, payment.amount, custom);
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Invalid amounts');
+    }
+  }
+  split = split.filter((a) => Number(a.amount.value) > 0);
+  if (!split.length) {
+    throw new Error(
+      `Nothing to set aside from payment ${payment.id}: the plan has no percentages. Give specific amounts per set-aside.`,
+    );
+  }
+  return { custom, split };
+}
+
 // Valida la propuesta y lee lo necesario para la tarjeta, sin cambiar nada en
 // PayPal. Lanza Error con un mensaje para Claude si la acción no es posible.
 export async function prepareAction(name: string, input: unknown): Promise<PreparedAction> {
@@ -507,32 +547,11 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
     const { payment_id, decision, amounts = [] } = input as {
       payment_id: string;
       decision: 'set_aside' | 'skip';
-      amounts?: { set_aside: string; amount: number }[];
+      amounts?: AmountInput[];
     };
     const [payment, { plan }] = await Promise.all([findPendingPayment(payment_id), getSavings()]);
     const setAside = decision === 'set_aside';
-    // Montos a la medida: se buscan los apartados por nombre y se validan
-    // igual que al guardarlos, para que la tarjeta muestre lo que se hará.
-    let custom: CustomAllocations | undefined;
-    let split = payment.proposal;
-    if (setAside && amounts.length) {
-      custom = amounts.map((a) => {
-        const bucket = plan.find((b) => b.name.trim().toLowerCase() === a.set_aside.trim().toLowerCase());
-        if (!bucket) {
-          throw new Error(
-            `There is no set-aside called "${a.set_aside}". Existing ones: ${plan.map((b) => b.name).join(', ') || 'none'}. Create it first with update_savings_plan.`,
-          );
-        }
-        return { bucketId: bucket.id, amount: a.amount };
-      });
-      try {
-        split = customAllocations(plan, payment.amount, custom);
-      } catch (err) {
-        throw new Error(err instanceof Error ? err.message : 'Invalid amounts');
-      }
-    }
-    split = split.filter((a) => Number(a.amount.value) > 0);
-    if (setAside && !split.length) throw new Error('Nothing to set aside: the plan has no percentages. Give specific amounts.');
+    const { custom, split } = setAside ? splitPayment(plan, payment, amounts) : { custom: undefined, split: [] };
     const amount = money(payment.amount.value, payment.amount.currency_code);
     const allocations = split.map((a) => `${a.name} ${money(a.amount.value, a.amount.currency_code)}`);
     return {
@@ -554,17 +573,27 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
   }
 
   if (name === 'review_payments') {
-    const { payments } = input as { payments: { payment_id: string; set_aside: boolean; reason: string }[] };
+    const { payments } = input as {
+      payments: { payment_id: string; set_aside: boolean; reason: string; amounts?: AmountInput[] }[];
+    };
     if (!payments.length) throw new Error('No payments given. Call get_savings to see the pending ones.');
     // Las facturas solo sirven para mostrar el nombre del cliente; si fallan, se omite.
     const [summary, invoices] = await Promise.all([getSavings(), allInvoices().catch(() => [])]);
     const byNumber = new Map(invoices.map((inv) => [inv.number, inv]));
     const seen = new Set<string>();
+    // Montos a la medida de cada pago (por id), para guardarlos al aprobar.
+    const customs = new Map<string, CustomAllocations | undefined>();
     const choices = payments.map((p): ActionChoice => {
       const payment = summary.pending.find((x) => x.id === p.payment_id);
       if (!payment) throw new Error(`Payment ${p.payment_id} is not waiting for a decision. Call get_savings again.`);
       if (seen.has(payment.id)) throw new Error(`Payment ${payment.id} is listed twice.`);
       seen.add(payment.id);
+      // Sin palomear y sin montos: no hace falta que haya algo que apartar.
+      const { custom, split } =
+        !p.set_aside && !p.amounts?.length
+          ? { custom: undefined, split: payment.proposal.filter((x) => Number(x.amount.value) > 0) }
+          : splitPayment(summary.plan, payment, p.amounts ?? []);
+      customs.set(payment.id, custom);
       const inv = payment.invoiceNumber ? byNumber.get(payment.invoiceNumber) : undefined;
       const client = inv && (inv.customer.company ?? inv.customer.name ?? inv.customer.email);
       return {
@@ -572,7 +601,7 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
         label: [payment.invoiceNumber ? `#${payment.invoiceNumber}` : 'Payment', client].filter(Boolean).join(' · '),
         detail: [payment.date, p.reason.trim().slice(0, 80)].filter(Boolean).join(' · '),
         amount: money(payment.amount.value, payment.amount.currency_code),
-        setAside: payment.proposal.map((a) => ({ name: a.name, value: a.amount.value, currency: a.amount.currency_code })),
+        setAside: split.map((a) => ({ name: a.name, value: a.amount.value, currency: a.amount.currency_code })),
         checked: p.set_aside,
       };
     });
@@ -582,7 +611,10 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
       choices,
       execute: async (selected = choices.filter((c) => c.checked).map((c) => c.id)) => {
         const chosen = new Set(selected);
-        await decidePayments(choices.map((c) => ({ paymentId: c.id, accept: chosen.has(c.id) })));
+        // Palomeado pero sin nada que apartar (plan en 0%): cuenta como saltado.
+        await decidePayments(
+          choices.map((c) => ({ paymentId: c.id, accept: chosen.has(c.id) && c.setAside.length > 0, custom: customs.get(c.id) })),
+        );
         const kept = choices.filter((c) => chosen.has(c.id)).map((c) => c.label);
         const skipped = choices.filter((c) => !chosen.has(c.id)).map((c) => c.label);
         return `Set aside from ${kept.length} payment(s): ${kept.join(', ') || 'none'}. Skipped ${skipped.length}: ${skipped.join(', ') || 'none'}. (The user may have changed your selection.)`;

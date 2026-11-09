@@ -455,7 +455,11 @@ function BucketRow({ bucket }: { bucket: Savings['buckets'][number] }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{bucket.name}</p>
         <p className="text-xs text-ink-muted">
-          {bucket.percent !== null ? `${bucket.percent}% of the payments you accept` : 'No longer in your plan'}
+          {bucket.percent === null
+            ? 'No longer in your plan'
+            : bucket.percent > 0
+              ? `${bucket.percent}% of the payments you accept`
+              : 'Amounts you choose with Zaytun'}
         </p>
       </div>
       <p className="text-sm font-semibold tabular-nums">{formatTotals(bucket.amounts)}</p>
