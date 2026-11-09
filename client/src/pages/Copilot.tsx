@@ -185,7 +185,7 @@ export function Copilot() {
               <p
                 className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === 'user'
-                    ? 'bg-brand-600 text-white'
+                    ? 'bg-brand-solid text-on-brand'
                     : msg.role === 'error'
                       ? 'bg-danger-bg text-danger'
                       : 'border border-line bg-surface'

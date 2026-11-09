@@ -11,13 +11,18 @@
   --color-navy-900: #001c64;
   --color-navy-800: #003087;
 
-  /* Acento del modo Business (morado). El modo Personal lo reemplaza. */
-  --color-brand-900: #2e1065;
-  --color-brand-800: #4c1d95;
-  --color-brand-600: #6d28d9;
-  --color-brand-500: #8b5cf6;
-  --color-brand-100: #ede9fe;
-  --color-brand-50: #f5f3ff;
+  /* Acento del modo Business (vino #882336, elegido el 8 nov). El modo
+     Personal lo reemplaza. brand-600 se usa para textos y bordes; "solid"
+     es el relleno de botones y "on-brand" la letra encima de ese relleno. */
+  --color-brand-900: #4a0f1c;
+  --color-brand-800: #6b1a2a;
+  --color-brand-600: #882336;
+  --color-brand-500: #b03a52;
+  --color-brand-100: #f8dfe5;
+  --color-brand-50: #fcf1f3;
+  --color-brand-solid: #882336;
+  --color-brand-solid-hover: #6b1a2a;
+  --color-on-brand: #ffffff;
 
   --color-surface: #ffffff;
   --color-canvas: #f5f7fa;
@@ -34,15 +39,20 @@
 }
 
 @layer base {
-  /* Acento del modo Personal (naranja). El 600 es oscuro a propósito para
-     que el texto blanco encima se lea bien. */
+  /* Acento del modo Personal (amarillo #FCEE52, elegido el 8 nov). El
+     amarillo es muy claro: con letra blanca no se lee (contraste 1.2), así
+     que los botones amarillos llevan letra oscura y los textos y links usan
+     un mostaza oscuro de la misma familia (brand-600, contraste 5.9). */
   [data-mode='personal'] {
-    --color-brand-900: #7c2d12;
-    --color-brand-800: #9a3412;
-    --color-brand-600: #c2410c;
-    --color-brand-500: #f97316;
-    --color-brand-100: #ffedd5;
-    --color-brand-50: #fff7ed;
+    --color-brand-900: #4a4000;
+    --color-brand-800: #5c5000;
+    --color-brand-600: #736400;
+    --color-brand-500: #fcee52;
+    --color-brand-100: #fbf3a6;
+    --color-brand-50: #fefbe0;
+    --color-brand-solid: #fcee52;
+    --color-brand-solid-hover: #f2df2a;
+    --color-on-brand: #001435;
   }
 
   html {

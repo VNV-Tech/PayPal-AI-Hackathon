@@ -129,8 +129,8 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 ### Dos modos: Business y Personal
 - **Archivos:** `client/src/lib/mode.ts` (qué pantallas tiene cada modo) y `client/src/index.css` (los colores).
 - **Para qué:** no mezclar dos cosas distintas, igual que PayPal separa cuentas personales y de negocio.
-  - 💼 **Business (morado):** cobrarle a tus clientes. Pantallas: Home, Invoices, Copilot.
-  - 🏠 **Personal (naranja):** organizar lo que te pagan. Pantallas: Home, Savings, Copilot.
+  - 💼 **Business (vino, `#882336`):** cobrarle a tus clientes. Pantallas: Home, Invoices, Copilot.
+  - 🏠 **Personal (amarillo, `#FCEE52`):** organizar lo que te pagan. Pantallas: Home, Savings, Copilot.
 - Se cambia con el interruptor de la barra de arriba. La app recuerda el último modo que usaste.
 - La base de la app (azul marino y blanco, estilo PayPal) es igual en los dos modos. Solo cambia el **color de acento**: botones, enlaces y detalles.
 
@@ -286,7 +286,7 @@ Esto es solo visual. Si algo sale mal, se regresa con un clic.
 | Qué | Dónde | Ejemplo |
 |---|---|---|
 | **Colores** de toda la app | `client/src/index.css` (dentro de `@theme`) | Cambiar el azul marino por otro |
-| **Color de cada modo** (morado / naranja) | `client/src/index.css`: `brand-*` en `@theme` es Business y `[data-mode='personal']` es Personal | Invertirlos, o usar otros colores |
+| **Color de cada modo** (vino / amarillo, desde el 8 nov) | `client/src/index.css`: `brand-*` en `@theme` es Business y `[data-mode='personal']` es Personal | Invertirlos, o usar otros colores |
 | **Tipografía** | Se instala con `npm install -w client @fontsource-variable/<letra>`, se carga en `client/src/main.tsx` y se nombra en `--font-sans` de `index.css` | Usar otra letra |
 | **Botones, tarjetas, etiquetas, ventanas** (todos a la vez) | `client/src/components/ui.tsx` | Botones cuadrados en lugar de redondos |
 | **Acomodo de cada pantalla**: orden, tamaños, espacios, columnas | `client/src/pages/*.tsx` | Poner Savings en dos columnas |
@@ -359,12 +359,14 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 | Nombre | Business | Personal | Dónde se usa |
 |---|---|---|---|
 | `navy-900` | `#001c64` | (igual) | Barra de arriba y tarjeta grande de Home |
-| `brand-900` | `#2e1065` | `#7c2d12` | Textos sobre fondos de acento suave |
-| `brand-800` | `#4c1d95` | `#9a3412` | Letras dentro de los círculos de inicial |
-| `brand-600` | `#6d28d9` | `#c2410c` | Botones principales, enlaces, modo activo |
-| `brand-500` | `#8b5cf6` | `#f97316` | Brillo de la tarjeta grande, bordes al pasar el mouse |
-| `brand-100` | `#ede9fe` | `#ffedd5` | Fondos suaves, etiquetas "info" |
-| `brand-50` | `#f5f3ff` | `#fff7ed` | Avisos y recuadros destacados |
+| `brand-solid` | `#882336` | `#fcee52` | Relleno de botones principales, modo activo, globo del chat |
+| `on-brand` | `#ffffff` | `#001435` | Letra encima de `brand-solid` |
+| `brand-900` | `#4a0f1c` | `#4a4000` | Textos sobre fondos de acento suave |
+| `brand-800` | `#6b1a2a` | `#5c5000` | Letras dentro de los círculos de inicial |
+| `brand-600` | `#882336` | `#736400` | Enlaces, bordes de botones secundarios, barras de avance |
+| `brand-500` | `#b03a52` | `#fcee52` | Brillo de la tarjeta grande, bordes al pasar el mouse |
+| `brand-100` | `#f8dfe5` | `#fbf3a6` | Fondos suaves, etiquetas "info" |
+| `brand-50` | `#fcf1f3` | `#fefbe0` | Avisos y recuadros destacados |
 | `canvas` | `#f5f7fa` | (igual) | Fondo general |
 | `surface` | `#ffffff` | (igual) | Tarjetas |
 | `line` | `#e3e7ed` | (igual) | Bordes y bloques de "cargando" |
@@ -374,7 +376,7 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 | `warning` / `warning-bg` | `#a35d00` / `#fff4e0` | (igual) | Pendiente |
 | `danger` / `danger-bg` | `#c4002b` / `#fde8ec` | (igual) | Vencido, errores |
 
-> El naranja de los botones (`#c2410c`) es oscuro a propósito: con un naranja más claro, el texto blanco encima casi no se lee.
+> Colores elegidos el 8 nov (vino para Business, amarillo para Personal). El amarillo `#FCEE52` es muy claro: con letra blanca encima no se lee (contraste 1.2; lo mínimo recomendado es 4.5). Por eso los botones amarillos llevan letra azul marino (`on-brand`, contraste 15) y los textos y links del modo Personal usan un mostaza oscuro de la misma familia (`#736400`, contraste 5.9). El vino con letra blanca da 9.
 
 **De Figma al código:** si en Figma los colores, tamaños de letra y espaciados tienen **nombre** (por ejemplo "Primary / 600" o "Spacing / 24"), pasarlos al código es casi directo. Mientras más consistente sea Figma, más rápido se programa.
 
@@ -386,7 +388,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 **Generales**
 - ~~Menú que no sirve en celular, letra que no se cargaba, sin íconos, Home con 3 números sueltos, ejemplos que no se podían presionar~~ → **arreglado en el PR #16**.
-- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores son de ejemplo (estilo PayPal + morado/naranja).
+- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores de acento son vino y amarillo (8 nov) sobre la base azul marino.
 - **Sin modo oscuro.**
 - El modo **Personal** tiene poco todavía (solo Savings). Lo que le falta lo decidirá la asesoría de finanzas.
 
@@ -545,6 +547,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
 | #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
 | #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
+| #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en los botones amarillos |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

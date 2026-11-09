@@ -87,7 +87,7 @@ export function Layout() {
                   aria-pressed={mode === m}
                   onClick={() => changeMode(m)}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
-                    mode === m ? 'bg-brand-600 text-white shadow-sm' : 'text-white/70 hover:text-white'
+                    mode === m ? 'bg-brand-solid text-on-brand shadow-sm' : 'text-white/70 hover:text-white'
                   }`}
                 >
                   <Icon aria-hidden className="size-4" />
@@ -175,7 +175,7 @@ export function Layout() {
           role="status"
           className="fixed right-4 bottom-24 left-4 z-20 flex items-center gap-3 rounded-2xl bg-navy-900 p-4 text-white shadow-xl sm:bottom-6 sm:left-auto sm:w-96"
         >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-solid text-on-brand">
             <Sparkles aria-hidden className={`size-5 ${thinking ? 'animate-pulse' : ''}`} />
           </span>
           <div className="min-w-0 flex-1">

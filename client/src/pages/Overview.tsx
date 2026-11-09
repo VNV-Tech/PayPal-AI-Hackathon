@@ -283,7 +283,7 @@ function CopilotSuggestion({ suggestions }: { suggestions: Suggestion[] }) {
       to={`/copilot?suggestion=${latest.id}`}
       className="mb-4 flex items-start gap-3 rounded-2xl border border-brand-100 bg-surface px-5 py-4 shadow-sm hover:border-brand-500"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600 text-white">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-solid text-on-brand">
         <Sparkles aria-hidden className="size-5" />
       </span>
       <span className="min-w-0 flex-1">
