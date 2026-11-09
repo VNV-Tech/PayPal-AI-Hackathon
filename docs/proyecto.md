@@ -439,7 +439,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
 | 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Probado en Render con cuenta de Estados Unidos (#0028). Falta probar el token de Banxico |
 | 6m | Apartados como en la app del banco: nombres libres, montos a la medida por pago (a mano y con el copiloto) y total acumulado | 8 nov | Víctor | ✅ Hecho (última excepción a "no más funciones"; decisión de Víctor) |
-| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
+| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | 🟡 Revisado el 8 nov a 390×844: nada se sale de lo ancho. Arreglado: ceros en dólares (antes "MX$0.00" junto a montos en USD) y Description en su propio renglón en "New invoice". Quedan detalles menores para cuando llegue el diseño de Vanessa: el texto del chat se corta, "Needs your approval" en dos renglones, "Set aside" solo en un renglón en Savings y "Refresh" ocupando un renglón en Home |
+| 6n | Moneda por defecto **USD** (en el formulario y en el copiloto; MXN se sigue pudiendo elegir) y paso 1 del tutorial con el nuevo enfoque (clientes en el extranjero en dólares o en México en pesos; ya no dice "keep their taxes in order") | 8 nov | Víctor | ✅ Hecho |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
@@ -543,7 +544,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #43 | Bitácora del 4 nov y documentos al día: nuevo enfoque, pendientes y corrección de la fecha de AG Grid |
 | #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
 | #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
-| #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos |
+| #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

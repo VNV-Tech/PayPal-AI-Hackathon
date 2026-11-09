@@ -42,7 +42,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     title: "Hi! I'm your copilot 👋",
-    body: "I help freelancers in Mexico get paid, keep their taxes in order and know what they can spend. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
+    body: "I help Mexican freelancers get paid by clients abroad (in dollars) or at home (in pesos), and plan what to set aside for taxes, bills and savings. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
   },
   {
     id: 'modes',
