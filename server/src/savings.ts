@@ -1,7 +1,8 @@
-// Modo personal: apartados de ahorro virtuales. Cada vez que llega un pago,
-// la app pregunta si apartar un porcentaje para cada apartado (por ejemplo,
-// impuestos). Solo cuenta lo que el usuario acepta. No se mueve dinero en
-// PayPal: es una cuenta para saber cuánto de lo cobrado no es para gastar.
+// Modo personal: apartados de ahorro virtuales (como una libreta). Cada vez
+// que llega un pago, la app pregunta si apartar una parte para cada apartado
+// (por ejemplo, impuestos o luz): con los porcentajes del plan o con montos
+// que el usuario elige. Solo cuenta lo que el usuario acepta. No se mueve
+// dinero: es una cuenta para saber cuánto de lo cobrado no es para gastar.
 //
 // El plan y las decisiones se guardan en server/data/savings.json. En Render
 // el disco se borra al redesplegar; aceptable para la demo hasta que haya base
@@ -60,6 +61,15 @@ const DEFAULT_PLAN: SavingsBucket[] = [
 ];
 
 export class PaymentNotFoundError extends Error {}
+// Montos a la medida que no cuadran (apartado que no existe, más que el pago...).
+export class InvalidAllocationError extends Error {}
+
+// Montos a la medida para un pago: cuánto va a cada apartado del plan.
+export const customAllocationsSchema = z
+  .array(z.object({ bucketId: z.string().min(1).max(64), amount: z.number().min(0).max(1e9) }))
+  .min(1)
+  .max(6);
+export type CustomAllocations = z.infer<typeof customAllocationsSchema>;
 
 const store = jsonStore<SavingsData>('savings.json', (raw) => {
   // No existe todavía (o está dañado): se empieza con los valores de ejemplo.
@@ -95,6 +105,37 @@ function proposeAllocations(plan: SavingsBucket[], amount: Money): Allocation[] 
   }));
 }
 
+// Reparte un pago con montos elegidos por el usuario. Los montos en cero se
+// omiten; la suma no puede pasar del pago.
+export function customAllocations(plan: SavingsBucket[], amount: Money, custom: CustomAllocations): Allocation[] {
+  const total = toCents(amount);
+  const seen = new Set<string>();
+  const allocations = custom.flatMap(({ bucketId, amount: value }) => {
+    const bucket = plan.find((b) => b.id === bucketId);
+    if (!bucket) throw new InvalidAllocationError('That set-aside is not in your plan anymore.');
+    if (seen.has(bucketId)) throw new InvalidAllocationError(`${bucket.name} appears twice.`);
+    seen.add(bucketId);
+    const cents = Math.round(value * 100);
+    if (cents <= 0) return [];
+    return [
+      {
+        bucketId,
+        name: bucket.name,
+        percent: total > 0 ? Math.round((cents / total) * 1000) / 10 : 0,
+        amount: fromCents(amount.currency_code, cents),
+      },
+    ];
+  });
+  if (!allocations.length) throw new InvalidAllocationError('Choose an amount for at least one set-aside.');
+  const sum = allocations.reduce((acc, a) => acc + toCents(a.amount), 0);
+  if (sum > total) {
+    throw new InvalidAllocationError(
+      `The amounts add up to ${fromCents(amount.currency_code, sum).value}, more than the payment (${amount.value} ${amount.currency_code}).`,
+    );
+  }
+  return allocations;
+}
+
 export interface PaymentReview {
   id: string;
   date: string;
@@ -110,8 +151,9 @@ export interface SavingsSummary {
   paid: Money[] | null;
   // Pagos del mes que todavía no tienen respuesta.
   pending: PaymentReview[];
-  // Lo apartado este mes (solo pagos aceptados), por apartado.
-  buckets: { id: string; name: string; percent: number | null; amounts: Money[] }[];
+  // Lo apartado este mes (solo pagos aceptados), por apartado, y lo que lleva
+  // juntado desde el principio (como el saldo de un apartado en el banco).
+  buckets: { id: string; name: string; percent: number | null; amounts: Money[]; total: Money[] }[];
   available: Money[]; // lo cobrado menos lo apartado
 }
 
@@ -124,13 +166,20 @@ function summarize(month: string, d: SavingsData, payments: ReceivedPayment[] | 
 
   // Primero los apartados del plan actual; luego los que se borraron pero
   // todavía tienen dinero apartado este mes.
-  const buckets = new Map<string, SavingsSummary['buckets'][number]>(
+  type Row = { id: string; name: string; percent: number | null; amounts: Money[] };
+  const buckets = new Map<string, Row>(
     d.plan.map((b) => [b.id, { id: b.id, name: b.name, percent: b.percent, amounts: [] }]),
   );
   for (const a of accepted) {
     const bucket = buckets.get(a.bucketId) ?? { id: a.bucketId, name: a.name, percent: null, amounts: [] };
     bucket.amounts.push(a.amount);
     buckets.set(a.bucketId, bucket);
+  }
+  // Total de siempre: todos los pagos aceptados, de cualquier mes.
+  const allTime = new Map<string, Money[]>();
+  for (const decision of Object.values(d.decisions)) {
+    if (decision.status !== 'accepted') continue;
+    for (const a of decision.allocations) allTime.set(a.bucketId, [...(allTime.get(a.bucketId) ?? []), a.amount]);
   }
 
   const paid = sumByCurrency(list.map((p) => p.amount));
@@ -142,7 +191,11 @@ function summarize(month: string, d: SavingsData, payments: ReceivedPayment[] | 
     pending: list
       .filter((p) => !d.decisions[p.id])
       .map((p) => ({ ...p, proposal: proposeAllocations(d.plan, p.amount) })),
-    buckets: [...buckets.values()].map((b) => ({ ...b, amounts: sumByCurrency(b.amounts) })),
+    buckets: [...buckets.values()].map((b) => ({
+      ...b,
+      amounts: sumByCurrency(b.amounts),
+      total: sumByCurrency(allTime.get(b.id) ?? []),
+    })),
     available: paid.map((m) => {
       const aside = setAside.find((s) => s.currency_code === m.currency_code);
       return fromCents(m.currency_code, toCents(m) - (aside ? toCents(aside) : 0));
@@ -168,18 +221,28 @@ export async function findPendingPayment(paymentId: string): Promise<PaymentRevi
   return payment;
 }
 
-// Acepta (aparta según el plan actual) o rechaza un pago. Si ya tenía
-// respuesta, no hace nada: un doble clic no aparta dos veces.
-export async function decidePayment(paymentId: string, accept: boolean): Promise<SavingsSummary> {
+// Acepta o rechaza un pago. Al aceptar, aparta según el plan actual o, si
+// vienen montos a la medida, según esos. Si ya tenía respuesta, no hace
+// nada: un doble clic no aparta dos veces.
+export async function decidePayment(
+  paymentId: string,
+  accept: boolean,
+  custom?: CustomAllocations,
+): Promise<SavingsSummary> {
   const d = await load();
   if (!d.decisions[paymentId]) {
     const payment = await findPendingPayment(paymentId);
+    const allocations = !accept
+      ? []
+      : custom
+        ? customAllocations(d.plan, payment.amount, custom)
+        : proposeAllocations(d.plan, payment.amount);
     const decisions = {
       ...d.decisions,
       [paymentId]: {
         status: accept ? 'accepted' : 'declined',
         decidedAt: new Date().toISOString(),
-        allocations: accept ? proposeAllocations(d.plan, payment.amount) : [],
+        allocations,
       } satisfies Decision,
     };
     // Tope de decisiones guardadas: se quitan las más viejas.

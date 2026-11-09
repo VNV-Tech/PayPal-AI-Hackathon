@@ -108,7 +108,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/savings',
     target: 'savings-plan',
     title: 'Your savings plan',
-    body: 'Decide what part of every payment you keep for later: for example 30% for taxes and 10% for emergencies. Change it anytime with Edit plan.',
+    body: 'Create set-asides with any name, like Taxes, Savings or Electricity, each with a suggested percent. Add or delete them anytime with Edit plan.',
   },
   {
     id: 'savings-review',
@@ -116,7 +116,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/savings',
     target: 'savings-review',
     title: 'Set aside each payment',
-    body: "Every time you get paid, I'll ask if you want to set aside part of it following your plan. It's a plan to help you budget: no money moves in PayPal.",
+    body: "Every time you get paid, I'll ask how much to set aside: your plan's percentages or amounts you choose. It's like a notebook to help you budget: no money moves.",
   },
   // El copiloto.
   {

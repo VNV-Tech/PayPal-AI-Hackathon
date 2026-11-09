@@ -22,6 +22,8 @@ import {
 } from '../paypal/invoices.js';
 import { MAX_HISTORY_DAYS, getPaymentsSince } from '../paypal/overview.js';
 import {
+  type CustomAllocations,
+  customAllocations,
   decidePayment,
   decidePayments,
   findPendingPayment,
@@ -149,22 +151,35 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'get_savings',
     description:
-      "Get the user's savings for this month: their plan (percent per set-aside, e.g. taxes), what they collected via PayPal, payments still waiting for a set-aside decision, how much they set aside and what is left to spend. Set-asides are virtual: no money moves.",
+      "Get the user's savings: their plan (named set-asides like Taxes, Savings or Electricity, each with a default percent), what they collected via PayPal this month, payments still waiting for a set-aside decision, how much they set aside this month and in total so far per set-aside, and what is left to spend. Set-asides are virtual, like a notebook: no money moves.",
     strict: true,
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
     name: 'review_payment',
     description:
-      'Propose answering a pending payment from get_savings: set_aside applies the current plan to it, skip sets nothing aside this time. Requires user approval.',
+      'Propose answering a pending payment from get_savings: set_aside sets part of it aside, skip sets nothing aside this time. With an empty amounts list, set_aside uses the plan percentages. To split the payment with specific amounts (e.g. "put 100 in Electricity and 50 in Savings"), list them in amounts: each set-aside must already exist in the plan (create it first with update_savings_plan), use the payment currency, and the total cannot exceed the payment. Requires user approval.',
     strict: true,
     input_schema: {
       type: 'object',
       properties: {
         payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
         decision: { type: 'string', enum: ['set_aside', 'skip'] },
+        amounts: {
+          type: 'array',
+          description: 'Specific amounts per set-aside, in the payment currency. Empty to use the plan percentages (or when skipping).',
+          items: {
+            type: 'object',
+            properties: {
+              set_aside: { type: 'string', description: 'Name of a set-aside in the plan, e.g. Electricity' },
+              amount: { type: 'number', description: 'Amount to set aside, e.g. 100' },
+            },
+            required: ['set_aside', 'amount'],
+            additionalProperties: false,
+          },
+        },
       },
-      required: ['payment_id', 'decision'],
+      required: ['payment_id', 'decision', 'amounts'],
       additionalProperties: false,
     },
   },
@@ -197,7 +212,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'update_savings_plan',
     description:
-      'Propose replacing the whole savings plan (max 6 set-asides, percentages add up to 100 or less). Include every set-aside to keep, not only the changed one. It applies to payments answered from now on. Requires user approval.',
+      'Propose replacing the whole savings plan: use it to create, rename or delete set-asides (e.g. Savings, Subscriptions, Electricity) or change their default percent (max 6 set-asides, percentages add up to 100 or less; use 0 for a set-aside the user only fills with specific amounts). Include every set-aside to keep, not only the changed one; leaving one out deletes it (what was already set aside in it is kept in the history). It applies to payments answered from now on. Requires user approval.',
     strict: true,
     input_schema: {
       type: 'object',
@@ -354,7 +369,7 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
     const fmt = (list: { value: string; currency_code: string }[]) => list.map((m) => money(m.value, m.currency_code));
     return JSON.stringify({
       month: s.month,
-      plan: s.plan.map((b) => ({ name: b.name, percent: b.percent })),
+      plan: s.plan.map((b) => ({ name: b.name, default_percent: b.percent })),
       collected: s.paid ? fmt(s.paid) : 'unavailable (PayPal did not return payments)',
       pending_payments: s.pending.map((p) => ({
         payment_id: p.id,
@@ -364,6 +379,7 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
         would_set_aside: p.proposal.map((a) => `${a.name}: ${money(a.amount.value, a.amount.currency_code)}`),
       })),
       set_aside_this_month: s.buckets.map((b) => ({ name: b.name, amount: fmt(b.amounts) })),
+      set_aside_total_so_far: s.buckets.map((b) => ({ name: b.name, amount: fmt(b.total) })),
       left_to_spend: fmt(s.available),
     });
   }
@@ -488,22 +504,48 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
   }
 
   if (name === 'review_payment') {
-    const { payment_id, decision } = input as { payment_id: string; decision: 'set_aside' | 'skip' };
-    const payment = await findPendingPayment(payment_id);
+    const { payment_id, decision, amounts = [] } = input as {
+      payment_id: string;
+      decision: 'set_aside' | 'skip';
+      amounts?: { set_aside: string; amount: number }[];
+    };
+    const [payment, { plan }] = await Promise.all([findPendingPayment(payment_id), getSavings()]);
     const setAside = decision === 'set_aside';
+    // Montos a la medida: se buscan los apartados por nombre y se validan
+    // igual que al guardarlos, para que la tarjeta muestre lo que se hará.
+    let custom: CustomAllocations | undefined;
+    let split = payment.proposal;
+    if (setAside && amounts.length) {
+      custom = amounts.map((a) => {
+        const bucket = plan.find((b) => b.name.trim().toLowerCase() === a.set_aside.trim().toLowerCase());
+        if (!bucket) {
+          throw new Error(
+            `There is no set-aside called "${a.set_aside}". Existing ones: ${plan.map((b) => b.name).join(', ') || 'none'}. Create it first with update_savings_plan.`,
+          );
+        }
+        return { bucketId: bucket.id, amount: a.amount };
+      });
+      try {
+        split = customAllocations(plan, payment.amount, custom);
+      } catch (err) {
+        throw new Error(err instanceof Error ? err.message : 'Invalid amounts');
+      }
+    }
+    split = split.filter((a) => Number(a.amount.value) > 0);
+    if (setAside && !split.length) throw new Error('Nothing to set aside: the plan has no percentages. Give specific amounts.');
     const amount = money(payment.amount.value, payment.amount.currency_code);
-    const allocations = payment.proposal.map((a) => `${a.name} ${money(a.amount.value, a.amount.currency_code)}`);
+    const allocations = split.map((a) => `${a.name} ${money(a.amount.value, a.amount.currency_code)}`);
     return {
       title: setAside ? 'Set aside from this payment' : 'Skip set-asides for this payment',
       details: [
         ['Payment', `${amount} · ${payment.date}`],
         ...(payment.invoiceNumber ? [['Invoice', `#${payment.invoiceNumber}`] as [string, string]] : []),
         ...(setAside
-          ? payment.proposal.map((a): [string, string] => [a.name, money(a.amount.value, a.amount.currency_code)])
+          ? split.map((a): [string, string] => [a.name, money(a.amount.value, a.amount.currency_code)])
           : [['Set aside', 'Nothing this time'] as [string, string]]),
       ],
       execute: async () => {
-        await decidePayment(payment_id, setAside);
+        await decidePayment(payment_id, setAside, custom);
         return setAside
           ? `Set aside from the ${amount} payment: ${allocations.join(', ')}.`
           : `Nothing set aside from the ${amount} payment.`;
