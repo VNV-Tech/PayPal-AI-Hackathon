@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { Mode } from '../lib/mode'
 import { TOUR_STEPS, type TourStep } from '../lib/tour'
+import { ZaytunAvatar } from './Zaytun'
 import { Button } from './ui'
 
 // Tutorial de bienvenida: oscurece la pantalla, ilumina una parte y muestra
@@ -114,7 +115,7 @@ export function Tour({
         style={cardPosition(rect)}
       >
         <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="" className="size-10 rounded-full" />
+          <ZaytunAvatar className="size-10" />
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {single ? 'Your next step' : `Step ${index + 1} of ${steps.length}`}
           </p>

@@ -41,7 +41,7 @@ export function markTourDone() {
 export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: "Hi! I'm your copilot 👋",
+    title: "Hi! I'm Zaytun, your copilot 👋",
     body: "I help Mexican freelancers get paid by clients abroad (in dollars) or at home (in pesos), and plan what to set aside for taxes, bills and savings. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
   },
   {
@@ -135,8 +135,10 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 'proactive',
-    title: 'I make the first move',
-    body: "When a client pays, I'll notice and prepare what comes next: issue their CFDI and set aside your taxes. You'll see \"Your copilot has a suggestion\" at the bottom of the screen and a card on Home. Just review and approve.",
+    route: '/',
+    target: 'zaytun',
+    title: "I'm always with you",
+    body: "Here I am! I fly with you on every screen. When a client pays, I'll notice and prepare what comes next: issue their CFDI and set money aside. A bubble pops up next to me: tap me to review and approve. The Copilot tab is me too, for when you want to chat.",
   },
   {
     id: 'done',

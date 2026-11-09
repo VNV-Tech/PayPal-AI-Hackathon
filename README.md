@@ -27,14 +27,14 @@ If your client is in Monterrey and pays in pesos, the copilot collects their tax
 ## Features
 
 ### Business mode: get paid
-- **AI copilot chat:** ask about your income or tell it what to bill, in English or Spanish.
+- **Zaytun, the AI copilot:** a sunbird mascot that flies with you on every screen and pops up a bubble when it has a suggestion (for example, right after a client pays). Tap it, or open the Copilot tab, to chat: ask about your income or tell it what to bill, in English or Spanish.
 - **PayPal invoices in USD or MXN:** create, send, remind and cancel, from the chat or the Invoices page.
 - **Live updates:** invoice status changes as soon as the client pays.
 - **CFDI 4.0 for clients abroad (USD):** nothing for your client to fill in. You choose the VAT rate and their country, and the app adds the exchange rate. You issue it to report the income and keep the stamped PDF and XML.
 - **CFDI 4.0 for clients in Mexico (MXN):** your client fills in a Spanish form once through a private link, and the app remembers their details for future invoices. You approve, and it's stamped and emailed to them.
 
 ### Personal mode: keep what you earn
-- **Savings buckets:** when you get paid, the app proposes how much to set aside for each goal, such as taxes. The buckets are virtual; no money moves.
+- **Savings buckets:** create buckets with any name (taxes, savings, electricity...). When you get paid, the app proposes how much to set aside, or you choose the exact amounts, by hand or by asking Zaytun. Each bucket shows its running total. The buckets are virtual; no money moves.
 - **Review all with AI:** several payments waiting? One ticket lists them all with checkboxes and the AI's recommendation, and you approve once.
 - **Payment history:** ask *"When did Test Buyer pay me?"* and get the date, transaction ID and what you set aside.
 

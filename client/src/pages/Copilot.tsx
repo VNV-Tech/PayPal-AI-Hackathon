@@ -2,7 +2,8 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SendHorizontal, SquarePen } from 'lucide-react'
 import { Badge, Button, Card } from '../components/ui'
-import { APP_NAME, formatMoney } from '../lib/config'
+import { MASCOT, formatMoney } from '../lib/config'
+import { ZaytunAvatar } from '../components/Zaytun'
 import { type ActionChoice, type ActionView, type ChatItem, chatApi } from '../lib/chat'
 import { type Mode, useMode } from '../lib/mode'
 
@@ -15,8 +16,8 @@ type Message =
 // El saludo y las sugerencias cambian según el modo. La IA puede hacer todo en
 // ambos modos; esto solo orienta al usuario.
 const WELCOME: Record<Mode, string> = {
-  business: `Hi! I'm ${APP_NAME}. I can draft and send PayPal invoices, check who owes you money and send reminders. I'll always ask before doing anything on your PayPal account.`,
-  personal: `Hi! I'm ${APP_NAME}. I can tell you how much you got paid, help you set part of it aside and change your savings plan. I'll always ask before changing anything.`,
+  business: `Hi! I'm ${MASCOT.name}, your copilot. I can draft and send PayPal invoices, check who owes you money and send reminders. I'll always ask before doing anything on your PayPal account.`,
+  personal: `Hi! I'm ${MASCOT.name}, your copilot. I can tell you how much you got paid, help you set part of it aside and change your savings plan. I'll always ask before changing anything.`,
 }
 
 const SUGGESTIONS: Record<Mode, string[]> = {
@@ -169,7 +170,15 @@ export function Copilot() {
 
   return (
     <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-3xl flex-col max-sm:h-[calc(100dvh-13rem)]">
-      <div className="mb-2 flex justify-end">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        {/* Es el mismo pajarito que flota en las otras pantallas. */}
+        <div className="flex items-center gap-3">
+          <ZaytunAvatar className="size-10 ring-2 ring-brand-solid" />
+          <div>
+            <p className="font-semibold text-ink">{MASCOT.name}</p>
+            <p className="text-xs text-ink-muted">Your copilot</p>
+          </div>
+        </div>
         <Button variant="ghost" onClick={newChat} disabled={busy || messages.length === 1}>
           <SquarePen aria-hidden className="size-4" />
           New chat
@@ -178,7 +187,8 @@ export function Copilot() {
 
       <ol className="flex-1 space-y-4 overflow-y-auto pb-4" aria-live="polite">
         {messages.map((msg) => (
-          <li key={msg.id} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+          <li key={msg.id} className={msg.role === 'user' ? 'flex justify-end' : 'flex items-start justify-start gap-2'}>
+            {msg.role === 'assistant' && <ZaytunAvatar className="mt-1 size-7" />}
             {msg.role === 'action' ? (
               <ActionCard action={msg.action} disabled={busy} onResolve={resolveAction} />
             ) : (
@@ -197,8 +207,9 @@ export function Copilot() {
           </li>
         ))}
         {busy && (
-          <li className="flex justify-start">
-            <p className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">Thinking…</p>
+          <li className="flex items-start justify-start gap-2">
+            <ZaytunAvatar className="mt-1 size-7 animate-pulse" />
+            <p className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-ink-muted">{MASCOT.name} is thinking…</p>
           </li>
         )}
         {messages.length === 1 && !busy && (

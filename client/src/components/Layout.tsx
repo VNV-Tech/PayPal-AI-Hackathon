@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, Sparkles, UserRound, X } from 'lucide-react'
+import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, UserRound } from 'lucide-react'
 import { APP_NAME } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import { isGuideOff, saveGuideOff, useJourney } from '../lib/journey'
@@ -8,12 +8,19 @@ import { MODES, type Mode, loadMode, saveMode } from '../lib/mode'
 import { type TourStep, isTourDone, markTourDone } from '../lib/tour'
 import { GuideBubble } from './Guide'
 import { Tour } from './Tour'
+import { type CopilotNotice, ZaytunAvatar, ZaytunBuddy } from './Zaytun'
 
-const NAV_ICONS: Record<string, LucideIcon> = {
+// La pestaña Copilot lleva la cara de Zaytun: es el mismo copiloto que flota en la esquina.
+const NAV_ICONS: Record<string, LucideIcon | 'zaytun'> = {
   '/': House,
   '/invoices': FileText,
   '/savings': PiggyBank,
-  '/copilot': Sparkles,
+  '/copilot': 'zaytun',
+}
+
+function NavIcon({ to, className }: { to: string; className: string }) {
+  const Icon = NAV_ICONS[to]
+  return Icon === 'zaytun' ? <ZaytunAvatar className={className} /> : <Icon aria-hidden className={className} />
 }
 
 const MODE_ICONS: Record<Mode, LucideIcon> = { business: BriefcaseBusiness, personal: UserRound }
@@ -36,7 +43,7 @@ export function Layout() {
   const nav = MODES[mode].nav
   // Aviso cuando el copiloto prepara algo por su cuenta (por ejemplo, al llegar un pago).
   // Sin id: todavía lo está pensando (Claude tarda unos segundos).
-  const [suggestion, setSuggestion] = useState<{ id?: string; invoiceNumber?: string } | null>(null)
+  const [suggestion, setSuggestion] = useState<CopilotNotice | null>(null)
 
   useLiveEvents((event) => {
     if (event.type === 'copilot.suggestion' && event.suggestionId) {
@@ -56,6 +63,9 @@ export function Layout() {
     return () => clearTimeout(timer)
   }, [thinking])
 
+  const guideVisible =
+    !!journey && !guideOff && !tourOpen && !spotlight && !suggestion && pathname !== '/' && pathname !== '/copilot'
+
   function openSuggestion(id: string) {
     setSuggestion(null)
     navigate(`/copilot?suggestion=${id}`)
@@ -69,7 +79,11 @@ export function Layout() {
   }
 
   return (
-    <div data-mode={mode} className="min-h-screen pb-20 sm:pb-0">
+    // Fuera del chat, espacio de más abajo para que Zaytun (flotando) no tape lo último de la página.
+    <div
+      data-mode={mode}
+      className={`min-h-screen ${pathname === '/copilot' ? 'pb-20 sm:pb-0' : 'pb-40 sm:pb-24'}`}
+    >
       <header className="on-brand-scope sticky top-0 z-10 bg-brand-solid text-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
           <NavLink to="/" className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight">
@@ -99,7 +113,6 @@ export function Layout() {
 
           <nav aria-label="Main" className="flex gap-1 max-sm:hidden">
             {nav.map((item) => {
-              const Icon = NAV_ICONS[item.to]
               return (
                 <NavLink
                   key={item.to}
@@ -111,7 +124,7 @@ export function Layout() {
                     }`
                   }
                 >
-                  <Icon aria-hidden className="size-4" />
+                  <NavIcon to={item.to} className="size-4" />
                   {item.label}
                 </NavLink>
               )
@@ -146,7 +159,6 @@ export function Layout() {
         className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
       >
         {nav.map((item) => {
-          const Icon = NAV_ICONS[item.to]
           return (
             <NavLink
               key={item.to}
@@ -158,7 +170,7 @@ export function Layout() {
                 }`
               }
             >
-              <Icon aria-hidden className="size-5" />
+              <NavIcon to={item.to} className="size-5" />
               {item.label}
             </NavLink>
           )
@@ -166,50 +178,20 @@ export function Layout() {
       </nav>
 
       {/* En Home la guía es una tarjeta; en el chat estorbaría la caja de texto. */}
-      {journey && !guideOff && !tourOpen && !spotlight && !suggestion && pathname !== '/' && pathname !== '/copilot' && (
+      {guideVisible && journey && (
         <GuideBubble steps={journey} onShowMe={setSpotlight} onTurnOff={() => setGuideOff(true)} />
       )}
 
-      {suggestion && (
-        <div
-          role="status"
-          className="on-brand-scope fixed right-4 bottom-24 left-4 z-20 flex items-center gap-3 rounded-2xl bg-brand-solid p-4 text-white shadow-xl sm:bottom-6 sm:left-auto sm:w-96"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white">
-            <Sparkles aria-hidden className={`size-5 ${thinking ? 'animate-pulse' : ''}`} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
-              {thinking ? 'Your copilot is on it' : 'Your copilot has a suggestion'}
-            </p>
-            <p className="text-xs text-white/70">
-              {suggestion.invoiceNumber ? `Invoice #${suggestion.invoiceNumber} was just paid.` : 'Something new happened.'}{' '}
-              {thinking ? 'Preparing next steps…' : 'Take a look?'}
-            </p>
-          </div>
-          {suggestion.id ? (
-            <button
-              type="button"
-              onClick={() => openSuggestion(suggestion.id!)}
-              className="rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-brand-50"
-            >
-              Review
-            </button>
-          ) : (
-            <span aria-hidden className="flex gap-1 px-2">
-              {[0, 150, 300].map((delay) => (
-                <span
-                  key={delay}
-                  className="size-1.5 animate-bounce rounded-full bg-white/80"
-                  style={{ animationDelay: `${delay}ms` }}
-                />
-              ))}
-            </span>
-          )}
-          <button type="button" onClick={() => setSuggestion(null)} aria-label="Dismiss" className="text-white/60 hover:text-white">
-            <X aria-hidden className="size-4" />
-          </button>
-        </div>
+      {/* Zaytun te acompaña en todas las pantallas menos en el chat (ahí ya
+          estás platicando con él). Al tocarlo, abre el chat o su sugerencia. */}
+      {pathname !== '/copilot' && (
+        <ZaytunBuddy
+          notice={suggestion}
+          onOpen={() => (suggestion?.id ? openSuggestion(suggestion.id) : navigate('/copilot'))}
+          onDismiss={() => setSuggestion(null)}
+          // En celular la guía ocupa todo el ancho de abajo: ahí Zaytun se esconde.
+          className={guideVisible ? 'max-sm:hidden' : ''}
+        />
       )}
 
       {tourOpen && (

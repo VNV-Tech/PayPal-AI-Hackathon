@@ -9,6 +9,7 @@ import { useLiveEvents } from '../lib/events'
 import { type Invoice, displayStatus, invoicesApi } from '../lib/invoices'
 import { useMode } from '../lib/mode'
 import { type RecentPayment, formatTotals, overviewApi, plural, sumTotals } from '../lib/overview'
+import { ZaytunAvatar } from '../components/Zaytun'
 import { type Savings, savingsApi } from '../lib/savings'
 
 // Pantalla de inicio. Cada modo tiene la suya: Business (cobrar a clientes) y
@@ -91,7 +92,7 @@ function BusinessHome() {
               New invoice
             </HeroLink>
             <HeroLink to="/copilot" icon={Sparkles}>
-              Ask the copilot
+              Ask Zaytun
             </HeroLink>
           </>
         }
@@ -174,7 +175,7 @@ function PersonalHome() {
               {pending ? `Review ${plural(pending, 'payment')}` : 'My savings plan'}
             </HeroLink>
             <HeroLink to="/copilot" icon={Sparkles}>
-              Ask the copilot
+              Ask Zaytun
             </HeroLink>
           </>
         }
@@ -283,11 +284,9 @@ function CopilotSuggestion({ suggestions }: { suggestions: Suggestion[] }) {
       to={`/copilot?suggestion=${latest.id}`}
       className="mb-4 flex items-start gap-3 rounded-2xl border border-brand-100 bg-surface px-5 py-4 shadow-sm hover:border-brand-500"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-solid text-on-brand">
-        <Sparkles aria-hidden className="size-5" />
-      </span>
+      <ZaytunAvatar className="size-10" />
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-bold tracking-wider text-brand-600 uppercase">From your copilot</span>
+        <span className="block text-xs font-bold tracking-wider text-brand-600 uppercase">From Zaytun, your copilot</span>
         <span className="mt-0.5 block font-semibold text-ink">{latest.title}</span>
         {intro?.type === 'text' && <span className="mt-0.5 line-clamp-2 block text-sm text-ink-muted">{intro.text}</span>}
         <span className="mt-1 block text-xs font-semibold text-brand-600">
@@ -470,7 +469,7 @@ function TryAsking({ prompts }: { prompts: string[] }) {
     <Card className="h-fit bg-brand-50">
       <h2 className="flex items-center gap-2 font-semibold text-brand-900">
         <Sparkles aria-hidden className="size-4" />
-        Try asking the copilot
+        Try asking Zaytun
       </h2>
       <ul className="mt-3 space-y-2">
         {prompts.map((p) => (
