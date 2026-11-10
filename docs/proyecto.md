@@ -3,7 +3,7 @@
 > Documento vivo del equipo. Explica **qué estamos haciendo, por qué, cómo funciona y qué falta**, y sobre todo **qué se puede cambiar del diseño**.
 > Cada tema va dos veces: primero simple (🍎) y luego técnico (🔧), para que cualquiera del equipo lo entienda.
 >
-> Última actualización: 8 de noviembre de 2026 (colores nuevos, Zaytun, apartados a la medida y plan del video).
+> Última actualización: 9 de noviembre de 2026 (pantallas más limpias, estilo del video con el clip de prueba, aviso de diciembre y premios).
 
 ## Índice
 
@@ -431,7 +431,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 2 | Chat con IA que pide aprobación | — | Víctor | ✅ Hecho |
 | 3 | Webhooks: todo se actualiza solo | 3–4 nov | Víctor | ✅ Hecho (adelantado) |
 | 4 | Modo personal (apartados) | 5–7 nov | Víctor | ✅ Hecho (adelantado) |
-| 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ⏳ Por empezar |
+| 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ✅ En la app el 8 nov (colores vino y amarillo, logo y Zaytun). El 9 nov, pantallas más limpias (#52–#54), aprobadas por el equipo |
 | 5b | Tutorial de bienvenida (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide textos y aspecto |
 | 5c | Modos Business / Personal y Home nuevo (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide desde el 28 oct |
 | 5d | Facturas fiscales nivel 1: pedir los datos (link + chat) | — | Víctor | ✅ Hecho |
@@ -452,10 +452,12 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6m | Apartados como en la app del banco: nombres libres, montos a la medida por pago (a mano y con el copiloto) y total acumulado | 8 nov | Víctor | ✅ Hecho (última excepción a "no más funciones"; decisión de Víctor) |
 | 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | 🟡 Revisado el 8 nov a 390×844: nada se sale de lo ancho. Arreglado: ceros en dólares (antes "MX$0.00" junto a montos en USD) y Description en su propio renglón en "New invoice". Quedan detalles menores para cuando llegue el diseño de Vanessa: el texto del chat se corta, "Needs your approval" en dos renglones, "Set aside" solo en un renglón en Savings y "Refresh" ocupando un renglón en Home (este último arreglado el 9 nov: ahora es un icono) |
 | 6n | Moneda por defecto **USD** (en el formulario y en el copiloto; MXN se sigue pudiendo elegir) y paso 1 del tutorial con el nuevo enfoque (clientes en el extranjero en dólares o en México en pesos; ya no dice "keep their taxes in order") | 8 nov | Víctor | ✅ Hecho |
+| 6o | Pantallas más limpias: menos información repetida en Home y Savings, sin cambiar el diseño; "Try asking Zaytun" con más ejemplos y del alto de su vecina; listas de Home de tamaño fijo (5 facturas, 3 pagos) | 9 nov | Víctor | ✅ #52, #53 y #54, aprobado con un antes y después. Tutorial probado en celular y computadora |
+| 6p | **Diciembre:** Home ("Collected", "Left to spend") y "Recent payments" solo cuentan pagos del mes en curso. Si nadie paga en dic, el jurado ve $0 | Antes de entregar | Víctor | ⏳ Por decidir: pagar 1–2 facturas el 1 de dic o mostrar los últimos pagos aunque sean del mes pasado |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 9–11 nov | Natalia + Víctor | 🟡 README al día (8 nov, con Zaytun). Devpost en borrador (7 nov): sin el video no deja mandarlo. Guion: **borrador 2** en `docs/video-script.md` (8 nov, Zaytun protagonista). Plan: Claude graba la app con el navegador automático y Víctor paga a mano; voz de una persona; edición en CapCut. Faltan el video, las capturas y el link en el README |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 9–11 nov | Natalia + Víctor | 🟡 README al día (8 nov, con Zaytun). Devpost en borrador (7 nov): sin el video no deja mandarlo. Guion: **borrador 2** en `docs/video-script.md` (8 nov, Zaytun protagonista; a Víctor le gustó y lo revisa con su hermana). **Estilo aprobado el 9 nov:** el clip de prueba en `~/Documentos/vnv-video/` (Claude graba la app de Render y le pone efectos con Remotion; Víctor paga a mano; narra probablemente Víctor). Faltan el video, las capturas, el link en el README y, en Devpost, explicar APIMatic y Render y marcar los premios |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -465,7 +467,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 29 oct – 1 nov | ✅ Prueba de pago en Render y datos en Neon (30 oct). Diseño de Vanessa. **Desde el 31 oct: no más funciones nuevas** salvo que algo esté roto; las ideas van a "Ideas guardadas" |
 | 4 nov | ✅ README nuevo, CFDI en dólares y prueba completa con cuenta de Estados Unidos |
 | 5 – 8 nov | ✅ Diseño de Vanessa en la app (8 nov): colores vino y amarillo, logo y Zaytun. Guion borrador 2. **Desde el 8 nov no entra ninguna función nueva** |
-| 9 – 10 nov | Grabar y editar el video (Claude graba la app, Víctor paga a mano), Devpost, y link y capturas en el README. AG Grid: solo si esto ya va listo |
+| 9 nov | ✅ Clip de prueba del video (estilo aprobado) y pantallas más limpias (#52–#54). AG Grid descartado |
+| 10 – 11 nov | Guion final con los cambios del equipo, limpiar la demo, grabar y editar el video (Claude graba la app con efectos, Víctor paga a mano), Devpost, y link y capturas en el README |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 
@@ -494,13 +497,14 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual. **Parte hecha el 8 nov:** montos a la medida por pago (a mano y con el copiloto) y total acumulado; falta la meta con barrita y sacar dinero.
 - ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
-- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 6 de noviembre llega al 21 de diciembre (se había dicho que vencía el 5: era un error). **Decisión del 4 nov: por ahora no;** se reconsidera el 9 de noviembre, solo si el video y Devpost ya están. Antes hay que leer sus requisitos en Devpost: las notas hablan de AG Studio y su framework de agentes, no solo de cambiar una tabla.
+- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 6 de noviembre llega al 21 de diciembre (se había dicho que vencía el 5: era un error). **Descartado el 9 nov:** el video y Devpost no estaban listos y ya no entran funciones nuevas. Los premios de patrocinador solo dicen "mejor uso"; nos inscribimos en **APIMatic** (el SDK de Transaction Search da los números de la app) y **Render** (la demo vive ahí), y solo se puede ganar uno.
 - **Ver cuánto se pierde en el tipo de cambio** (idea de Víctor, 4 nov): mostrarle al freelancer cuántos pesos pierde al convertir sus dólares. Es un dolor concreto, pero a veces la mejor recomendación sería usar otro servicio y no PayPal. Se puede mencionar en el pitch como idea a futuro.
 - **App en español o inglés (botón ES/EN)** (idea de Víctor, 30 oct): el usuario es un freelancer mexicano, así que tiene sentido. **Cuándo:** después del rediseño de Vanessa, cuando los textos ya no cambien, y solo si sobra tiempo antes del video (~6–9 nov). **Por qué no antes:** son cientos de frases en todas las pantallas (~3–5 h con pruebas), el español es ~20–30% más largo y puede desbordar el diseño en celular, y si se traduce antes del rediseño se hace dos veces. El inglés se queda como idioma principal porque el jurado es internacional. **Mientras:** el copiloto ya entiende y contesta en español, y la página de datos fiscales del cliente ya está en español. Destacarlo en el README y el video (*"The copilot speaks Spanish"*).
 - **Cómo hacer el video** (tarea 7; acordado el 30 oct, falta que lo vean Natalia y Vanessa):
   - **Claude:** el guion escena por escena (qué se ve, qué se dice y cuántos segundos, para no pasar de 3 minutos), **tomas limpias** de la app grabadas con el navegador automático (sin errores ni mouse temblando), subtítulos en inglés (`.srt`) y textos de pantalla. Si hace falta juntar clips por comandos, se usa `ffmpeg` (instalarlo con `sudo apt install ffmpeg`).
   - **Natalia (o Víctor):** la **narración con voz** (una voz humana conecta más con el jurado) y la edición final en un editor sencillo y gratis (CapCut o Clipchamp): ritmo y música.
-  - **La toma del pago** ("te pagan → la IA reacciona") se graba **en pantalla** (OBS o la grabadora del sistema), porque el pago se hace con la cuenta de prueba de PayPal. Mientras se graba, prender el "despertador" de Render.
+  - **La toma del pago** ("te pagan → la IA reacciona"): Víctor paga a mano con la cuenta de prueba mientras Claude graba la app con el navegador automático (no hay OBS; ese plan cambió el 8–9 nov). Mientras se graba, prender el "despertador" de Render.
+  - **Estilo (9 nov):** el del clip de prueba en `~/Documentos/vnv-video/`: la app dentro de un celular en 3D, textos animados y acercamientos, hecho con Remotion.
   - **Orden:** primero el guion; Natalia lo revisa antes de grabar.
 - **Ticket para emitir varios CFDI a la vez** (idea de Víctor, 30 oct): como el de apartados, pero para las facturas del SAT. Quedó para después del video: emitir un CFDI sella un documento y le escribe al cliente (no se puede "desaprobar"), y en grupo hay que mostrar bien cuáles salieron y cuáles fallaron (~45–60 min).
 - **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
@@ -563,6 +567,9 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #50 | Arreglo: la fecha del tipo de cambio de Banxico sale como AAAA-MM-DD (antes "10/11/2026", que se leía como 11 de octubre). Token de Banxico puesto y probado |
 | #51 | Bitácora del 8 nov, documentos al día y guion del video borrador 2 (Zaytun protagonista) |
 | #52 | Pantallas más limpias (Home y Savings): menos información repetida, sin cambiar el diseño. Aprobado con un antes y después; tutorial probado en celular y computadora |
+| #53 | "Past set-asides" abiertos si son 3 o menos (pedido del equipo) |
+| #54 | Regresó la tarjeta "Try asking Zaytun", con más ejemplos y del alto de lo que tiene al lado; listas de Home de tamaño fijo (5 facturas, 3 pagos, con "See all") |
+| #55 | Bitácora del 9 nov, estilo del video, aviso de diciembre y premios |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 
