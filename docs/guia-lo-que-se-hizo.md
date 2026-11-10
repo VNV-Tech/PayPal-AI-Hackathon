@@ -396,16 +396,47 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - **#51:** esta bitácora, `docs/proyecto.md`, `CLAUDE.md` y `docs/video-script.md` (borrador 2).
 - Las pruebas movieron datos solo en la compu (`server/data/savings.json`), siempre con respaldo, y quedaron como estaban. Render no se tocó.
 
+### 📅 9 de noviembre de 2026
+
+**🍎 En simple:** hicimos un **clip de prueba del video** con efectos estilo comercial (la app dentro de un celular en 3D, textos animados, acercamiento a Zaytun) y te encantó: es la base del video final. Luego **limpiamos las pantallas** para que no saturen: mismo diseño, menos cosas repetidas. Tu hermana lo aprobó con un "antes y después" en celular y computadora, y después pidieron regresar la tarjeta de preguntas para Zaytun, ahora del mismo alto que lo que tiene al lado. El tutorial se probó completo y no se rompió. Al final hicimos un repaso sincero: el proyecto está bien hecho, ganar es difícil (32 mil inscritos), pero vale la pena entregarlo bien.
+
+- **Clip de prueba (12 s):** Claude grabó la app de Render (solo lectura) y le puso efectos con Remotion. Quedó guardado fuera del repo en `~/Documentos/vnv-video/` (el video, la "receta" y un `LEEME.md`). Reemplaza la idea de grabar la pantalla tal cual con OBS.
+- **Pantallas más limpias (#52):** en Home se quitaron la etiqueta "BUSINESS/PERSONAL", el subtítulo largo y el botón Refresh grande (ahora es un icono); el link de la guía bajó al final. En Home Personal se quitaron la nota de "virtual" (sigue en Savings) y el aviso "You got paid!" (lo dice el botón de la tarjeta). En Savings, la nota quedó en una línea, "Collected" y "Left to spend" en una sola tarjeta y los apartados viejos agrupados.
+- **Apartados viejos visibles (#53):** a pedido de tu hermana, "past set-asides" se ve abierto si son 3 o menos; con más, empieza cerrado. Se cuenta por cantidad porque la app no guarda cuándo se quitó cada uno.
+- **Volvió "Try asking Zaytun" (#54):** la tarjeta grande regresó tal cual, con más preguntas (4 en Business, 5 en Personal) y del mismo alto que la columna de al lado. Para que ese alto no cambie, Home muestra siempre las **5 facturas** y los **3 pagos** más nuevos; lo demás se ve en "See all".
+- **Una confusión aclarada:** la app de tu compu y la de Render guardan datos en lugares distintos (archivo contra Neon). Tus apartados (Saving, Gas, Suscriptions) siguen en Render; no se borró nada.
+- **Premios:** los requisitos generales se cumplen todos. Los de patrocinador solo dicen "mejor uso": APIMatic es el más defendible (el SDK da los números de la app); Render es más débil. AG Grid queda fuera.
+
+**Decisiones del día:**
+- El video sigue el **estilo del clip de prueba** (efectos con Remotion); Claude graba la app y tú pagas a mano.
+- El guion borrador 2 te gustó; antes de grabar lo revisas con tu hermana y hacen cambios. **El video empieza mañana.**
+- Sugerencia para el guion: abrir con "Zaytun habla primero cuando te pagan", no con "crear una factura".
+- AG Grid no entra (no estaban listos el video ni Devpost y ya no entran funciones nuevas).
+
+**Lo aprendido:**
+- Para cambios de diseño, un "antes y después" con los mismos datos hace fácil que el equipo apruebe.
+- Una pantalla quieta no genera cuadros en la grabación automática: hay que grabar algo que se mueva.
+- Siempre aclarar si se está viendo la app local o la de Render: tienen datos distintos.
+
+**🔧 En técnico:**
+- **#52:** `HomeHeader` sin `eyebrow`; `RefreshButton` (icono) en `client/src/components/ui.tsx`; `GuideToggle` en `Guide.tsx` (el link va al final de Home y `Guide` regresa `null` si está apagada). Savings: una tarjeta con `sumTotals`, apartados `percent === null` en un `<details>`.
+- **#53:** `PAST_OPEN_MAX = 3` en `Savings.tsx` (`<details open>`).
+- **#54:** `TryAsking` de vuelta (`Card` con `flex flex-col` para estirarse; la nota con `mt-auto`); `RECENT_INVOICES = 5` y `RECENT_PAYMENTS = 3` en `Overview.tsx`; "See all" de pagos lleva a `/invoices`.
+- Pruebas con Chrome sin ventana (`puppeteer-core` en el scratchpad): los 14 pasos del tutorial encuentran su objetivo a 390×844 y 1440×900, y el link de la guía la prende. Typecheck y `oxlint` limpios en cada PR.
+- Los datos de Render no se modificaron; solo se leyeron (`GET /api/savings`).
+
 ---
 
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Mañana, 9 nov (para empezar el día):**
-- [ ] Decidir con Claude: grabar en **Render** (recomendado) o en la compu, **quién narra** (tú o Natalia) y si el cliente de Texas se llama **Lone Star Apps**.
-- [ ] Revisar el **guion borrador 2** (`docs/video-script.md`) y, si puedes, pasárselo a Natalia.
+**Mañana, 10 nov (empieza el video):**
+- [ ] Traer el **guion con los cambios** de tu hermana (y decidir quién narra; probablemente tú).
+- [ ] Decidir con Claude la **limpieza de la demo** en Render antes de grabar: el plan necesita *Taxes 30%* para el guion y "Suscriptions" está mal escrito. Claude te dice exactamente qué cambia antes de tocar nada.
+- [ ] Decidir qué hacer para que en **diciembre** Home no salga en $0 (solo cuenta pagos del mes en curso): por ejemplo, pagar una o dos facturas el 1 de dic o mostrar los últimos pagos aunque sean del mes pasado.
 - [ ] Prender el **"despertador"** de Render mientras se graba.
 - [ ] Tener a la mano el usuario y la contraseña de la **cuenta de prueba de Estados Unidos** (no se los pases a Claude: tú pagas a mano).
-- [ ] Antes de grabar: **responder los 3 pagos** que esperan en Savings, para que no se mezclen en la escena del pago.
+- [ ] Antes de grabar: **responder los pagos** que esperan en Savings, para que no se mezclen en la escena del pago.
+- [x] ~~Grabar en Render o en la compu~~ (9 nov: Render) · ~~Nombre del cliente~~ (Lone Star Apps)
 
 **Para seguir:**
 - [ ] Enseñarles a **Vanessa** y **Natalia** cómo quedaron los colores, el logo y Zaytun.
@@ -420,9 +451,11 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - [x] ~~`CHAT_DAILY_LIMIT` = 50 en Render~~ (7 nov)
 
 **Con Claude:**
-- [ ] **9 nov:** grabación de prueba de una escena corta; si se ve bien, grabar todo (Claude la app, tú el pago).
-- [ ] Grabar la voz y armar el video en CapCut; Claude hace los subtítulos en inglés.
-- [ ] **Devpost:** borrador listo (7 nov); falta el link del video, las capturas y darle **Submit**.
+- [ ] **10–11 nov:** grabar todo con el estilo del clip de prueba (Claude la app con efectos, tú el pago).
+- [ ] Grabar la voz y armar el video; Claude hace los subtítulos en inglés.
+- [ ] **Devpost:** borrador listo (7 nov); falta el link del video, las capturas, los párrafos de APIMatic y Render, marcar los premios y darle **Submit**.
+- [x] ~~Grabación de prueba~~ (9 nov: clip de 12 s en `~/Documentos/vnv-video/`)
+- [x] ~~Pantallas más limpias~~ (9 nov, #52–#54)
 - [ ] Agregar al **README** el link del video y capturas.
 - [ ] **11 de noviembre:** limpiar la demo, pasar todo a `main` y entregar, con un día de margen.
 - [ ] AG Grid: solo si el video y Devpost ya están.

@@ -7,6 +7,12 @@
 >
 > **Para Natalia:** la historia la puedes cambiar; las notas en español son
 > para el equipo y la narración va en inglés. Mientras no estés, decide Víctor.
+>
+> **9 nov:** a Víctor le gustó; lo revisa con su hermana antes de grabar.
+> **Estilo aprobado:** el del clip de prueba en `~/Documentos/vnv-video/`
+> (la app dentro de un celular en 3D, textos animados y acercamientos, hecho
+> con Remotion). Sugerencia: abrir con "Zaytun habla primero cuando te
+> pagan", no con "crear una factura": es lo que nos distingue.
 
 - **Duración objetivo:** 2:45 (el jurado solo ve 3:00; dejamos 15 s de margen).
 - **Narración:** ~270 palabras, a ritmo tranquilo (~130 por minuto ≈ 2:05 de voz; el resto son pausas y tomas).
@@ -129,8 +135,8 @@ Facturama · Banxico · Render. Resaltar *"Approval enforced by the server"*.
 ## Antes de grabar (checklist)
 
 - [ ] Prender el **"despertador"** de Render y abrir la app una vez para que despierte.
-- [ ] Decidir dónde se graba: **Render** (recomendado: el webhook ya está fijo, no hace falta túnel) o en local con túnel.
-- [ ] **Plan de apartados** para el video: *Taxes 30%*, *Savings* y *Electricity* sin % (así se ve que Zaytun propone montos).
+- [x] Dónde se graba: **Render** (decidido el 9 nov: el webhook ya está fijo, no hace falta túnel).
+- [ ] **Plan de apartados** para el video: *Taxes 30%*, *Savings* y *Electricity* sin % (así se ve que Zaytun propone montos). Hoy Render tiene Saving, Gas y "Suscriptions": cambiarlo al limpiar la demo, con OK de Víctor.
 - [ ] **Responder los pagos que esperan** en Savings antes de grabar. Si no, Zaytun los mete al mismo ticket y la escena 4 se alarga.
 - [ ] Tutorial ya visto y la guía apagada (para que no salgan solos).
 - [ ] Navegador limpio (sin pestañas ni favoritos personales), pantalla 1920×1080, zoom 110–125%.
@@ -141,16 +147,17 @@ Facturama · Banxico · Render. Resaltar *"Approval enforced by the server"*.
 
 | Toma | Quién la graba | Cómo |
 | --- | --- | --- |
-| Escenas 3, 4 y 5 (el flujo completo) | Víctor | **Una sola grabación seguida** con OBS: cobrar → pagar → Zaytun → aprobar → CFDI. Se ve más real y no hay que empatar tomas |
-| Escenas 1, 2 y 6 | Claude o Víctor | Tomas cortas; Claude puede sacarlas con el navegador automático |
+| Escenas 3, 4 y 5 (el flujo completo) | Claude graba la app, Víctor paga | Claude graba con el navegador automático (no hay OBS) mientras Víctor paga a mano con la cuenta de prueba de EE. UU.: cobrar → pagar → Zaytun → aprobar → CFDI |
+| Escenas 1, 2 y 6 | Claude | Tomas cortas con el navegador automático |
+| Efectos (celular en 3D, textos animados, acercamientos) | Claude | Con Remotion, como el clip de prueba del 9 nov |
 | Escena 7 (diagrama) | Claude | Imagen limpia del diagrama |
-| Escenas 2 y 8 (títulos) | Quien edite | Texto en CapCut o Clipchamp |
-| Narración | Natalia o Víctor | Voz con el celular |
+| Escenas 2 y 8 (títulos) | Claude | Animados en Remotion |
+| Narración | Probablemente Víctor | Voz con el celular; se pone encima del video ya armado |
 | Subtítulos en inglés (`.srt`) | Claude | A partir de esta narración, ya con los tiempos finales |
 
 ## Por decidir
 
-- [ ] Natalia revisa la historia y la narración (si no está, decide Víctor).
-- [ ] Quién narra.
-- [ ] Nombre del cliente de Texas (propuesta: *Lone Star Apps*, inventado).
-- [ ] Grabar en Render o en local.
+- [ ] Víctor y su hermana revisan la historia y la narración (9–10 nov).
+- [ ] Quién narra (probablemente Víctor).
+- [x] Nombre del cliente de Texas: *Lone Star Apps* (inventado; 9 nov).
+- [x] Grabar en Render (9 nov).
