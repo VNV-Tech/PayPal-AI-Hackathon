@@ -162,19 +162,24 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   demo antes de entregar y dejar una factura pagada en USD.
 - **Saldo de Anthropic (8 nov): $14.65.** Alcanza hasta el 21 dic aun en el
   peor caso (~$10.50). Recargar solo si baja de ~$11 antes del 1 dic.
-- **Video (plan del 8 nov):** guion borrador 2 en `docs/video-script.md`, con
-  Zaytun como protagonista y una sola historia. Forma acordada: **Claude graba
-  la app** con el navegador automático (instalar `ffmpeg-static` y
-  `puppeteer-core` en el scratchpad, no en el proyecto; no hay OBS ni ffmpeg en
-  la compu) mientras **Víctor paga** la factura a mano con la cuenta de prueba
-  de EE. UU.; la voz la graba una persona y se edita en CapCut; Claude hace los
-  subtítulos. Primero una grabación de prueba de una escena corta. Por decidir:
-  Render o local (recomendado Render), quién narra y el nombre del cliente
-  (*Lone Star Apps*). Antes de grabar, responder los 3 pagos que esperan en
-  Savings para que no se mezclen en la escena del pago.
+- **Video (plan del 9 nov):** guion borrador 2 en `docs/video-script.md`
+  (a Víctor le gustó; lo revisa con su hermana antes de grabar). Estilo
+  aprobado: el **clip de prueba** del 9 nov, en `~/Documentos/vnv-video/`
+  (fuera del repo; `LEEME.md` dice cómo rehacerlo): **Claude graba la app de
+  Render** con `puppeteer-core` + `ffmpeg-static` (en el scratchpad, no en el
+  proyecto; no hay OBS ni ffmpeg en la compu) y le pone efectos con
+  **Remotion**, mientras **Víctor paga** a mano con la cuenta de prueba de
+  EE. UU. Cliente: *Lone Star Apps*. Narra probablemente Víctor. Abrir con
+  "Zaytun habla primero cuando te pagan", no con "crear una factura". Antes de
+  grabar: limpiar la demo (el plan de Render es Saving/Gas/"Suscriptions";
+  el guion pide *Taxes 30%*) y responder los pagos que esperan en Savings.
+- **Diciembre:** Home y "Recent payments" solo cuentan pagos del mes en curso;
+  si nadie paga en dic, el jurado ve $0. Por decidir antes de entregar.
+- **Premios de patrocinador:** solo dicen "mejor uso". APIMatic (SDK de
+  Transaction Search) es el más defendible; Render, más débil. Explicarlos en
+  Devpost y marcar las casillas de premios al dar Submit.
 - **Pendiente de Víctor:** que su hermana acepte la invitación de Devpost.
 - **Devpost:** proyecto en borrador con todo menos el video (sin él no deja
   dar Submit). Textos fuera del repo en `~/Documentos/devpost-*.txt`.
-- Premio de AG Grid: por ahora no; se reconsidera el 9 nov, solo si el video y
-  Devpost ya están. La prueba de 45 días no vence el 5 nov: cualquier fecha
-  desde el 6 nov llega al 21 dic.
+- Premio de AG Grid: **descartado** (9 nov): el video y Devpost no estaban
+  listos y ya no entran funciones nuevas.
