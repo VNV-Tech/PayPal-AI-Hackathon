@@ -58,12 +58,15 @@ const BUSINESS_PROMPTS = [
   'Who still owes me money?',
   'Invoice Acme Corp 12,500 MXN for the website redesign, billing@acme.example',
   'Send a reminder for my overdue invoices',
+  'Show the payments I got this month',
 ]
 
 const PERSONAL_PROMPTS = [
   'How much have I set aside this month?',
   'Set aside 25% of every payment for taxes',
   'How much can I spend this month?',
+  'Split my last payment between my set-asides',
+  'Which set-aside has saved the most so far?',
 ]
 
 function BusinessHome() {
