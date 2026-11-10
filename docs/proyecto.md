@@ -166,7 +166,8 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   4. "**Try asking Zaytun**": tarjeta con ejemplos que **sí se pueden presionar** (en computadora, a la derecha de las listas). Abren el chat con el texto ya escrito, pero no lo envían solos.
   5. Al final, el link para prender la guía (*"Want step-by-step hints? Turn on the guide"*), solo si está apagada.
 - **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask Zaytun", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
-- **Personal:** **lo que te queda para gastar** (número grande, con el botón "Review N payments" si hay pagos por revisar), **lo apartado** este mes (los apartados viejos solo si recibieron algo este mes) y los **últimos pagos** recibidos.
+- **Personal:** **lo que te queda para gastar** (número grande, con el botón "Review N payments" si hay pagos por revisar), **lo apartado** este mes (los apartados viejos solo si recibieron algo este mes) y los **3 últimos pagos** recibidos (con "See all", que lleva a Invoices).
+- **Listas de tamaño fijo:** Home muestra siempre las **5 facturas** y los **3 pagos** más nuevos (`RECENT_INVOICES`, `RECENT_PAYMENTS` en `Overview.tsx`); lo nuevo entra arriba y lo viejo se ve en "See all". Así las tarjetas no cambian de tamaño y "Try asking Zaytun" (4 ejemplos en Business, 5 en Personal) se estira a la altura de lo que tiene al lado.
 - **9 nov, pantallas más limpias (aprobado por el equipo con un antes y después):** se quitaron la etiqueta "BUSINESS/PERSONAL", la nota de "virtual" en Home Personal (sigue en Savings) y el aviso "You got paid!" (lo dice el botón de la tarjeta). La tarjeta "Try asking Zaytun" se quitó en #52 y volvió tal cual a pedido del equipo.
 - **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 

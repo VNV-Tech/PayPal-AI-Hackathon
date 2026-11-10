@@ -53,6 +53,11 @@ const loadSuggestions = () => chatApi.suggestions().then((r) => r.suggestions, (
 const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions()])
 const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get(), loadSuggestions()])
 
+// Cuántos renglones muestra cada lista de Home (los más nuevos primero). Fijos
+// para que las tarjetas no cambien de tamaño; el resto se ve en See all.
+const RECENT_INVOICES = 5
+const RECENT_PAYMENTS = 3
+
 // Ejemplos para Zaytun: al presionarlos se abre el chat con el texto ya escrito.
 const BUSINESS_PROMPTS = [
   'Who still owes me money?',
@@ -124,7 +129,7 @@ function BusinessHome() {
             </p>
           ) : (
             <ul className="divide-y divide-line">
-              {page.invoices.slice(0, 5).map((inv) => (
+              {page.invoices.slice(0, RECENT_INVOICES).map((inv) => (
                 <InvoiceRow key={inv.id} invoice={inv} />
               ))}
             </ul>
@@ -193,14 +198,15 @@ function PersonalHome() {
             )}
           </Card>
           <Card>
-            <SectionTitle title="Recent payments" />
+            {/* Solo los más nuevos, para que la columna no cambie de tamaño; los demás, en See all. */}
+            <SectionTitle title="Recent payments" link={{ to: '/invoices', label: 'See all' }} />
             {!overview ? (
               <ListSkeleton />
             ) : overview.recentPayments.length === 0 ? (
               <p className="py-6 text-sm text-ink-muted">No payments this month yet. They show up here the moment you get paid.</p>
             ) : (
               <ul className="divide-y divide-line">
-                {overview.recentPayments.map((p) => (
+                {overview.recentPayments.slice(0, RECENT_PAYMENTS).map((p) => (
                   <PaymentRow key={p.id} payment={p} />
                 ))}
               </ul>
