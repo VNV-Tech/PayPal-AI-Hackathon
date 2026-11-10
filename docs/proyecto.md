@@ -163,10 +163,12 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   1. Título y una frase de una línea; a la derecha, **Refresh** como icono chico (los números se actualizan solos).
   2. Una **tarjeta grande del color del modo** con el número más importante y **botones rápidos**.
   3. Tarjetas o listas con el detalle.
-  4. Al final, el link para prender la guía (*"Want step-by-step hints? Turn on the guide"*), solo si está apagada.
+  4. "**Try asking Zaytun**": tarjeta con ejemplos que **sí se pueden presionar** (en computadora, a la derecha de las listas). Abren el chat con el texto ya escrito, pero no lo envían solos.
+  5. Al final, el link para prender la guía (*"Want step-by-step hints? Turn on the guide"*), solo si está apagada.
 - **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask Zaytun", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
-- **Personal:** **lo que te queda para gastar** (número grande, con el botón "Review N payments" si hay pagos por revisar), **lo apartado** este mes (los apartados viejos solo si recibieron algo este mes) y los **últimos pagos** recibidos.
-- **9 nov, pantallas más limpias (aprobado por el equipo con un antes y después):** se quitaron la etiqueta "BUSINESS/PERSONAL", la tarjeta "Try asking Zaytun" (sus ejemplos ya salen en el chat), la nota de "virtual" en Home Personal (sigue en Savings) y el aviso "You got paid!" (lo dice el botón de la tarjeta).
+- **Personal:** **lo que te queda para gastar** (número grande, con el botón "Review N payments" si hay pagos por revisar), **lo apartado** este mes (los apartados viejos solo si recibieron algo este mes) y los **3 últimos pagos** recibidos (con "See all", que lleva a Invoices).
+- **Listas de tamaño fijo:** Home muestra siempre las **5 facturas** y los **3 pagos** más nuevos (`RECENT_INVOICES`, `RECENT_PAYMENTS` en `Overview.tsx`); lo nuevo entra arriba y lo viejo se ve en "See all". Así las tarjetas no cambian de tamaño y "Try asking Zaytun" (4 ejemplos en Business, 5 en Personal) se estira a la altura de lo que tiene al lado.
+- **9 nov, pantallas más limpias (aprobado por el equipo con un antes y después):** se quitaron la etiqueta "BUSINESS/PERSONAL", la nota de "virtual" en Home Personal (sigue en Savings) y el aviso "You got paid!" (lo dice el botón de la tarjeta). La tarjeta "Try asking Zaytun" se quitó en #52 y volvió tal cual a pedido del equipo.
 - **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 
 ### La guía: te acompaña en todo el proceso (sin IA, gratis)
@@ -302,7 +304,7 @@ Esto es solo visual. Si algo sale mal, se regresa con un clic.
 | **Íconos** | Vienen de [Lucide](https://lucide.dev/icons): se busca el nombre ahí y se importa de `lucide-react` en la pantalla | Cambiar el ícono de Savings |
 | **Ilustraciones, imágenes** | Nuevas, en `client/public/` | Ilustración para pantallas vacías |
 | **Pantallas vacías, de carga y de error** | En cada pantalla | Un dibujo cuando no hay facturas |
-| **Los ejemplos** y las sugerencias del chat | `Copilot.tsx` (`SUGGESTIONS`, `WELCOME`) | Ejemplos nuevos |
+| **Los ejemplos** de "Try asking" y las sugerencias del chat | `Overview.tsx` (`BUSINESS_PROMPTS`, `PERSONAL_PROMPTS`) y `Copilot.tsx` (`SUGGESTIONS`, `WELCOME`) | Ejemplos nuevos |
 | **El tutorial**: textos, orden, cuántos pasos, cómo se ve | Textos en `client/src/lib/tour.ts`, aspecto en `client/src/components/Tour.tsx` | Otro tono, otro personaje, más o menos pasos |
 | **Modo oscuro**, animaciones, transiciones | `index.css` y componentes | Agregar modo oscuro |
 | **Versión para celular** | Todas las pantallas | Otro tipo de menú |

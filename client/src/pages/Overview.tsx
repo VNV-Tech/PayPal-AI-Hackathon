@@ -53,6 +53,27 @@ const loadSuggestions = () => chatApi.suggestions().then((r) => r.suggestions, (
 const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions()])
 const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get(), loadSuggestions()])
 
+// Cuántos renglones muestra cada lista de Home (los más nuevos primero). Fijos
+// para que las tarjetas no cambien de tamaño; el resto se ve en See all.
+const RECENT_INVOICES = 5
+const RECENT_PAYMENTS = 3
+
+// Ejemplos para Zaytun: al presionarlos se abre el chat con el texto ya escrito.
+const BUSINESS_PROMPTS = [
+  'Who still owes me money?',
+  'Invoice Acme Corp 12,500 MXN for the website redesign, billing@acme.example',
+  'Send a reminder for my overdue invoices',
+  'Show the payments I got this month',
+]
+
+const PERSONAL_PROMPTS = [
+  'How much have I set aside this month?',
+  'Set aside 25% of every payment for taxes',
+  'How much can I spend this month?',
+  'Split my last payment between my set-asides',
+  'Which set-aside has saved the most so far?',
+]
+
 function BusinessHome() {
   const { data, error, reload } = useHomeData(loadBusiness)
   const [overview, page, suggestions] = data ?? [null, null, []]
@@ -97,22 +118,25 @@ function BusinessHome() {
         />
       </div>
 
-      <Card className="mt-6">
-        <SectionTitle title="Recent invoices" link={{ to: '/invoices', label: 'See all' }} />
-        {!page ? (
-          <ListSkeleton />
-        ) : page.invoices.length === 0 ? (
-          <p className="py-6 text-sm text-ink-muted">
-            No invoices yet. Create your first one and your client can pay it with PayPal or a card.
-          </p>
-        ) : (
-          <ul className="divide-y divide-line">
-            {page.invoices.slice(0, 5).map((inv) => (
-              <InvoiceRow key={inv.id} invoice={inv} />
-            ))}
-          </ul>
-        )}
-      </Card>
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <SectionTitle title="Recent invoices" link={{ to: '/invoices', label: 'See all' }} />
+          {!page ? (
+            <ListSkeleton />
+          ) : page.invoices.length === 0 ? (
+            <p className="py-6 text-sm text-ink-muted">
+              No invoices yet. Create your first one and your client can pay it with PayPal or a card.
+            </p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {page.invoices.slice(0, RECENT_INVOICES).map((inv) => (
+                <InvoiceRow key={inv.id} invoice={inv} />
+              ))}
+            </ul>
+          )}
+        </Card>
+        <TryAsking prompts={BUSINESS_PROMPTS} />
+      </div>
       <GuideToggle />
     </>
   )
@@ -155,37 +179,41 @@ function PersonalHome() {
         }
       />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <SectionTitle title={`Set aside in ${currentMonthName()}`} link={{ to: '/savings', label: 'Edit plan' }} />
-          {!savings ? (
-            <ListSkeleton />
-          ) : buckets.length === 0 ? (
-            <p className="py-6 text-sm text-ink-muted">
-              No set-asides yet. Add one, like Taxes, and every time you get paid you'll be asked how much to keep.
-            </p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {buckets.map((b) => (
-                <BucketRow key={b.id} bucket={b} />
-              ))}
-            </ul>
-          )}
-        </Card>
-        <Card>
-          <SectionTitle title="Recent payments" />
-          {!overview ? (
-            <ListSkeleton />
-          ) : overview.recentPayments.length === 0 ? (
-            <p className="py-6 text-sm text-ink-muted">No payments this month yet. They show up here the moment you get paid.</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {overview.recentPayments.map((p) => (
-                <PaymentRow key={p.id} payment={p} />
-              ))}
-            </ul>
-          )}
-        </Card>
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <SectionTitle title={`Set aside in ${currentMonthName()}`} link={{ to: '/savings', label: 'Edit plan' }} />
+            {!savings ? (
+              <ListSkeleton />
+            ) : buckets.length === 0 ? (
+              <p className="py-6 text-sm text-ink-muted">
+                No set-asides yet. Add one, like Taxes, and every time you get paid you'll be asked how much to keep.
+              </p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {buckets.map((b) => (
+                  <BucketRow key={b.id} bucket={b} />
+                ))}
+              </ul>
+            )}
+          </Card>
+          <Card>
+            {/* Solo los más nuevos, para que la columna no cambie de tamaño; los demás, en See all. */}
+            <SectionTitle title="Recent payments" link={{ to: '/invoices', label: 'See all' }} />
+            {!overview ? (
+              <ListSkeleton />
+            ) : overview.recentPayments.length === 0 ? (
+              <p className="py-6 text-sm text-ink-muted">No payments this month yet. They show up here the moment you get paid.</p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {overview.recentPayments.slice(0, RECENT_PAYMENTS).map((p) => (
+                  <PaymentRow key={p.id} payment={p} />
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+        <TryAsking prompts={PERSONAL_PROMPTS} />
       </div>
       <GuideToggle />
     </>
@@ -391,6 +419,32 @@ function PaymentRow({ payment }: { payment: RecentPayment }) {
         +{formatMoney(Number(payment.amount.value), payment.amount.currency_code)}
       </p>
     </li>
+  )
+}
+
+// Ejemplos para Zaytun: al presionarlos se abre el chat con el texto ya escrito.
+// En computadora se estira a la altura de lo que tiene al lado (la nota queda abajo).
+function TryAsking({ prompts }: { prompts: string[] }) {
+  return (
+    <Card className="flex flex-col bg-brand-50">
+      <h2 className="flex items-center gap-2 font-semibold text-brand-900">
+        <Sparkles aria-hidden className="size-4" />
+        Try asking Zaytun
+      </h2>
+      <ul className="mt-3 space-y-2">
+        {prompts.map((p) => (
+          <li key={p}>
+            <Link
+              to={`/copilot?q=${encodeURIComponent(p)}`}
+              className="block rounded-xl border border-brand-100 bg-surface px-4 py-3 text-sm text-ink hover:border-brand-500"
+            >
+              “{p}”
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-auto pt-3 text-xs text-ink-muted">It always asks before doing anything on your PayPal account.</p>
+    </Card>
   )
 }
 
