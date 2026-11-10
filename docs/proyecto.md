@@ -265,7 +265,7 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - Tarjetas "**You got paid…** Set aside…?" con **Set aside** (usa los % del plan), **Choose amounts** (ventana para escribir cuánto va a cada apartado; no deja pasar del pago) y **Not this time**.
   - Una sola tarjeta **Left to spend** (lo que queda para gastar) y debajo de dónde sale: cobrado del mes y lo apartado.
   - Una tarjeta por apartado con lo **juntado desde el principio** ("Saved so far") y lo de este mes. La frase "Zaytun suggests…" sale una vez, arriba de todos.
-  - Los apartados que ya no están en el plan se agrupan en "**N past set-asides**", que se abre al tocarlo.
+  - Los apartados que ya no están en el plan van aparte, en "**N past set-asides**": se ven abiertos si son 3 o menos y empiezan cerrados si hay más (en los dos casos se abren o cierran al tocar el título). Se cuenta por cantidad porque la app no guarda cuándo se quitó cada uno.
   - Botón **Edit plan**, que abre una ventana para crear, renombrar o borrar apartados y su % sugerido (hasta 6 apartados, máximo 100%; 0% = "solo montos que elijas").
 
 ---

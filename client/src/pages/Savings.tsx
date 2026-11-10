@@ -95,6 +95,9 @@ export function Savings() {
   )
 }
 
+// Hasta cuántos apartados viejos se muestran abiertos.
+const PAST_OPEN_MAX = 3
+
 function monthName(month: string) {
   return new Date(`${month}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' })
 }
@@ -168,9 +171,10 @@ function SavingsView({
         </div>
       )}
 
-      {/* Los que ya no están en el plan, guardados aparte para no estorbar. */}
+      {/* Los que ya no están en el plan, aparte. Se ven abiertos mientras sean
+          pocos; si se juntan muchos, empiezan cerrados para no estorbar. */}
       {past.length > 0 && (
-        <details className="group mt-6">
+        <details className="group mt-6" open={past.length <= PAST_OPEN_MAX}>
           <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-ink-muted hover:text-ink">
             <ChevronDown aria-hidden className="size-4 transition-transform group-open:rotate-180" />
             {past.length === 1 ? '1 past set-aside' : `${past.length} past set-asides`}
