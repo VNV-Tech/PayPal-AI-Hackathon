@@ -414,9 +414,10 @@ function PaymentRow({ payment }: { payment: RecentPayment }) {
 }
 
 // Ejemplos para Zaytun: al presionarlos se abre el chat con el texto ya escrito.
+// En computadora se estira a la altura de lo que tiene al lado (la nota queda abajo).
 function TryAsking({ prompts }: { prompts: string[] }) {
   return (
-    <Card className="h-fit bg-brand-50">
+    <Card className="flex flex-col bg-brand-50">
       <h2 className="flex items-center gap-2 font-semibold text-brand-900">
         <Sparkles aria-hidden className="size-4" />
         Try asking Zaytun
@@ -433,7 +434,7 @@ function TryAsking({ prompts }: { prompts: string[] }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-ink-muted">It always asks before doing anything on your PayPal account.</p>
+      <p className="mt-auto pt-3 text-xs text-ink-muted">It always asks before doing anything on your PayPal account.</p>
     </Card>
   )
 }
