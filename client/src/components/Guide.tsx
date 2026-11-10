@@ -29,21 +29,26 @@ function StepHelp({ step, onShowMe }: { step: JourneyStep; onShowMe: (s: TourSte
   )
 }
 
+// Link discreto al final de Home para prender la guía (si está apagada).
+export function GuideToggle() {
+  const { guideOff, setGuideOff } = useLayout()
+  if (!guideOff) return null
+  return (
+    <p className="mt-6 text-center text-xs text-ink-muted">
+      <button type="button" onClick={() => setGuideOff(false)} className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">
+        <Compass aria-hidden className="size-3.5" />
+        Want step-by-step hints? Turn on the guide
+      </button>
+    </p>
+  )
+}
+
 export function Guide({ title }: { title: string }) {
   const { journey: steps, showMe, guideOff, setGuideOff } = useLayout()
   const [open, setOpen] = useState(true)
 
-  if (guideOff) {
-    return (
-      <p className="mb-4 text-right text-xs text-ink-muted">
-        <button type="button" onClick={() => setGuideOff(false)} className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">
-          <Compass aria-hidden className="size-3.5" />
-          Want step-by-step hints? Turn on the guide
-        </button>
-      </p>
-    )
-  }
-  if (!steps) return null
+  // Apagada, la tarjeta no sale: el link para prenderla va al final de Home (GuideToggle).
+  if (guideOff || !steps) return null
 
   const current = currentStep(steps)
   const doneCount = steps.filter((s) => s.done).length

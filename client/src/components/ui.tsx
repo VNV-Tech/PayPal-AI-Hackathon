@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
-import { Info } from 'lucide-react'
+import { Info, RefreshCw } from 'lucide-react'
 
 // Componentes base reutilizables. Vanessa: aquí se ajusta el estilo global
 // de botones, tarjetas y etiquetas.
@@ -22,6 +22,22 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   return <button className={`${buttonBase} ${buttonStyles[variant]} ${className}`} {...props} />
+}
+
+// Volver a pedir los datos. Es un icono chico porque casi nunca hace falta:
+// la pantalla se actualiza sola cuando PayPal avisa de un pago.
+export function RefreshButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Refresh"
+      title="Refresh"
+      className="grid size-9 shrink-0 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface hover:text-ink"
+    >
+      <RefreshCw aria-hidden className="size-4" />
+    </button>
+  )
 }
 
 // Enlace con apariencia de botón (evita anidar <button> dentro de <a>).

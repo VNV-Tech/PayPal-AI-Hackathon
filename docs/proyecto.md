@@ -160,12 +160,13 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivo:** `client/src/pages/Overview.tsx`. Tiene **dos versiones**, una por modo.
 - **Para qué:** ver de un vistazo cómo vas y qué hacer después.
 - **Las dos versiones tienen el mismo orden:**
-  1. Una frase arriba que explica qué estás viendo.
-  2. Una **tarjeta grande azul marino** con el número más importante y **botones rápidos**.
+  1. Título y una frase de una línea; a la derecha, **Refresh** como icono chico (los números se actualizan solos).
+  2. Una **tarjeta grande del color del modo** con el número más importante y **botones rápidos**.
   3. Tarjetas o listas con el detalle.
-  4. "**Try asking the copilot**": ejemplos que **sí se pueden presionar**. Abren el chat con el texto ya escrito, pero no lo envían solos.
-- **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask the copilot", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
-- **Personal:** aviso de que los apartados son virtuales, **lo que te queda para gastar** (número grande), aviso si hay pagos por revisar, **lo apartado** este mes y los **últimos pagos** recibidos.
+  4. Al final, el link para prender la guía (*"Want step-by-step hints? Turn on the guide"*), solo si está apagada.
+- **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask Zaytun", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
+- **Personal:** **lo que te queda para gastar** (número grande, con el botón "Review N payments" si hay pagos por revisar), **lo apartado** este mes (los apartados viejos solo si recibieron algo este mes) y los **últimos pagos** recibidos.
+- **9 nov, pantallas más limpias (aprobado por el equipo con un antes y después):** se quitaron la etiqueta "BUSINESS/PERSONAL", la tarjeta "Try asking Zaytun" (sus ejemplos ya salen en el chat), la nota de "virtual" en Home Personal (sigue en Savings) y el aviso "You got paid!" (lo dice el botón de la tarjeta).
 - **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 
 ### La guía: te acompaña en todo el proceso (sin IA, gratis)
@@ -260,10 +261,11 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivo:** `client/src/pages/Savings.tsx`
 - **Para qué:** decidir cuánto de lo cobrado guardar.
 - **Qué tiene:**
-  - Un aviso arriba: los apartados son **virtuales**, no se mueve dinero.
+  - Un aviso de una línea arriba: los apartados son **virtuales**, no se mueve dinero.
   - Tarjetas "**You got paid…** Set aside…?" con **Set aside** (usa los % del plan), **Choose amounts** (ventana para escribir cuánto va a cada apartado; no deja pasar del pago) y **Not this time**.
-  - **Collected** (cobrado del mes) y **Left to spend** (lo que queda para gastar).
-  - Una tarjeta por apartado con lo **juntado desde el principio** ("Saved so far") y lo de este mes.
+  - Una sola tarjeta **Left to spend** (lo que queda para gastar) y debajo de dónde sale: cobrado del mes y lo apartado.
+  - Una tarjeta por apartado con lo **juntado desde el principio** ("Saved so far") y lo de este mes. La frase "Zaytun suggests…" sale una vez, arriba de todos.
+  - Los apartados que ya no están en el plan se agrupan en "**N past set-asides**", que se abre al tocarlo.
   - Botón **Edit plan**, que abre una ventana para crear, renombrar o borrar apartados y su % sugerido (hasta 6 apartados, máximo 100%; 0% = "solo montos que elijas").
 
 ---
@@ -300,7 +302,7 @@ Esto es solo visual. Si algo sale mal, se regresa con un clic.
 | **Íconos** | Vienen de [Lucide](https://lucide.dev/icons): se busca el nombre ahí y se importa de `lucide-react` en la pantalla | Cambiar el ícono de Savings |
 | **Ilustraciones, imágenes** | Nuevas, en `client/public/` | Ilustración para pantallas vacías |
 | **Pantallas vacías, de carga y de error** | En cada pantalla | Un dibujo cuando no hay facturas |
-| **Los ejemplos** de "Try asking" y las sugerencias del chat | `Overview.tsx` (`BUSINESS_PROMPTS`, `PERSONAL_PROMPTS`) y `Copilot.tsx` (`SUGGESTIONS`, `WELCOME`) | Ejemplos nuevos |
+| **Los ejemplos** y las sugerencias del chat | `Copilot.tsx` (`SUGGESTIONS`, `WELCOME`) | Ejemplos nuevos |
 | **El tutorial**: textos, orden, cuántos pasos, cómo se ve | Textos en `client/src/lib/tour.ts`, aspecto en `client/src/components/Tour.tsx` | Otro tono, otro personaje, más o menos pasos |
 | **Modo oscuro**, animaciones, transiciones | `index.css` y componentes | Agregar modo oscuro |
 | **Versión para celular** | Todas las pantallas | Otro tipo de menú |
@@ -411,7 +413,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - La tabla en celular se desliza de lado.
 
 **Savings**
-- **El concepto confundía.** En las pruebas, Víctor pensó que la app había apartado dinero de verdad sin preguntarle. Ya hay un aviso de que es "virtual" en Home Personal y en Savings; falta ver si con eso basta.
+- **El concepto confundía.** En las pruebas, Víctor pensó que la app había apartado dinero de verdad sin preguntarle. Hay un aviso de que es "virtual" en Savings (en Home Personal se quitó el 9 nov para no saturar; el tutorial también lo explica); falta ver si con eso basta.
 - Los porcentajes de ejemplo (Taxes 20%, Emergency fund 10%) aparecen desde el inicio sin explicar de dónde salen.
 - "Set aside" y "Not this time" podrían explicarse mejor.
 
@@ -446,7 +448,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
 | 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Probado en Render con cuenta de Estados Unidos (#0028). Token de Banxico puesto en local y en Render y probado el 8 nov (FIX oficial; la fecha se muestra como AAAA-MM-DD) |
 | 6m | Apartados como en la app del banco: nombres libres, montos a la medida por pago (a mano y con el copiloto) y total acumulado | 8 nov | Víctor | ✅ Hecho (última excepción a "no más funciones"; decisión de Víctor) |
-| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | 🟡 Revisado el 8 nov a 390×844: nada se sale de lo ancho. Arreglado: ceros en dólares (antes "MX$0.00" junto a montos en USD) y Description en su propio renglón en "New invoice". Quedan detalles menores para cuando llegue el diseño de Vanessa: el texto del chat se corta, "Needs your approval" en dos renglones, "Set aside" solo en un renglón en Savings y "Refresh" ocupando un renglón en Home |
+| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | 🟡 Revisado el 8 nov a 390×844: nada se sale de lo ancho. Arreglado: ceros en dólares (antes "MX$0.00" junto a montos en USD) y Description en su propio renglón en "New invoice". Quedan detalles menores para cuando llegue el diseño de Vanessa: el texto del chat se corta, "Needs your approval" en dos renglones, "Set aside" solo en un renglón en Savings y "Refresh" ocupando un renglón en Home (este último arreglado el 9 nov: ahora es un icono) |
 | 6n | Moneda por defecto **USD** (en el formulario y en el copiloto; MXN se sigue pudiendo elegir) y paso 1 del tutorial con el nuevo enfoque (clientes en el extranjero en dólares o en México en pesos; ya no dice "keep their taxes in order") | 8 nov | Víctor | ✅ Hecho |
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
@@ -558,6 +560,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #49 | % opcional en el plan: al llegar un pago Zaytun propone montos para cada apartado (también en el ticket "Review all"); nunca inventa el de impuestos |
 | #50 | Arreglo: la fecha del tipo de cambio de Banxico sale como AAAA-MM-DD (antes "10/11/2026", que se leía como 11 de octubre). Token de Banxico puesto y probado |
 | #51 | Bitácora del 8 nov, documentos al día y guion del video borrador 2 (Zaytun protagonista) |
+| #52 | Pantallas más limpias (Home y Savings): menos información repetida, sin cambiar el diseño. Aprobado con un antes y después; tutorial probado en celular y computadora |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

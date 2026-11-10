@@ -1,8 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { Pencil, RefreshCw, Sparkles } from 'lucide-react'
-import { Badge, Button, ButtonLink, Card, EmptyState, Modal, Notice, PageHeader, Skeleton } from '../components/ui'
+import { ChevronDown, Pencil, Sparkles } from 'lucide-react'
+import { Badge, Button, ButtonLink, Card, EmptyState, Modal, Notice, PageHeader, RefreshButton, Skeleton } from '../components/ui'
 import { useLiveEvents } from '../lib/events'
-import { formatTotals } from '../lib/overview'
+import { formatTotals, sumTotals } from '../lib/overview'
 import { formatMoney } from '../lib/config'
 import {
   type CustomAllocations,
@@ -47,13 +47,10 @@ export function Savings() {
     <>
       <PageHeader
         title="Savings"
-        description="Keep part of every payment for later: taxes, emergencies, anything you want."
+        description="Keep part of every payment for later."
         actions={
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={reload}>
-              <RefreshCw aria-hidden className="size-4" />
-              Refresh
-            </Button>
+          <div className="flex items-center gap-2">
+            <RefreshButton onClick={reload} />
             <Button data-tour="savings-plan" onClick={() => setEditing(true)} disabled={!data}>
               <Pencil aria-hidden className="size-4" />
               Edit plan
@@ -63,9 +60,7 @@ export function Savings() {
       />
 
       <Notice className="mb-6">
-        These set-asides are <strong>virtual</strong>, like a notebook: no money moves. Every time you get paid,
-        you decide how much of it goes to each one, using your plan's percentages or amounts you choose. Create
-        or delete set-asides with Edit plan.
+        Set-asides are <strong>virtual</strong>, like a notebook: no money moves.
       </Notice>
 
       {loadError ? (
@@ -114,6 +109,9 @@ function SavingsView({
   onEdit: () => void
 }) {
   const month = monthName(data.month)
+  const current = data.buckets.filter((b) => b.percent !== null)
+  const past = data.buckets.filter((b) => b.percent === null)
+  const setAside = sumTotals(data.buckets.flatMap((b) => b.amounts))
   return (
     <>
       {data.pending.length > 0 && (
@@ -141,23 +139,22 @@ function SavingsView({
         </section>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <p className="text-sm font-medium text-ink-muted">Collected in {month}</p>
-          <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums">{data.paid ? formatTotals(data.paid) : '—'}</p>
-          <p className="mt-1 text-xs text-ink-muted">{data.paid ? 'Payments received via PayPal' : "Couldn't load payments from PayPal"}</p>
-        </Card>
-        <Card className="bg-brand-50">
-          <p className="text-sm font-medium text-brand-900">Left to spend</p>
-          <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums text-brand-900">
-            {data.paid ? formatTotals(data.available) : '—'}
-          </p>
-          <p className="mt-1 text-xs text-ink-muted">Collected minus what you set aside</p>
-        </Card>
-      </div>
+      {/* Una sola tarjeta: lo que queda, y abajo de dónde sale. */}
+      <Card className="bg-brand-50">
+        <p className="text-sm font-medium text-brand-900">Left to spend in {month}</p>
+        <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums text-brand-900">
+          {data.paid ? formatTotals(data.available) : '—'}
+        </p>
+        <p className="mt-1 text-xs text-ink-muted">
+          {data.paid
+            ? `Collected ${formatTotals(data.paid)} via PayPal · set aside ${formatTotals(setAside)}`
+            : "Couldn't load payments from PayPal"}
+        </p>
+      </Card>
 
-      <h2 className="mt-8 mb-3 font-semibold text-ink">Your set-asides</h2>
-      {data.buckets.length === 0 ? (
+      <h2 className="mt-8 font-semibold text-ink">Your set-asides</h2>
+      <p className="mb-3 text-xs text-ink-muted">When you get paid, Zaytun suggests how much goes to each one, or you choose.</p>
+      {current.length === 0 ? (
         <EmptyState
           title="No set-asides yet"
           description="Add one, for example Taxes. Every time you get paid, you'll be asked whether to set part of it aside."
@@ -165,10 +162,25 @@ function SavingsView({
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
-          {data.buckets.map((b) => (
+          {current.map((b) => (
             <BucketCard key={b.id} bucket={b} month={month} />
           ))}
         </div>
+      )}
+
+      {/* Los que ya no están en el plan, guardados aparte para no estorbar. */}
+      {past.length > 0 && (
+        <details className="group mt-6">
+          <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-ink-muted hover:text-ink">
+            <ChevronDown aria-hidden className="size-4 transition-transform group-open:rotate-180" />
+            {past.length === 1 ? '1 past set-aside' : `${past.length} past set-asides`}
+          </summary>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            {past.map((b) => (
+              <BucketCard key={b.id} bucket={b} month={month} />
+            ))}
+          </div>
+        </details>
       )}
     </>
   )
@@ -369,13 +381,6 @@ function BucketCard({ bucket, month }: { bucket: SavingsData['buckets'][number];
       <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{formatTotals(bucket.total)}</p>
       <p className="mt-1 text-xs text-ink-muted">
         Saved so far · {bucket.amounts.length ? formatTotals(bucket.amounts) : 'nothing'} in {month}
-      </p>
-      <p className="mt-1 text-xs text-ink-muted">
-        {bucket.percent === null
-          ? 'No longer in your plan'
-          : bucket.percent > 0
-            ? `${bucket.percent}% of payments you accept`
-            : 'Zaytun suggests amounts, or you choose'}
       </p>
     </Card>
   )

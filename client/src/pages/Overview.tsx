@@ -1,8 +1,8 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, RefreshCw, Sparkles, Wallet } from 'lucide-react'
-import { Guide } from '../components/Guide'
-import { Badge, Button, Card, Notice, Skeleton } from '../components/ui'
+import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, Sparkles, Wallet } from 'lucide-react'
+import { Guide, GuideToggle } from '../components/Guide'
+import { Badge, Button, Card, RefreshButton, Skeleton } from '../components/ui'
 import { type Suggestion, chatApi } from '../lib/chat'
 import { currentMonthName, formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
@@ -53,18 +53,6 @@ const loadSuggestions = () => chatApi.suggestions().then((r) => r.suggestions, (
 const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions()])
 const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get(), loadSuggestions()])
 
-const BUSINESS_PROMPTS = [
-  'Who still owes me money?',
-  'Invoice Acme Corp 12,500 MXN for the website redesign, billing@acme.example',
-  'Send a reminder for my overdue invoices',
-]
-
-const PERSONAL_PROMPTS = [
-  'How much have I set aside this month?',
-  'Set aside 25% of every payment for taxes',
-  'How much can I spend this month?',
-]
-
 function BusinessHome() {
   const { data, error, reload } = useHomeData(loadBusiness)
   const [overview, page, suggestions] = data ?? [null, null, []]
@@ -72,12 +60,7 @@ function BusinessHome() {
 
   return (
     <>
-      <HomeHeader
-        eyebrow="Business"
-        title="Good to see you"
-        description="Bill your clients and see who has paid. Every number comes from your PayPal account."
-        onRefresh={reload}
-      />
+      <HomeHeader title="Good to see you" description="Bill your clients and see who has paid." onRefresh={reload} />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
       <Guide title="Bill, get paid and send the CFDI" />
@@ -114,25 +97,23 @@ function BusinessHome() {
         />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <SectionTitle title="Recent invoices" link={{ to: '/invoices', label: 'See all' }} />
-          {!page ? (
-            <ListSkeleton />
-          ) : page.invoices.length === 0 ? (
-            <p className="py-6 text-sm text-ink-muted">
-              No invoices yet. Create your first one and your client can pay it with PayPal or a card.
-            </p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {page.invoices.slice(0, 5).map((inv) => (
-                <InvoiceRow key={inv.id} invoice={inv} />
-              ))}
-            </ul>
-          )}
-        </Card>
-        <TryAsking prompts={BUSINESS_PROMPTS} />
-      </div>
+      <Card className="mt-6">
+        <SectionTitle title="Recent invoices" link={{ to: '/invoices', label: 'See all' }} />
+        {!page ? (
+          <ListSkeleton />
+        ) : page.invoices.length === 0 ? (
+          <p className="py-6 text-sm text-ink-muted">
+            No invoices yet. Create your first one and your client can pay it with PayPal or a card.
+          </p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {page.invoices.slice(0, 5).map((inv) => (
+              <InvoiceRow key={inv.id} invoice={inv} />
+            ))}
+          </ul>
+        )}
+      </Card>
+      <GuideToggle />
     </>
   )
 }
@@ -142,22 +123,15 @@ function PersonalHome() {
   const [savings, overview, suggestions] = data ?? [null, null, []]
   const setAside = savings ? sumTotals(savings.buckets.flatMap((b) => b.amounts)) : []
   const pending = savings?.pending.length ?? 0
+  // Los apartados que ya no están en el plan solo salen si recibieron algo este mes.
+  const buckets = savings?.buckets.filter((b) => b.percent !== null || b.amounts.length > 0) ?? []
 
   return (
     <>
-      <HomeHeader
-        eyebrow="Personal"
-        title="Your money"
-        description="Decide what part of each payment you keep for later, and see what's left to spend."
-        onRefresh={reload}
-      />
+      <HomeHeader title="Your money" description="See what's left to spend after your set-asides." onRefresh={reload} />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
       <Guide title="Keep part of every payment" />
-
-      <Notice className="mb-4">
-        Set-asides are <strong>virtual</strong>, like a notebook: no money moves. They're a plan to help you budget.
-      </Notice>
 
       <Hero
         label={`Left to spend in ${currentMonthName()}`}
@@ -181,81 +155,53 @@ function PersonalHome() {
         }
       />
 
-      {pending > 0 && (
-        <Link
-          to="/savings"
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-5 py-4 text-sm text-brand-900 hover:border-brand-500"
-        >
-          <Wallet aria-hidden className="size-5 shrink-0" />
-          <span className="flex-1">
-            <strong>You got paid!</strong> {pending === 1 ? 'One payment is' : `${pending} payments are`} waiting: do you
-            want to set part of it aside?
-          </span>
-          <ArrowRight aria-hidden className="size-4" />
-        </Link>
-      )}
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <Card>
-            <SectionTitle title={`Set aside in ${currentMonthName()}`} link={{ to: '/savings', label: 'Edit plan' }} />
-            {!savings ? (
-              <ListSkeleton />
-            ) : savings.buckets.length === 0 ? (
-              <p className="py-6 text-sm text-ink-muted">
-                No set-asides yet. Add one, like Taxes, and every time you get paid you'll be asked how much to keep.
-              </p>
-            ) : (
-              <ul className="divide-y divide-line">
-                {savings.buckets.map((b) => (
-                  <BucketRow key={b.id} bucket={b} />
-                ))}
-              </ul>
-            )}
-          </Card>
-          <Card>
-            <SectionTitle title="Recent payments" />
-            {!overview ? (
-              <ListSkeleton />
-            ) : overview.recentPayments.length === 0 ? (
-              <p className="py-6 text-sm text-ink-muted">No payments this month yet. They show up here the moment you get paid.</p>
-            ) : (
-              <ul className="divide-y divide-line">
-                {overview.recentPayments.map((p) => (
-                  <PaymentRow key={p.id} payment={p} />
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-        <TryAsking prompts={PERSONAL_PROMPTS} />
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <SectionTitle title={`Set aside in ${currentMonthName()}`} link={{ to: '/savings', label: 'Edit plan' }} />
+          {!savings ? (
+            <ListSkeleton />
+          ) : buckets.length === 0 ? (
+            <p className="py-6 text-sm text-ink-muted">
+              No set-asides yet. Add one, like Taxes, and every time you get paid you'll be asked how much to keep.
+            </p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {buckets.map((b) => (
+                <BucketRow key={b.id} bucket={b} />
+              ))}
+            </ul>
+          )}
+        </Card>
+        <Card>
+          <SectionTitle title="Recent payments" />
+          {!overview ? (
+            <ListSkeleton />
+          ) : overview.recentPayments.length === 0 ? (
+            <p className="py-6 text-sm text-ink-muted">No payments this month yet. They show up here the moment you get paid.</p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {overview.recentPayments.map((p) => (
+                <PaymentRow key={p.id} payment={p} />
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
+      <GuideToggle />
     </>
   )
 }
 
-function HomeHeader({
-  eyebrow,
-  title,
-  description,
-  onRefresh,
-}: {
-  eyebrow: string
-  title: string
-  description: string
-  onRefresh: () => void
-}) {
+// Encabezado corto: el modo ya se ve arriba y los números se actualizan solos
+// (webhooks), así que Refresh queda como un icono chico.
+function HomeHeader({ title, description, onRefresh }: { title: string; description: string; onRefresh: () => void }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p className="text-xs font-bold tracking-wider text-brand-600 uppercase">{eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
-        <p className="mt-1 max-w-xl text-sm text-ink-muted">{description}</p>
+    <header className="mb-5 flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-ink-muted">{description}</p>
       </div>
-      <Button variant="ghost" onClick={onRefresh}>
-        <RefreshCw aria-hidden className="size-4" />
-        Refresh
-      </Button>
+      <RefreshButton onClick={onRefresh} />
     </header>
   )
 }
@@ -467,27 +413,3 @@ function BucketRow({ bucket }: { bucket: Savings['buckets'][number] }) {
   )
 }
 
-// Ejemplos para el copiloto: al presionarlos se abre el chat con el texto ya escrito.
-function TryAsking({ prompts }: { prompts: string[] }) {
-  return (
-    <Card className="h-fit bg-brand-50">
-      <h2 className="flex items-center gap-2 font-semibold text-brand-900">
-        <Sparkles aria-hidden className="size-4" />
-        Try asking Zaytun
-      </h2>
-      <ul className="mt-3 space-y-2">
-        {prompts.map((p) => (
-          <li key={p}>
-            <Link
-              to={`/copilot?q=${encodeURIComponent(p)}`}
-              className="block rounded-xl border border-brand-100 bg-surface px-4 py-3 text-sm text-ink hover:border-brand-500"
-            >
-              “{p}”
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-3 text-xs text-ink-muted">It always asks before doing anything on your PayPal account.</p>
-    </Card>
-  )
-}
