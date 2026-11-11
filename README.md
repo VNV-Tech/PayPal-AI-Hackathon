@@ -177,4 +177,4 @@ docs/     Team handbook and daily log (in Spanish)
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 VNV Tech (Víctor, Vanessa and Natalia)
