@@ -143,9 +143,11 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   depende de él.
 - Pendiente chico: el copiloto contestó una vez en español a una pregunta en
   inglés.
-- **Antes de entregar (11 nov):** dejar 3–4 pagos sin responder en Render (el
-  jurado no puede pagar facturas, así que lo que prueba es el ticket). Del 1 al
-  21 dic, prender el "despertador".
+- **Jurado en diciembre (decidido el 10 nov):** Home y Savings solo cuentan
+  pagos del mes en curso. Sin tocar código: el 1 de dic Víctor prende el
+  "despertador" y paga 3–4 facturas chicas con la cuenta de EE. UU. sin
+  responderlas (el jurado no puede pagar; prueba el ticket y el CFDI). A
+  mitad de mes, revisar y pagar 2 más.
 - `main` recibió una copia de `dev` el 29 oct (#29, desde la rama de Vanessa).
   `main` solo debe actualizarse desde `dev`.
 - **Validación (4 nov):** no hay asesoría de finanzas ni grupo de freelancers.
@@ -158,23 +160,17 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   oficial; si Banxico falla, usa una referencia del BCE.
 - **Para el video:** pagar con la cuenta de prueba de **Estados Unidos**; con
   Test Buyer (mexicana), PayPal muestra el cobro en pesos.
-- Las facturas #0020–#0024 ("QA ...") del Sandbox se ven en Render: limpiar la
-  demo antes de entregar y dejar una factura pagada en USD.
+- **Demo de Render (10 nov):** plan *Taxes 30%*, *Savings*, *Electricity*.
+  Lone Star Apps: #0029 y #0031 pagadas con CFDI en USD; #0030 ($450) sin
+  pagar a propósito. Las "QA" #0020–#0024 se quedan (PayPal no borra pagadas).
 - **Saldo de Anthropic (8 nov): $14.65.** Alcanza hasta el 21 dic aun en el
   peor caso (~$10.50). Recargar solo si baja de ~$11 antes del 1 dic.
-- **Video (plan del 9 nov):** guion borrador 2 en `docs/video-script.md`
-  (a Víctor le gustó; lo revisa con su hermana antes de grabar). Estilo
-  aprobado: el **clip de prueba** del 9 nov, en `~/Documentos/vnv-video/`
-  (fuera del repo; `LEEME.md` dice cómo rehacerlo): **Claude graba la app de
-  Render** con `puppeteer-core` + `ffmpeg-static` (en el scratchpad, no en el
-  proyecto; no hay OBS ni ffmpeg en la compu) y le pone efectos con
-  **Remotion**, mientras **Víctor paga** a mano con la cuenta de prueba de
-  EE. UU. Cliente: *Lone Star Apps*. Narra probablemente Víctor. Abrir con
-  "Zaytun habla primero cuando te pagan", no con "crear una factura". Antes de
-  grabar: limpiar la demo (el plan de Render es Saving/Gas/"Suscriptions";
-  el guion pide *Taxes 30%*) y responder los pagos que esperan en Savings.
-- **Diciembre:** Home y "Recent payments" solo cuentan pagos del mes en curso;
-  si nadie paga en dic, el jurado ve $0. Por decidir antes de entregar.
+- **Video (10 nov):** guion final = borrador 3 en `docs/video-script.md`
+  (palabras de Víctor, sin tecnicismos; narra Víctor). Todo fuera del repo en
+  `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo rehacerlo). La base es
+  la **v2** (`out/vnv-copilot-v2.mp4`, celular en 3D, 2:18); la v3 (app a
+  pantalla completa) no le gustó. Falta: voz, música sin copyright,
+  subtítulos, subir a YouTube **público** (regla de Devpost) y Submit.
 - **Premios de patrocinador:** solo dicen "mejor uso". APIMatic (SDK de
   Transaction Search) es el más defendible; Render, más débil. Explicarlos en
   Devpost y marcar las casillas de premios al dar Submit.
