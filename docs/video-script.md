@@ -1,37 +1,42 @@
-# Guion del video (borrador 2, 8 nov)
+# Guion del video (borrador 3, 10 nov)
 
-> **Cambios contra el borrador 1 (7 nov):** Zaytun es el protagonista, una
-> sola historia (cliente de Texas), colores nuevos (vino y amarillo), Zaytun
-> propone cuánto apartar y el tipo de cambio sale de Banxico. Se quitó la
-> escena de clientes en México: queda en una frase.
+> **Cambios contra el borrador 2 (8 nov):** misma historia y mismas tomas,
+> pero la narración ya **no tiene tecnicismos**: se escribe para alguien que
+> quiere comprar la app, no para un programador. Fuera de la voz quedan
+> "webhook", "SDK", "CFDI", "set-aside", "VAT" y "Banxico". Lo técnico sigue
+> en el video, pero **solo como texto chiquito en pantalla** (el jurado sí
+> califica cómo está hecho, y el premio de APIMatic necesita ver el SDK).
+> El video abre con Zaytun hablando primero, no con "crear una factura".
 >
-> **Para Natalia:** la historia la puedes cambiar; las notas en español son
-> para el equipo y la narración va en inglés. Mientras no estés, decide Víctor.
+> **10 nov:** Víctor no pudo reunirse con su hermana; el guion queda en sus
+> manos. Narra probablemente Víctor.
 >
-> **9 nov:** a Víctor le gustó; lo revisa con su hermana antes de grabar.
-> **Estilo aprobado:** el del clip de prueba en `~/Documentos/vnv-video/`
+> **Estilo aprobado (9 nov):** el del clip de prueba en `~/Documentos/vnv-video/`
 > (la app dentro de un celular en 3D, textos animados y acercamientos, hecho
-> con Remotion). Sugerencia: abrir con "Zaytun habla primero cuando te
-> pagan", no con "crear una factura": es lo que nos distingue.
+> con Remotion).
 
 - **Duración objetivo:** 2:45 (el jurado solo ve 3:00; dejamos 15 s de margen).
-- **Narración:** ~270 palabras, a ritmo tranquilo (~130 por minuto ≈ 2:05 de voz; el resto son pausas y tomas).
-- **Una sola historia:** *te paga un cliente de Texas → Zaytun aparece → te propone cuánto apartar y tu CFDI en dólares → apruebas.* Todo lo demás se ve de pasada.
+- **La esencia (10 nov, en palabras de Víctor):** las apps de pago son confusas (muchas pantallas y cosas que no sabes para qué son); la nuestra es bonita, simple e intuitiva, para cualquier persona. Facturar sin pasos extra, saber cuánto dinero tienes de verdad, tus datos fiscales una sola vez, y todo protegido. Hecha para freelancers: un mercado chico que puede ser el inicio de algo grande. Que la gente **disfrute entender sus finanzas**.
+- **Escena 1 (idea visual):** un remolino de pantallas y botones genéricos, sin marcas reales, que se limpia y deja solo nuestra app.
+- **Narración:** ~150 palabras (≈ 1:10 de voz). Menos voz, más app: que la pantalla, los textos animados y la música cuenten el resto. Frases cortas, con pausas.
+- **Una sola historia:** *te paga un cliente de Texas → Zaytun habla primero → te propone cuánto guardar y tu factura para el SAT → dices que sí.* Todo lo demás se ve de pasada.
+- **Regla de la voz:** si tu mamá no lo entendería, no va en la voz. Va como texto chiquito en pantalla o en Devpost.
 - **Voz:** una persona del equipo, grabada con el celular en un cuarto sin eco.
 - **Música:** sin copyright (la biblioteca gratis de CapCut o de YouTube), bajita.
 - **Datos de la demo:** todo de prueba. Nada de correos ni RFC reales.
+- **Honestidad:** no decir que la app "cumple con el SAT" ni que hay usuarios. Se dice lo que hace, no lo que promete.
 
 ---
 
-## Escena 1. El problema (0:00–0:12)
+## Escena 1. El gancho (0:00–0:12)
 
-**En pantalla:** Home en modo Business (barra vino), quieta. Texto grande
-encima: *"You just got paid. Now what?"*
+**En pantalla:** la app en el celular 3D. Le sale a Zaytun el globito
+*"Zaytun has a suggestion"* con el puntito rojo. Texto grande encima:
+*"You just got paid. Now what?"*
 
 **Narración:**
-> You're a freelance developer in Mexico, and a client in Texas just paid you
-> a thousand dollars. Great. But the job isn't done: you still need to set
-> money aside, and issue a Mexican tax invoice to report that income.
+> Money apps are confusing. Too many screens, too many buttons… and you never
+> know what half of them are for. We wanted the opposite.
 
 ## Escena 2. Conoce a Zaytun (0:12–0:25)
 
@@ -39,14 +44,13 @@ encima: *"You just got paid. Now what?"*
 1. Zoom suave a Zaytun flotando en la esquina.
 2. Corte al paso 1 del tutorial: *"Hi! I'm Zaytun, your copilot 👋"*.
 
-Texto: *"The AI makes the first move. You make the call."*
+Texto: *"Zaytun makes the first move. You make the call."*
 
 **Narración:**
-> Meet Zaytun, the AI copilot inside VNV Copilot, built on PayPal. Zaytun
-> makes the first move when you get paid. But it never acts on its own: every
-> change needs your approval.
+> This is VNV Copilot, made for freelancers. And this is Zaytun: your first
+> time here, it shows you around, screen by screen.
 
-## Escena 3. Cobrar hablando con Zaytun (0:25–0:50)
+## Escena 3. Cobrar con un mensaje (0:25–0:50)
 
 **En pantalla:**
 1. Tocar a Zaytun → se abre el chat. Escribir:
@@ -56,10 +60,11 @@ Texto: *"The AI makes the first move. You make the call."*
 3. Clic en **Approve** → *"Invoice sent"*.
 4. Ir a **Invoices**: la factura aparece como **Sent**.
 
+**Texto en pantalla (chico):** *"Real PayPal invoice"*
+
 **Narración:**
-> I just tell Zaytun who to bill. It drafts a real PayPal invoice, in dollars,
-> and shows me an approval card. Nothing happens until I press Approve. Now
-> the invoice is on its way through PayPal.
+> Bill a client with one message. Zaytun writes the PayPal invoice… and
+> waits for your OK.
 
 ## Escena 4. Te pagan y Zaytun habla primero (0:50–1:28) ⭐
 
@@ -70,57 +75,52 @@ Texto: *"The AI makes the first move. You make the call."*
 3. A Zaytun le sale el globito *"Zaytun is on it…"* y luego *"Zaytun has a
    suggestion"* con el puntito rojo.
 4. Tocar a Zaytun: su mensaje con la **tarjeta para apartar** (montos para
-   cada apartado) y la pregunta del CFDI.
+   cada apartado) y la pregunta de la factura del SAT.
 
-**Texto en pantalla:** *"No refresh. PayPal webhook → Zaytun."*
+**Texto en pantalla:** grande *"You didn't lift a finger."* · chico
+*"PayPal webhooks"*
 
 **Narración:**
-> My client pays on PayPal, as usual. I don't refresh anything: PayPal
-> notifies the app, the invoice turns to Paid on its own… and Zaytun speaks
-> first. It suggests how much of this payment to put in each of my
-> set-asides, and asks if I need a tax invoice.
+> When they pay, Zaytun speaks first: here's what to set aside, and here's
+> your tax invoice. No extra steps.
 
-## Escena 5. Aprobar y emitir el CFDI en dólares (1:28–2:02)
+## Escena 5. Decir que sí y listo (1:28–2:02)
 
 **En pantalla:**
 1. Clic en **Approve** en la tarjeta del apartado.
 2. Contestar en el chat: *"Yes, 0% VAT, the client is in the United States"*.
-3. Aparece la tarjeta **Issue CFDI** (se ve *"Exchange rate … (Banxico,
-   2026-11-…)"*) → **Approve**.
+3. Aparece la tarjeta **Issue CFDI** (se ve el tipo de cambio) → **Approve**.
 4. Abrir **Tax info** de esa factura: *CFDI issued ✓*, abrir el **PDF** y
    mostrarlo 2 segundos.
 
-**Texto en pantalla (pequeño):** *"Sandbox: test documents, no legal validity."*
+**Texto en pantalla:** grande *"Seconds, not an afternoon."* · chico
+*"Sandbox: test documents, no legal validity."*
 
 **Narración:**
-> I approve the set-aside. For the tax invoice, I choose the VAT rate and the
-> country: the app never decides my taxes for me. One more approval, and the
-> CFDI is stamped in US dollars, with Banxico's official exchange rate.
+> Client abroad? Your invoice comes out in dollars. Client in Mexico? Enter
+> your tax info once, and that's it.
 
-## Escena 6. Lo que de verdad puedes gastar (2:02–2:20)
+## Escena 6. Lo que de verdad es tuyo (2:02–2:20)
 
 **En pantalla:**
 1. Cambiar a modo **Personal** (toda la app se pone amarilla, Zaytun viene
    también).
-2. **Savings:** los apartados con *"Saved so far"* y el botón **Choose
-   amounts** en un pago.
+2. **Savings:** los apartados con *"Saved so far"*.
 3. Home Personal: *"Left to spend"* en grande.
 
 **Narración:**
-> In Personal mode, set-asides work like a notebook: no money moves, but I
-> always know what's really mine to spend. And it works with clients in
-> Mexico too, in pesos and in Spanish.
+> And in Personal mode, you finally know how much money is really in your
+> hands.
 
-## Escena 7. Cómo está hecho (2:20–2:37)
+## Escena 7. Por qué confiar (2:20–2:37)
 
-**En pantalla:** el diagrama del README (o una versión simple):
-PayPal Invoicing · Transaction Search (PayPal Server SDK) · Webhooks · Claude ·
-Facturama · Banxico · Render. Resaltar *"Approval enforced by the server"*.
+**En pantalla:** el diagrama simple, con texto chico y rápido para el jurado:
+*PayPal Invoicing · PayPal Server SDK · Webhooks · Claude · Facturama*.
+Resaltar en grande: *"Your approval is built in."*
 
 **Narración:**
-> Under the hood: PayPal Invoicing, Transaction Search through the official
-> PayPal Server SDK, and webhooks, with Claude as Zaytun's brain. The approval
-> rule isn't just a prompt: the server enforces it.
+> Built on PayPal, and protected by your approval: nothing happens without
+> you.
 
 ## Escena 8. Cierre (2:37–2:45)
 
@@ -128,7 +128,9 @@ Facturama · Banxico · Render. Resaltar *"Approval enforced by the server"*.
 *"VNV Copilot — vnv-copilot.onrender.com"*
 
 **Narración:**
-> VNV Copilot, with Zaytun. The AI makes the first move. You make the call.
+> Simple. Beautiful. Made for freelancers… and maybe the start of something
+> bigger. VNV Copilot, with Zaytun. The AI makes the first move. You make the
+> call.
 
 ---
 
@@ -157,7 +159,8 @@ Facturama · Banxico · Render. Resaltar *"Approval enforced by the server"*.
 
 ## Por decidir
 
-- [ ] Víctor y su hermana revisan la historia y la narración (9–10 nov).
+- [x] Revisión de la historia: queda en manos de Víctor (10 nov; no hubo reunión).
+- [ ] Víctor aprueba el borrador 3 (sin tecnicismos).
 - [ ] Quién narra (probablemente Víctor).
 - [x] Nombre del cliente de Texas: *Lone Star Apps* (inventado; 9 nov).
 - [x] Grabar en Render (9 nov).
