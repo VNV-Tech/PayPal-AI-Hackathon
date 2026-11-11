@@ -31,7 +31,7 @@ Con la app puedes:
 - **Saber cómo vas:** cuánto te deben, cuánto cobraste este mes y quién ya se pasó de la fecha de pago.
 - **Platicar con una IA** que hace todo eso por ti. La regla de oro: **la IA nunca hace nada sin que tú lo apruebes.**
 - **Apartar dinero:** cada vez que te pagan, la app te pregunta si quieres guardar una parte, por ejemplo para impuestos.
-- **Aprender a usarla en un minuto:** la primera vez, un tutorial con el copiloto te enseña cada pantalla. Y si después tienes dudas, **Zaytun te explica la app en el chat** (desde el 10 nov): qué hace cada pantalla y qué botón tocar ("What is the Savings screen for?"), con los nombres tal como salen en pantalla, aunque le escribas en español. Las instrucciones están en `systemPrompt()` de `server/src/ai/copilot.ts`.
+- **Aprender a usarla en un minuto:** la primera vez, un tutorial con el copiloto te enseña cada pantalla. Y si después tienes dudas, **Zaytun te explica la app en el chat** (desde el 10 nov): qué hace cada pantalla y qué botón tocar ("What is the Savings screen for?"), con los nombres tal como salen en pantalla, aunque le escribas en español. Las instrucciones están en `systemPrompt()` de `server/src/ai/copilot.ts`. **Zaytun solo habla de la app y de tu dinero de freelancer** (desde el 10 nov): si le piden otra cosa (un programa, una receta, una tarea), dice en una frase amable que eso no le toca y ofrece algo de la app. Saludos y preguntas generales como "¿qué es un CFDI?" sí las contesta. Así se ven más profesionales las respuestas y no se gastan créditos.
 
 ### Por qué
 
