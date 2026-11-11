@@ -165,12 +165,15 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   pagar a propósito. Las "QA" #0020–#0024 se quedan (PayPal no borra pagadas).
 - **Saldo de Anthropic (8 nov): $14.65.** Alcanza hasta el 21 dic aun en el
   peor caso (~$10.50). Recargar solo si baja de ~$11 antes del 1 dic.
-- **Video (10 nov):** guion final = borrador 3 en `docs/video-script.md`
-  (palabras de Víctor, sin tecnicismos; narra Víctor). Todo fuera del repo en
-  `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo rehacerlo). La base es
-  la **v2** (`out/vnv-copilot-v2.mp4`, celular en 3D, 2:18); la v3 (app a
-  pantalla completa) no le gustó. Falta: voz, música sin copyright,
-  subtítulos, subir a YouTube **público** (regla de Devpost) y Submit.
+- **Video final (11 nov):** la **v4** (`src/Promo.jsx`), en el estilo de un
+  video de referencia de Víctor: fondo blanco, palabras grandes, la app en
+  una ventana inclinada en 3D. **Sin voz: solo música y texto.** Todo fuera
+  del repo en `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo
+  rehacerlo). Dos versiones: `out/vnv-copilot-v4-eliza-4.mp4` (2:26, la más
+  pulida) y `out/vnv-copilot-v4-glass-2.mp4` (2:17; le faltan las dos últimas
+  correcciones). Víctor elige con su familia. Título, descripción y
+  miniaturas de YouTube en `~/Documentos/youtube-*`. Falta: subirlo
+  **público**, Devpost y Submit.
 - **Premios de patrocinador:** solo dicen "mejor uso". APIMatic (SDK de
   Transaction Search) es el más defendible; Render, más débil. Explicarlos en
   Devpost y marcar las casillas de premios al dar Submit.
