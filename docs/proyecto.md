@@ -457,7 +457,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 9–11 nov | Natalia + Víctor | 🟡 README al día (8 nov, con Zaytun). Devpost en borrador (7 nov): sin el video no deja mandarlo. Guion: **borrador 2** en `docs/video-script.md` (8 nov, Zaytun protagonista; a Víctor le gustó y lo revisa con su hermana). **Estilo aprobado el 9 nov:** el clip de prueba en `~/Documentos/vnv-video/` (Claude graba la app de Render y le pone efectos con Remotion; Víctor paga a mano; narra probablemente Víctor). Faltan el video, las capturas, el link en el README y, en Devpost, explicar APIMatic y Render y marcar los premios |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 9–11 nov | Natalia + Víctor | 🟡 README al día (8 nov, con Zaytun). Devpost en borrador (7 nov): sin el video no deja mandarlo. **Guion final (10 nov):** borrador 3 en `docs/video-script.md`, con las palabras de Víctor y sin tecnicismos; narra Víctor. **Video (10 nov):** grabado y armado fuera del repo en `~/Documentos/vnv-video/final/`; la base es la **v2** (celular en 3D, 2:18). Faltan la voz, la música sin copyright, los subtítulos, subirlo a YouTube **público** y, en Devpost, el link, las capturas, APIMatic y Render y marcar los premios |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -468,7 +468,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 4 nov | ✅ README nuevo, CFDI en dólares y prueba completa con cuenta de Estados Unidos |
 | 5 – 8 nov | ✅ Diseño de Vanessa en la app (8 nov): colores vino y amarillo, logo y Zaytun. Guion borrador 2. **Desde el 8 nov no entra ninguna función nueva** |
 | 9 nov | ✅ Clip de prueba del video (estilo aprobado) y pantallas más limpias (#52–#54). AG Grid descartado |
-| 10 – 11 nov | Guion final con los cambios del equipo, limpiar la demo, grabar y editar el video (Claude graba la app con efectos, Víctor paga a mano), Devpost, y link y capturas en el README |
+| 10 nov | ✅ Guion final, Zaytun explica pantallas y no se sale del tema (#56, #58), licencia VNV Tech (#57), arreglo de Banxico (#59), demo de Render lista y video grabado y armado (v2 es la base) |
+| 11 nov | Voz, música y subtítulos; subir a YouTube; Devpost, README con el video |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 
@@ -570,6 +571,11 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #53 | "Past set-asides" abiertos si son 3 o menos (pedido del equipo) |
 | #54 | Regresó la tarjeta "Try asking Zaytun", con más ejemplos y del alto de lo que tiene al lado; listas de Home de tamaño fijo (5 facturas, 3 pagos, con "See all") |
 | #55 | Bitácora del 9 nov, estilo del video, aviso de diciembre y premios |
+| #56 | Zaytun explica las pantallas y qué botón tocar (nombres en inglés, como en la app). Guion del video borrador 3 |
+| #57 | Licencia: "VNV Tech (Víctor, Vanessa and Natalia)" |
+| #58 | Zaytun solo habla de la app y del dinero del freelancer; lo demás lo rechaza amable |
+| #59 | Arreglo: el tipo de cambio de Banxico usa la fecha de hoy o anterior (antes salía uno de pasado mañana) |
+| #60 | Bitácora del 10 nov, demo de Render, plan de diciembre y estado del video |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

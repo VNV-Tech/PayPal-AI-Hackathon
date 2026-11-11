@@ -427,16 +427,52 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 ---
 
+### 📅 10 de noviembre de 2026
+
+**🍎 En simple:** día del video. Primero dejamos el **guion final** con tus palabras (sin tecnicismos: "las apps de dinero son confusas, la nuestra no"). Después mejoramos a Zaytun: ahora **explica las pantallas** de la app y **no contesta cosas que no tienen que ver** (le pediste un programa en Python y ya dice que no, amable). Cambiamos la licencia a **VNV Tech** con los tres nombres y arreglamos la **fecha de Banxico** en el CFDI. Luego **grabamos todo**: tú pagaste con OBS y Claude grabó la app sola. Salieron tres versiones del video: la **2 (celular en 3D) es la buena**; la 3 (app a pantalla completa) no te gustó. Mañana: tu voz, música, subtítulos y entregar.
+
+- **Guion (borrador 3):** en `docs/video-script.md`. Unas 150 palabras de voz (≈1:10), armadas con lo que tú quieres que se sienta: bonita, simple, para freelancers, "el inicio de algo grande". Se quitó "cumplir con el SAT" de la voz (no lo podemos afirmar).
+- **Zaytun explica la app (#56):** sabe qué hay en cada pantalla y qué botón tocar, y nombra los botones en inglés, como salen en la app, aunque le escribas en español.
+- **Zaytun no se sale del tema (#58):** programas, recetas o tareas → una frase amable y ofrece algo de la app. Saludos y "¿qué es un CFDI?" sí los contesta.
+- **Licencia (#57):** "VNV Tech (Víctor, Vanessa and Natalia)", solo nombres de pila.
+- **Banxico (#59):** antes salía un tipo de cambio con fecha de pasado mañana (Banxico lo fecha por el día de pago); ahora usa el de hoy o antes.
+- **Demo de Render:** plan de apartados *Taxes 30%*, *Savings* y *Electricity* (adiós Gas y "Suscriptions"). Facturas nuevas de *Lone Star Apps*: #0029 y #0031 ($1,000 c/u, pagadas, con CFDI en USD) y #0030 ($450, **sin pagar a propósito**, para que el jurado vea "quién te debe"). Noviembre: $2,090 cobrados.
+- **Video:** todo fuera del repo, en `~/Documentos/vnv-video/final/` (`out/vnv-copilot-v2.mp4` es la buena; dura 2:18). El pago lo grabaste con OBS; se recortaron la barra de favoritos y el aviso de pantalla completa.
+- **Reglas de Devpost (revisadas):** menos de 3 min, mostrar la app funcionando, en YouTube **público**, sin marcas ni música con copyright.
+
+**Decisiones del día:**
+- Guion final: el borrador 3, con tus palabras. Narras tú.
+- El video base es la **versión 2** (celular en 3D).
+- **Diciembre:** sin tocar código. El 1 de dic pagas 3–4 facturas chicas con la cuenta de EE. UU. y **no las respondes**, para que el jurado vea dinero en Home y pruebe el ticket de Zaytun; a mitad de mes, revisar y pagar 2 más.
+- Las facturas "QA" se quedan (PayPal no deja borrar facturas pagadas).
+
+**Lo aprendido:**
+- Escribir el guion con las palabras del equipo funciona mejor que adivinar "la esencia".
+- Al grabar con órdenes automáticas, nunca repetir el nombre de una toma: se graba encima y se pierde la buena.
+- Un "rechazar" a medias puede haber hecho ya parte del trabajo: revisar antes de repetir.
+
+**🔧 En técnico:**
+- **#56/#58:** `systemPrompt()` en `server/src/ai/copilot.ts` con un mapa de pantallas y botones, la regla de citar la interfaz en inglés y la de quedarse en tema. Probado en local con preguntas buenas y malas.
+- **#59:** `server/src/exchangeRate.ts` pide `SF60653/datos/{hoy-10}/{hoy}` (hora de CDMX) y usa el último dato válido, en vez de `oportuno`.
+- **Video:** Remotion 4.0.542 (`src/Video.jsx` v1/v2, `src/Journey.jsx` v3) + `live.mjs` / `live-desk.mjs` (grabadoras de `puppeteer-core` manejadas por órdenes en un archivo). Render ~20 min por versión.
+- Typecheck y `oxlint` limpios en cada PR.
+
+---
+
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Mañana, 10 nov (empieza el video):**
-- [ ] Traer el **guion con los cambios** de tu hermana (y decidir quién narra; probablemente tú).
-- [ ] Decidir con Claude la **limpieza de la demo** en Render antes de grabar: el plan necesita *Taxes 30%* para el guion y "Suscriptions" está mal escrito. Claude te dice exactamente qué cambia antes de tocar nada.
-- [ ] Decidir qué hacer para que en **diciembre** Home no salga en $0 (solo cuenta pagos del mes en curso): por ejemplo, pagar una o dos facturas el 1 de dic o mostrar los últimos pagos aunque sean del mes pasado.
-- [ ] Prender el **"despertador"** de Render mientras se graba.
-- [ ] Tener a la mano el usuario y la contraseña de la **cuenta de prueba de Estados Unidos** (no se los pases a Claude: tú pagas a mano).
-- [ ] Antes de grabar: **responder los pagos** que esperan en Savings, para que no se mezclen en la escena del pago.
-- [x] ~~Grabar en Render o en la compu~~ (9 nov: Render) · ~~Nombre del cliente~~ (Lone Star Apps)
+**Mañana, 11 nov (entregar con un día de margen):**
+- [ ] Grabar la **voz** con el celular (texto en `docs/video-script.md`, partes "Narración"), en un cuarto sin eco, con 2 segundos de pausa entre escenas. Decirle a Claude dónde quedó el archivo.
+- [ ] Decirle a Claude **qué no te gustó** de la versión 3 y qué retocar de la 2.
+- [ ] Elegir **música** sin copyright (Biblioteca de audio de YouTube) o dejar que Claude proponga.
+- [ ] Subir el video final a **YouTube como Público** (Claude te dice el título y la descripción).
+- [ ] Devpost: link del video, capturas, marcar premios y **Submit**.
+- [ ] Cambiar Render para que publique desde `main`.
+- [x] ~~Guion final~~ · ~~Limpieza de la demo~~ · ~~Qué hacer en diciembre~~ · ~~Grabar las tomas~~ (10 nov)
+
+**1 de diciembre (en la mañana):**
+- [ ] Prender el **"despertador"** de Render.
+- [ ] Pagar **3–4 facturas chicas** con la cuenta de EE. UU. y **no responderlas** (para que el jurado tenga qué probar). A mitad de mes, revisar y pagar 2 más si ya las respondieron.
 
 **Para seguir:**
 - [ ] Enseñarles a **Vanessa** y **Natalia** cómo quedaron los colores, el logo y Zaytun.
