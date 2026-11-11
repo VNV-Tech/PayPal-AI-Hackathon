@@ -1,5 +1,15 @@
 # Guion del video (borrador 3, 10 nov)
 
+> **11 nov: el video final ya no lleva voz.** Víctor trajo un video de
+> referencia y se rehízo en ese estilo (v4): fondo blanco, palabras grandes
+> una por una, la app en una ventana inclinada en 3D y **solo música y
+> texto**. Las frases de pantalla salen de este guion ("Money apps are
+> confusing. We wanted the opposite.", "Bill a client with one message",
+> "You didn't lift a finger", "Here's what to set aside", "Your tax invoice,
+> in dollars", "What's really in your hands", "Built on PayPal. Your approval
+> is built in.", "Made for Mexican freelancers paid in dollars… and maybe the
+> start of something bigger."). La narración de abajo queda como referencia.
+
 > **Cambios contra el borrador 2 (8 nov):** misma historia y mismas tomas,
 > pero la narración ya **no tiene tecnicismos**: se escribe para alguien que
 > quiere comprar la app, no para un programador. Fuera de la voz quedan

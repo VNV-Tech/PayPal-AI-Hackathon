@@ -459,15 +459,43 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 ---
 
+### 📅 11 de noviembre de 2026
+
+**🍎 En simple:** día del video final, y quedó **otro video**. Trajiste uno de referencia (el promo de un club universitario) y lo rehicimos en ese estilo: **fondo blanco, palabras enormes una tras otra**, la app en una ventana que entra inclinada en 3D y se acerca a los botones, un círculo vino con punto amarillo para pasar de escena y el logo armándose al principio y al final. **Ya no lleva voz**: solo música y texto. Escogiste canciones de la Biblioteca de audio de YouTube y quedaron dos versiones; se las vas a enseñar a tus hermanas y amigos para elegir. También quitamos detalles: las rayitas rojas del corrector, circulitos que no caían en el botón, el aviso de Chrome en español y un final que se cortaba. Mañana: subirlo y entregar.
+
+- **Video v4 (#61, solo documentos):** fuera del repo, en `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo rehacerlo). La v2 y la v3 se quedan como respaldo.
+- **Dos versiones:** *Good Mornin' Miss Eliza* (`out/vnv-copilot-v4-eliza-4.mp4`, 2:26, la más pulida) y *Phillip Glass Elevator* (`out/vnv-copilot-v4-glass-2.mp4`, 2:17). Los cambios de escena caen en el ritmo de cada canción.
+- **La canción de la referencia** era *Whiplash* (Hank Levy): tiene copyright, no se puede usar.
+- **Correcciones:** la escena de la factura se volvió a grabar sin corrector de ortografía (sin darle Approve, para no crear otra factura); los circulitos caen sobre **Approve** y **Complete Purchase**; en Miss Eliza el final se alarga para que la canción termine sola, con todo apareciendo más despacio.
+- **Para quién es:** el final ahora dice *"Made for Mexican freelancers paid in dollars…"*. El jurado califica "para quién es" y antes solo decía "freelancers".
+- **Reglas revisadas otra vez:** usar IA para el video está permitido; menos de 3 min, app funcionando, YouTube público, sin música con copyright, en inglés. La pantalla de pago de PayPal se queda (es el organizador y hay que mostrar la app funcionando); las tarjetas de prueba no traen logos. El repo es público con licencia MIT visible.
+- **YouTube:** título, descripción y dos miniaturas listos en `~/Documentos/youtube-video.txt` y `youtube-miniatura-1.jpg` / `-2.jpg`.
+
+**Decisiones del día:**
+- El video es la **v4**, sin voz (música y texto). Se quitan la voz y los subtítulos del plan.
+- Canción: Miss Eliza o Glass Elevator, la que ganen tus hermanas y amigos. Si gana Glass, Claude la vuelve a hacer con las dos últimas correcciones.
+
+**Lo aprendido:**
+- Un video de referencia vale más que mil explicaciones: en una hora salió lo que no salía con descripciones.
+- Grabar con el navegador en el idioma del video (o con el corrector apagado) evita rayitas rojas.
+- No hacer dos renders al mismo tiempo: uno falló.
+
+**🔧 En técnico:**
+- `src/Promo.jsx` con escenas en `SCENES`; las props `bpm`/`offset` mueven cada corte al golpe más cercano (cada 2 tiempos) y `endSec` alarga el cierre (con todo el cierre espaciado en proporción, `k`).
+- `live-desk.mjs` lanza Chrome con `--lang=en-US --disable-spell-checking` y apaga `spellcheck` en cada campo al enfocarlo.
+- Tempo medido con un script propio (envolvente de ataques + autocorrelación): Eliza 130 BPM, Glass 168.5 BPM.
+
+---
+
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Mañana, 11 nov (entregar con un día de margen):**
-- [ ] Grabar la **voz** con el celular (texto en `docs/video-script.md`, partes "Narración"), en un cuarto sin eco, con 2 segundos de pausa entre escenas. Decirle a Claude dónde quedó el archivo.
-- [ ] Decirle a Claude **qué no te gustó** de la versión 3 y qué retocar de la 2.
-- [ ] Elegir **música** sin copyright (Biblioteca de audio de YouTube) o dejar que Claude proponga.
-- [ ] Subir el video final a **YouTube como Público** (Claude te dice el título y la descripción).
-- [ ] Devpost: link del video, capturas, marcar premios y **Submit**.
+**Mañana, 12 nov (Devpost cierra a las 14:00 CDMX):**
+- [ ] Decirle a Claude **qué canción ganó** (Miss Eliza o Glass Elevator).
+- [ ] Subir el video a **YouTube como Público**, con lo de `~/Documentos/youtube-video.txt` y una de las miniaturas. Pasarle el link a Claude.
+- [ ] Devpost: link del video, capturas, párrafos de APIMatic y Render, marcar premios y **Submit**.
+- [ ] Aceptar el PR del README con el video; luego Claude pasa `dev` → `main`.
 - [ ] Cambiar Render para que publique desde `main`.
+- [x] ~~Voz~~ (ya no hace falta) · ~~Música~~ · ~~Video final~~ (11 nov)
 - [x] ~~Guion final~~ · ~~Limpieza de la demo~~ · ~~Qué hacer en diciembre~~ · ~~Grabar las tomas~~ (10 nov)
 
 **1 de diciembre (en la mañana):**
@@ -476,7 +504,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 **Para seguir:**
 - [ ] Enseñarles a **Vanessa** y **Natalia** cómo quedaron los colores, el logo y Zaytun.
-- [ ] Que tu hermana **acepte la invitación** en Devpost antes del 11 de noviembre.
+- [ ] Que tu hermana **acepte la invitación** en Devpost **antes de dar Submit** (12 nov).
 - [ ] Revisar en Render → **Billing** las horas usadas y que no haya otro servicio gratis prendido.
 - [ ] Opcional: poner una **alerta de gasto** en console.anthropic.com → Billing.
 - [ ] Preguntarles a Vanessa y Natalia si quieren aparecer en el aviso de autoría del código (`LICENSE`).
@@ -487,14 +515,14 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - [x] ~~`CHAT_DAILY_LIMIT` = 50 en Render~~ (7 nov)
 
 **Con Claude:**
-- [ ] **10–11 nov:** grabar todo con el estilo del clip de prueba (Claude la app con efectos, tú el pago).
-- [ ] Grabar la voz y armar el video; Claude hace los subtítulos en inglés.
+- [x] ~~Grabar todas las tomas~~ (10 nov) · ~~Video final v4 con música~~ (11 nov)
+- [ ] Si gana Glass Elevator: rehacerla con las dos últimas correcciones (~20 min).
 - [ ] **Devpost:** borrador listo (7 nov); falta el link del video, las capturas, los párrafos de APIMatic y Render, marcar los premios y darle **Submit**.
 - [x] ~~Grabación de prueba~~ (9 nov: clip de 12 s en `~/Documentos/vnv-video/`)
 - [x] ~~Pantallas más limpias~~ (9 nov, #52–#54)
 - [ ] Agregar al **README** el link del video y capturas.
-- [ ] **11 de noviembre:** limpiar la demo, pasar todo a `main` y entregar, con un día de margen.
-- [ ] AG Grid: solo si el video y Devpost ya están.
+- [ ] **12 de noviembre:** README con el video, pasar todo a `main` y entregar antes de las 14:00 CDMX.
+- [x] ~~AG Grid~~ (descartado el 9 nov)
 - [x] ~~Guion borrador 2 con Zaytun~~ (8 nov)
 - [x] ~~Revisar cómo se ve en celular (6d)~~ (8 nov; quedan detalles menores)
 - [x] ~~README en inglés~~ (4 nov) y al día con Zaytun (8 nov)
