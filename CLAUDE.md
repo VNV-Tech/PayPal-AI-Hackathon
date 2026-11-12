@@ -166,9 +166,9 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
 - **Saldo de Anthropic (8 nov): $14.65.** Alcanza hasta el 21 dic aun en el
   peor caso (~$10.50). Recargar solo si baja de ~$11 antes del 1 dic.
 - **Video final (12 nov): público en YouTube,
-  <https://youtu.be/8-Zf7jrJ-nc>** (2:27). Es la **v4** (`src/Promo.jsx`):
+  <https://youtu.be/_gVjjB18GOU>** (2:27). Es la **v4** (`src/Promo.jsx`):
   fondo blanco, palabras grandes, la app en una ventana inclinada en 3D.
-  **Con voz** (la hermana de Víctor lee lo que sale en pantalla) sobre
+  **Sin voz** (se grabó una versión narrada, pero ganó la de solo música), con
   *Good Mornin' Miss Eliza* a volumen fijo. Todo fuera del repo en
   `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo rehacerlo); el
   archivo subido es `out/VNV-Copilot-FINAL.mp4`. El guion final está en

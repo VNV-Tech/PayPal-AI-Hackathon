@@ -487,7 +487,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 ### 📅 12 de noviembre de 2026 (noche del 11 y madrugada)
 
-**🍎 En simple:** el video cambió dos veces más y **ya está en YouTube, público**: <https://youtu.be/8-Zf7jrJ-nc>. Primero pulimos las frases de pantalla (por ejemplo, *"You didn't lift a finger"* sonaba a regaño y quedó *"Without lifting a finger"*). Después tu hermana grabó la narración y **el video sí lleva voz**: lee lo mismo que sale en pantalla, con la música de fondo a un solo volumen. Ganó la versión con voz y *Good Mornin' Miss Eliza* (2:27). El README ya tiene el video y tres capturas. Falta Devpost y pasar todo a `main`.
+**🍎 En simple:** el video cambió dos veces más (nota: al final, el 12 nov a mediodía, se cambió por la versión **sin voz**, mismo link de abajo) y **ya está en YouTube, público**: <https://youtu.be/_gVjjB18GOU>. Primero pulimos las frases de pantalla (por ejemplo, *"You didn't lift a finger"* sonaba a regaño y quedó *"Without lifting a finger"*). Después tu hermana grabó la narración y **el video sí lleva voz**: lee lo mismo que sale en pantalla, con la música de fondo a un solo volumen. Ganó la versión con voz y *Good Mornin' Miss Eliza* (2:27). El README ya tiene el video y tres capturas. Falta Devpost y pasar todo a `main`.
 
 - **Guion nuevo en pantalla:** *"We built the opposite"*, *"First time? Zaytun shows you around."*, *"Bill a client with a single message."*, *"Without lifting a finger."*, *"Your month, already planned."* (chico: *"You approve it. Zaytun does the rest."*), *"In seconds, not days."* y *"Taxes and bills first. The rest is yours."* (chico: *"Your disposable income, at a glance."*). Solo cambió el texto: los cortes siguen en el ritmo de cada canción.
 - **Voz:** la grabó la hermana de Víctor con el celular. Se recortó frase por frase y cada una se puso en su escena; algunas se acomodaron con lo que pasa en pantalla (*"Nothing happens until you approve it"* cuando sale la tarjeta, *"With just one tap"* en el clic). El cierre de Miss Eliza se grabó aparte y lee también el lema.
@@ -542,7 +542,7 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 **Con Claude:**
 - [x] ~~Grabar todas las tomas~~ (10 nov) · ~~Video final v4 con música~~ (11 nov)
 - [x] ~~Si gana Glass Elevator, rehacerla~~ (ganó Miss Eliza, con voz; 12 nov)
-- [ ] **Devpost:** borrador listo (7 nov); falta pegar el link del video (<https://youtu.be/8-Zf7jrJ-nc>), las capturas, los párrafos de APIMatic y Render, marcar los premios y darle **Submit**.
+- [ ] **Devpost:** borrador listo (7 nov); falta pegar el link del video (<https://youtu.be/_gVjjB18GOU>), las capturas, los párrafos de APIMatic y Render, marcar los premios y darle **Submit**.
 - [x] ~~Grabación de prueba~~ (9 nov: clip de 12 s en `~/Documentos/vnv-video/`)
 - [x] ~~Pantallas más limpias~~ (9 nov, #52–#54)
 - [x] ~~Agregar al README el link del video y capturas~~ (12 nov, #62)

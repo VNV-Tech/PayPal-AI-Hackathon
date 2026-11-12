@@ -1,9 +1,9 @@
 # Guion del video
 
-> **Video final (12 nov): <https://youtu.be/8-Zf7jrJ-nc>** (2:27, público).
+> **Video final (12 nov): <https://youtu.be/_gVjjB18GOU>** (2:27, público).
 > Es la v4 (fondo blanco, palabras grandes una por una, la app en una ventana
-> inclinada en 3D), con música y **con voz**: la narración lee lo mismo que
-> sale en pantalla. El guion que vale es el de aquí abajo; el borrador 3, con
+> inclinada en 3D), con *Good Mornin' Miss Eliza* y **sin voz** (al final ganó
+> la versión sin narración; la columna "La voz dice" ya no se usa). El guion que vale es el de aquí abajo; el borrador 3, con
 > la narración vieja, queda al final solo como referencia.
 
 ## Guion final (12 nov): lo que sale en pantalla y lo que dice la voz
