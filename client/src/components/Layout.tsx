@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, Sparkles, UserRound, X } from 'lucide-react'
+import { BriefcaseBusiness, CircleHelp, FileText, House, type LucideIcon, PiggyBank, UserRound } from 'lucide-react'
 import { APP_NAME } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import { isGuideOff, saveGuideOff, useJourney } from '../lib/journey'
@@ -8,12 +8,19 @@ import { MODES, type Mode, loadMode, saveMode } from '../lib/mode'
 import { type TourStep, isTourDone, markTourDone } from '../lib/tour'
 import { GuideBubble } from './Guide'
 import { Tour } from './Tour'
+import { type CopilotNotice, ZaytunAvatar, ZaytunBuddy } from './Zaytun'
 
-const NAV_ICONS: Record<string, LucideIcon> = {
+// La pestaña Copilot lleva la cara de Zaytun: es el mismo copiloto que flota en la esquina.
+const NAV_ICONS: Record<string, LucideIcon | 'zaytun'> = {
   '/': House,
   '/invoices': FileText,
   '/savings': PiggyBank,
-  '/copilot': Sparkles,
+  '/copilot': 'zaytun',
+}
+
+function NavIcon({ to, className }: { to: string; className: string }) {
+  const Icon = NAV_ICONS[to]
+  return Icon === 'zaytun' ? <ZaytunAvatar className={className} /> : <Icon aria-hidden className={className} />
 }
 
 const MODE_ICONS: Record<Mode, LucideIcon> = { business: BriefcaseBusiness, personal: UserRound }
@@ -25,8 +32,8 @@ export function Layout() {
   // Paso que ilumina el botón "Show me" de la guía.
   const [spotlight, setSpotlight] = useState<TourStep | null>(null)
   // Guía: apagada al principio; si el usuario la prende, acompaña en todas las pantallas.
-  const journey = useJourney(mode)
   const [guideOff, setGuideOffState] = useState(isGuideOff)
+  const journey = useJourney(mode, guideOff)
   const setGuideOff = (off: boolean) => {
     setGuideOffState(off)
     saveGuideOff(off)
@@ -35,13 +42,29 @@ export function Layout() {
   const { pathname } = useLocation()
   const nav = MODES[mode].nav
   // Aviso cuando el copiloto prepara algo por su cuenta (por ejemplo, al llegar un pago).
-  const [suggestion, setSuggestion] = useState<{ id: string; invoiceNumber?: string } | null>(null)
+  // Sin id: todavía lo está pensando (Claude tarda unos segundos).
+  const [suggestion, setSuggestion] = useState<CopilotNotice | null>(null)
 
   useLiveEvents((event) => {
     if (event.type === 'copilot.suggestion' && event.suggestionId) {
       setSuggestion({ id: event.suggestionId, invoiceNumber: event.invoiceNumber })
+    } else if (event.type === 'copilot.thinking') {
+      // Si no pudo (por ejemplo, el límite diario), se quita el "pensando"; una sugerencia ya lista no se toca.
+      if (event.status === 'failed') setSuggestion((s) => (s?.id ? s : null))
+      else setSuggestion((s) => (s?.id ? s : { invoiceNumber: event.invoiceNumber }))
     }
   })
+
+  // Por si el aviso final nunca llega (se cayó la conexión): el "pensando" no se queda para siempre.
+  const thinking = suggestion !== null && !suggestion.id
+  useEffect(() => {
+    if (!thinking) return
+    const timer = setTimeout(() => setSuggestion((s) => (s?.id ? s : null)), 90_000)
+    return () => clearTimeout(timer)
+  }, [thinking])
+
+  const guideVisible =
+    !!journey && !guideOff && !tourOpen && !spotlight && !suggestion && pathname !== '/' && pathname !== '/copilot'
 
   function openSuggestion(id: string) {
     setSuggestion(null)
@@ -56,8 +79,12 @@ export function Layout() {
   }
 
   return (
-    <div data-mode={mode} className="min-h-screen pb-20 sm:pb-0">
-      <header className="sticky top-0 z-10 bg-navy-900 text-white">
+    // Fuera del chat, espacio de más abajo para que Zaytun (flotando) no tape lo último de la página.
+    <div
+      data-mode={mode}
+      className={`min-h-screen ${pathname === '/copilot' ? 'pb-20 sm:pb-0' : 'pb-40 sm:pb-24'}`}
+    >
+      <header className="on-brand-scope sticky top-0 z-10 bg-brand-solid text-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
           <NavLink to="/" className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight">
             <img src="/favicon.svg" alt="" className="size-8 rounded-lg ring-1 ring-white/20" />
@@ -74,7 +101,7 @@ export function Layout() {
                   aria-pressed={mode === m}
                   onClick={() => changeMode(m)}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
-                    mode === m ? 'bg-brand-600 text-white shadow-sm' : 'text-white/70 hover:text-white'
+                    mode === m ? 'bg-surface text-brand-600 shadow-sm' : 'text-white/70 hover:text-white'
                   }`}
                 >
                   <Icon aria-hidden className="size-4" />
@@ -86,7 +113,6 @@ export function Layout() {
 
           <nav aria-label="Main" className="flex gap-1 max-sm:hidden">
             {nav.map((item) => {
-              const Icon = NAV_ICONS[item.to]
               return (
                 <NavLink
                   key={item.to}
@@ -94,11 +120,11 @@ export function Layout() {
                   end
                   className={({ isActive }) =>
                     `flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                      isActive ? 'bg-white text-navy-900' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                      isActive ? 'bg-surface text-ink' : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }`
                   }
                 >
-                  <Icon aria-hidden className="size-4" />
+                  <NavIcon to={item.to} className="size-4" />
                   {item.label}
                 </NavLink>
               )
@@ -133,7 +159,6 @@ export function Layout() {
         className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
       >
         {nav.map((item) => {
-          const Icon = NAV_ICONS[item.to]
           return (
             <NavLink
               key={item.to}
@@ -145,7 +170,7 @@ export function Layout() {
                 }`
               }
             >
-              <Icon aria-hidden className="size-5" />
+              <NavIcon to={item.to} className="size-5" />
               {item.label}
             </NavLink>
           )
@@ -153,36 +178,20 @@ export function Layout() {
       </nav>
 
       {/* En Home la guía es una tarjeta; en el chat estorbaría la caja de texto. */}
-      {journey && !guideOff && !tourOpen && !spotlight && !suggestion && pathname !== '/' && pathname !== '/copilot' && (
+      {guideVisible && journey && (
         <GuideBubble steps={journey} onShowMe={setSpotlight} onTurnOff={() => setGuideOff(true)} />
       )}
 
-      {suggestion && (
-        <div
-          role="status"
-          className="fixed right-4 bottom-24 left-4 z-20 flex items-center gap-3 rounded-2xl bg-navy-900 p-4 text-white shadow-xl sm:bottom-6 sm:left-auto sm:w-96"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600">
-            <Sparkles aria-hidden className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Your copilot has a suggestion</p>
-            <p className="text-xs text-white/70">
-              {suggestion.invoiceNumber ? `Invoice #${suggestion.invoiceNumber} was just paid.` : 'Something new happened.'} Take a
-              look?
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => openSuggestion(suggestion.id)}
-            className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-brand-50"
-          >
-            Review
-          </button>
-          <button type="button" onClick={() => setSuggestion(null)} aria-label="Dismiss" className="text-white/60 hover:text-white">
-            <X aria-hidden className="size-4" />
-          </button>
-        </div>
+      {/* Zaytun te acompaña en todas las pantallas menos en el chat (ahí ya
+          estás platicando con él). Al tocarlo, abre el chat o su sugerencia. */}
+      {pathname !== '/copilot' && (
+        <ZaytunBuddy
+          notice={suggestion}
+          onOpen={() => (suggestion?.id ? openSuggestion(suggestion.id) : navigate('/copilot'))}
+          onDismiss={() => setSuggestion(null)}
+          // En celular la guía ocupa todo el ancho de abajo: ahí Zaytun se esconde.
+          className={guideVisible ? 'max-sm:hidden' : ''}
+        />
       )}
 
       {tourOpen && (

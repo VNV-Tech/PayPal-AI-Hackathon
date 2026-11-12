@@ -10,6 +10,7 @@ import {
   TaxRequestNotFoundError,
   findTaxRequest,
   findTaxRequestByToken,
+  foreignCfdiSchema,
   getOrCreateTaxRequest,
   issueCfdi,
   getPublicTaxRequest,
@@ -36,10 +37,12 @@ router.post('/tax-info/requests', writeLimit, async (req, res) => {
   res.json(await getOrCreateTaxRequest(invoiceId));
 });
 
+const issueSchema = createSchema.extend({ foreign: foreignCfdiSchema.optional() });
+
 // Emitir el CFDI: el usuario ya lo confirmó en la ventana de la pantalla.
 router.post('/tax-info/cfdi', writeLimit, async (req, res) => {
-  const { invoiceId } = createSchema.parse(req.body);
-  res.json(await issueCfdi(invoiceId));
+  const { invoiceId, foreign } = issueSchema.parse(req.body);
+  res.json(await issueCfdi(invoiceId, foreign));
 });
 
 const formatSchema = z.enum(['pdf', 'xml']);

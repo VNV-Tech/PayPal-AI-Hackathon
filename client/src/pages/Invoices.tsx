@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, Copy, Download, ExternalLink, FileCheck2, Plus, Receipt, RefreshCw } from 'lucide-react'
 import { Badge, Button, ButtonLink, Card, EmptyState, Modal, PageHeader, Skeleton } from '../components/ui'
-import { formatDate, formatMoney } from '../lib/config'
+import { DEFAULT_CURRENCY, formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import {
   CURRENCIES,
@@ -14,7 +14,7 @@ import {
   displayStatus,
   invoicesApi,
 } from '../lib/invoices'
-import { CFDI_USES, TAX_REGIMES, type TaxRequest, taxInfoApi, taxLink } from '../lib/taxInfo'
+import { CFDI_USES, FOREIGN_COUNTRIES, type ForeignCfdi, TAX_REGIMES, type TaxRequest, taxInfoApi, taxLink } from '../lib/taxInfo'
 
 export function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[] | null>(null)
@@ -75,7 +75,8 @@ export function Invoices() {
     if (event.type !== 'invoice.updated') return
     reload()
     if (event.paypalEvent === 'INVOICING.INVOICE.PAID' && event.invoiceNumber) {
-      const taxReady = event.invoiceId && taxRequests[event.invoiceId]?.status === 'received'
+      const paidTax = event.invoiceId ? taxRequests[event.invoiceId] : undefined
+      const taxReady = paidTax?.status === 'received' && paidTax.amount?.currency_code === 'MXN'
       setNotice(
         taxReady
           ? `Invoice #${event.invoiceNumber} was just paid. 🎉 Your client's tax info is ready: open Tax info to issue the CFDI.`
@@ -324,6 +325,8 @@ function InvoiceTable({
 
 function TaxNote({ tax, className = '' }: { tax: TaxRequest | undefined; className?: string }) {
   if (!tax) return null
+  // En USD el cliente no llena nada: solo importa si ya se emitió.
+  if (tax.amount?.currency_code === 'USD' && !tax.cfdi) return null
   return (
     <p className={`text-xs text-ink-muted ${className}`}>
       {tax.cfdi ? 'CFDI issued ✓' : tax.status === 'received' ? 'Tax info ✓' : 'Tax info pending'}
@@ -429,17 +432,21 @@ function TaxInfoPanel({
   }
 
   const info = request?.taxInfo
+  const isForeign = invoice.amount?.currency_code === 'USD'
   return (
     <>
       <p className="text-sm text-ink-muted">
-        In Mexico, clients often need an official tax invoice (CFDI). Send this link to your client so they can fill in
-        their tax details. We save them for their next invoices too.
+        {isForeign
+          ? "Your client abroad doesn't need this tax invoice (CFDI), so there's nothing for them to fill in. You issue it to them to report this income, and you keep the copy."
+          : 'In Mexico, clients often need an official tax invoice (CFDI). Send this link to your client so they can fill in their tax details. We save them for their next invoices too.'}
       </p>
 
       {error ? (
         <p role="alert" className="mt-4 rounded-xl bg-danger-bg px-4 py-3 text-sm text-danger">{error}</p>
       ) : !request ? (
         <Skeleton className="mt-4 h-24 rounded-xl" />
+      ) : isForeign ? (
+        <CfdiSection invoice={invoice} request={request} enabled={cfdiEnabled} onIssued={onLoaded} />
       ) : (
         <>
           <div className="mt-4 flex gap-2">
@@ -526,6 +533,10 @@ function CfdiSection({
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Solo en USD. El IVA empieza sin elegir: lo decide el usuario, no la app.
+  const [vatRate, setVatRate] = useState<ForeignCfdi['vatRate'] | null>(null)
+  const [country, setCountry] = useState('USA')
+  const [taxId, setTaxId] = useState('')
 
   const cfdi = request.cfdi
   if (cfdi) {
@@ -537,8 +548,12 @@ function CfdiSection({
         </p>
         <p className="mt-1 text-xs break-all">UUID {cfdi.uuid}</p>
         <p className="mt-1 text-xs">
-          {cfdi.emailedTo ? `Emailed to ${cfdi.emailedTo}.` : "The email couldn't be sent; download it and share it."} Test
-          mode: no legal validity.
+          {cfdi.foreign
+            ? `Issued in USD at ${cfdi.foreign.exchangeRate.rate} MXN per USD (${cfdi.foreign.exchangeRate.source}), VAT ${cfdi.foreign.vatRate * 100}%. Download your copy; nothing was emailed to your client.`
+            : cfdi.emailedTo
+              ? `Emailed to ${cfdi.emailedTo}.`
+              : "The email couldn't be sent; download it and share it."}{' '}
+          Test mode: no legal validity.
         </p>
         <div className="mt-3 flex gap-2">
           {(['pdf', 'xml'] as const).map((format) => (
@@ -556,22 +571,22 @@ function CfdiSection({
     )
   }
 
+  const isForeign = invoice.amount?.currency_code === 'USD'
   const reason = !enabled
     ? "Issuing CFDIs isn't set up on this server yet."
-    : request.status !== 'received'
+    : !isForeign && request.status !== 'received'
       ? "You'll be able to issue the CFDI once your client sends their tax info."
       : !PAID_STATUSES.includes(invoice.status)
         ? 'You can issue the CFDI once this invoice is paid.'
-        : invoice.amount?.currency_code !== 'MXN'
-          ? 'For now, CFDIs can only be issued for invoices in MXN.'
-          : null
+        : null
   if (reason) return <p className="mt-4 text-xs text-ink-muted">{reason}</p>
 
   async function issue() {
     setBusy(true)
     setError(null)
     try {
-      onIssued(await taxInfoApi.issue(invoice.id))
+      const foreign = isForeign && vatRate ? { vatRate, country, ...(taxId.trim() ? { taxId: taxId.trim() } : {}) } : undefined
+      onIssued(await taxInfoApi.issue(invoice.id, foreign))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not issue the CFDI')
       setBusy(false)
@@ -581,10 +596,61 @@ function CfdiSection({
   return (
     <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm">
       <p className="font-semibold text-brand-900">Ready to issue the CFDI</p>
-      <p className="mt-1 text-xs text-ink-muted">
-        Facturama (test mode) will stamp it and email it to {request.taxInfo?.email}. The amount charged is treated as
-        including 16% VAT.
-      </p>
+      {isForeign ? (
+        <>
+          <p className="mt-1 text-xs text-ink-muted">
+            Facturama (test mode) will stamp it in USD at today's exchange rate. You'll appear as the issuer and your
+            client as the recipient, but nothing is emailed to them.
+          </p>
+          <fieldset className="mt-3" disabled={confirming}>
+            <legend className="text-xs font-semibold">VAT on this service</legend>
+            <div className="mt-1 flex gap-4 text-sm">
+              {(['0', '16'] as const).map((rate) => (
+                <label key={rate} className="flex items-center gap-1.5">
+                  <input type="radio" name="vat-rate" checked={vatRate === rate} onChange={() => setVatRate(rate)} />
+                  {rate}%
+                </label>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-ink-muted">
+              A client abroad doesn't make it 0% on its own: it depends on the service. If you're not sure, check with an
+              accountant. The amount charged is treated as including this VAT.
+            </p>
+          </fieldset>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="text-xs font-semibold">
+              Client's country
+              <select
+                value={country}
+                disabled={confirming}
+                onChange={(e) => setCountry(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-normal"
+              >
+                {Object.entries(FOREIGN_COUNTRIES).map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs font-semibold">
+              Client's tax ID (optional)
+              <input
+                value={taxId}
+                disabled={confirming}
+                maxLength={40}
+                onChange={(e) => setTaxId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-normal"
+              />
+            </label>
+          </div>
+        </>
+      ) : (
+        <p className="mt-1 text-xs text-ink-muted">
+          Facturama (test mode) will stamp it and email it to {request.taxInfo?.email}. The amount charged is treated as
+          including 16% VAT.
+        </p>
+      )}
       {error && (
         <p role="alert" className="mt-2 rounded-lg bg-danger-bg px-3 py-2 text-xs text-danger">
           {error}
@@ -597,11 +663,11 @@ function CfdiSection({
               Go back
             </Button>
             <Button onClick={issue} disabled={busy}>
-              {busy ? 'Issuing…' : 'Yes, issue and email it'}
+              {busy ? 'Issuing…' : isForeign ? 'Yes, issue it' : 'Yes, issue and email it'}
             </Button>
           </>
         ) : (
-          <Button onClick={() => setConfirming(true)}>
+          <Button onClick={() => setConfirming(true)} disabled={isForeign && !vatRate}>
             <FileCheck2 aria-hidden className="size-4" />
             Issue CFDI
           </Button>
@@ -683,7 +749,7 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
   const [email, setEmail] = useState('')
   const [company, setCompany] = useState('')
   const [items, setItems] = useState<ItemRow[]>([newRow()])
-  const [currency, setCurrency] = useState<NewInvoice['currency']>('MXN')
+  const [currency, setCurrency] = useState<NewInvoice['currency']>(DEFAULT_CURRENCY)
   const [terms, setTerms] = useState<NewInvoice['terms']>('NET_15')
   const [note, setNote] = useState('')
   // Factura fiscal (CFDI): solo aplica a clientes de México, o sea, facturas en MXN.
@@ -739,8 +805,12 @@ function NewInvoiceForm({ onCancel, onCreated }: { onCancel: () => void; onCreat
         <legend className="mb-2 text-sm font-semibold">Items</legend>
         <div className="space-y-2">
           {items.map((row, idx) => (
-            <div key={row.key} className="grid grid-cols-[1fr_4.5rem_6.5rem_auto] items-end gap-2">
-              <label className="text-sm">
+            // En celular, Description va en su propio renglón y Qty y Price abajo.
+            <div
+              key={row.key}
+              className={`grid grid-cols-[4.5rem_1fr_auto] items-end gap-2 sm:grid-cols-[1fr_4.5rem_6.5rem_auto] ${idx ? 'border-t border-line pt-2 sm:border-0 sm:pt-0' : ''}`}
+            >
+              <label className="col-span-3 text-sm sm:col-span-1">
                 <span className={idx ? 'sr-only' : 'mb-1 block text-ink-muted'}>Description</span>
                 <input required maxLength={200} value={row.name} onChange={(e) => updateItem(row.key, 'name', e.target.value)} className={inputClass} />
               </label>

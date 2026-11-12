@@ -41,8 +41,8 @@ export function markTourDone() {
 export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: "Hi! I'm your copilot 👋",
-    body: "I help freelancers in Mexico get paid, keep their taxes in order and know what they can spend. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
+    title: "Hi! I'm Zaytun, your copilot 👋",
+    body: "I'm a sunbird and your AI copilot. I help Mexican freelancers get paid by clients abroad (in dollars) or at home (in pesos), and plan what to set aside for taxes, bills and savings. Let me walk you through everything: it takes about two minutes. This is a demo with test money (PayPal Sandbox), so feel free to try anything. You can skip this tour and open it again anytime.",
   },
   {
     id: 'modes',
@@ -50,7 +50,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/',
     target: 'mode-switch',
     title: 'Two modes, two colors',
-    body: 'Purple is Business: billing your clients and getting paid. Orange is Personal: deciding what to do with the money you receive. Switch anytime up here.',
+    body: 'Burgundy is Business: billing your clients and getting paid. Yellow is Personal: deciding what to do with the money you receive. Switch anytime up here, and I come along in both.',
   },
   // Business: cobrar.
   {
@@ -91,7 +91,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/invoices',
     target: 'tax-*',
     title: 'Tax invoices (CFDI), handled',
-    body: "Many clients in Mexico need an official tax invoice. With Tax info you get a link where your client fills in their tax details just once. When they pay, issue the CFDI with one click and it's emailed to them with the PDF and XML. In this demo CFDIs are test documents.",
+    body: "Many clients in Mexico need an official tax invoice. With Tax info you get a link where your client fills in their tax details just once. When they pay, issue the CFDI with one click and it's emailed to them with the PDF and XML. Client abroad paying in USD? They fill in nothing: you issue the CFDI to report that income and keep the copy. In this demo CFDIs are test documents.",
   },
   // Personal: organizar lo que te pagan.
   {
@@ -108,7 +108,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/savings',
     target: 'savings-plan',
     title: 'Your savings plan',
-    body: 'Decide what part of every payment you keep for later: for example 30% for taxes and 10% for emergencies. Change it anytime with Edit plan.',
+    body: "Create set-asides with any name, like Taxes, Savings or Electricity. When you get paid, I'll suggest how much goes to each one. A fixed percent is optional. Add or delete them anytime with Edit plan.",
   },
   {
     id: 'savings-review',
@@ -116,7 +116,7 @@ export const TOUR_STEPS: TourStep[] = [
     route: '/savings',
     target: 'savings-review',
     title: 'Set aside each payment',
-    body: "Every time you get paid, I'll ask if you want to set aside part of it following your plan. It's a plan to help you budget: no money moves in PayPal.",
+    body: "Every time you get paid, I'll ask how much to set aside: your plan's percentages or amounts you choose. It's like a notebook to help you budget: no money moves.",
   },
   // El copiloto.
   {
@@ -135,13 +135,15 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 'proactive',
-    title: 'I make the first move',
-    body: "When a client pays, I'll notice and prepare what comes next: issue their CFDI and set aside your taxes. You'll see \"Your copilot has a suggestion\" at the bottom of the screen and a card on Home. Just review and approve.",
+    route: '/',
+    target: 'zaytun',
+    title: "I'm always with you",
+    body: "Here I am! I fly with you on every screen. When a client pays, I'll notice and prepare what comes next: issue their CFDI and set money aside. A bubble pops up next to me: tap me to review and approve. The Copilot tab is me too, for when you want to chat.",
   },
   {
     id: 'done',
     target: 'tour-button',
     title: "You're all set",
-    body: 'Open this tour again anytime with this button. Prefer step-by-step hints while you learn? Turn on the guide from Home.',
+    body: "Open this tour again anytime with this button. Prefer step-by-step hints while you learn? Turn on the guide from Home and I'll walk with you. See you around!",
   },
 ]

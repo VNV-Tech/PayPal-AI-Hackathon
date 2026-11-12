@@ -4,6 +4,7 @@ import { type JourneyStep, currentStep } from '../lib/journey'
 import type { TourStep } from '../lib/tour'
 import { useLayout } from '../lib/mode'
 import { Button, Card } from './ui'
+import { ZaytunAvatar } from './Zaytun'
 
 // La guía acompaña en todo el proceso, sin IA:
 // - Guide: tarjeta del Home con el camino completo.
@@ -28,21 +29,26 @@ function StepHelp({ step, onShowMe }: { step: JourneyStep; onShowMe: (s: TourSte
   )
 }
 
+// Link discreto al final de Home para prender la guía (si está apagada).
+export function GuideToggle() {
+  const { guideOff, setGuideOff } = useLayout()
+  if (!guideOff) return null
+  return (
+    <p className="mt-6 text-center text-xs text-ink-muted">
+      <button type="button" onClick={() => setGuideOff(false)} className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">
+        <Compass aria-hidden className="size-3.5" />
+        Want step-by-step hints? Turn on the guide
+      </button>
+    </p>
+  )
+}
+
 export function Guide({ title }: { title: string }) {
   const { journey: steps, showMe, guideOff, setGuideOff } = useLayout()
   const [open, setOpen] = useState(true)
 
-  if (guideOff) {
-    return (
-      <p className="mb-4 text-right text-xs text-ink-muted">
-        <button type="button" onClick={() => setGuideOff(false)} className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:underline">
-          <Compass aria-hidden className="size-3.5" />
-          Want step-by-step hints? Turn on the guide
-        </button>
-      </p>
-    )
-  }
-  if (!steps) return null
+  // Apagada, la tarjeta no sale: el link para prenderla va al final de Home (GuideToggle).
+  if (guideOff || !steps) return null
 
   const current = currentStep(steps)
   const doneCount = steps.filter((s) => s.done).length
@@ -143,11 +149,10 @@ export function GuideBubble({
       className="fixed right-4 bottom-24 left-4 z-20 rounded-2xl bg-surface p-4 shadow-xl ring-1 ring-line sm:right-auto sm:bottom-6 sm:left-6 sm:w-80"
     >
       <div className="flex items-start gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
-          <Compass aria-hidden className="size-4" />
-        </span>
+        {/* La guía también la da Zaytun. */}
+        <ZaytunAvatar className="size-9" />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold tracking-wider text-brand-600 uppercase">{label(current.firstTime)}</p>
+          <p className="text-xs font-bold tracking-wider text-brand-600 uppercase">Zaytun · {label(current.firstTime)}</p>
           <p className="font-semibold text-ink">{current.step.title}</p>
         </div>
         <button type="button" onClick={() => setOpen(false)} aria-label="Minimize guide" className="text-ink-muted hover:text-ink">

@@ -2,13 +2,15 @@
 // prepara propuestas sin que el usuario abra el chat. Nada se ejecuta solo:
 // todo llega como tarjetas para aprobar.
 //
-// Por ahora, un momento: cuando una factura se paga, propone emitir el CFDI
-// (si ya están los datos fiscales del cliente) y apartar parte del pago.
+// Momentos: cuando una factura se paga (propone emitir el CFDI y apartar parte
+// del pago) y cuando el usuario pide revisar todos los pagos pendientes de un
+// jalón desde Savings (propone un solo ticket).
 import { publish } from '../events.js';
 import { getInvoice } from '../paypal/invoices.js';
-import { getSavings } from '../savings.js';
+import { type PaymentReview, type SavingsBucket, getSavings } from '../savings.js';
 import { getOrCreateTaxRequest, taxLinkUrl } from '../taxInfo.js';
 import { ChatLimitError, createSuggestion } from './copilot.js';
+import { allInvoices } from './tools.js';
 
 // PayPal puede mandar el mismo aviso más de una vez: una sugerencia por factura.
 const handled = new Set<string>();
@@ -17,33 +19,57 @@ const IVA_RATE = 0.16;
 
 // Se juntan los datos aquí para que Claude no tenga que buscarlos: responde
 // más rápido, gasta menos y no se distrae con otras facturas.
-export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: string; event: string }> {
+export async function paidInvoiceFacts(invoiceId: string): Promise<{ title: string; event: string; note?: string }> {
   const [invoice, tax, savings] = await Promise.all([getInvoice(invoiceId), getOrCreateTaxRequest(invoiceId), getSavings()]);
+  // Otros pagos que se quedaron sin respuesta: van en el mismo ticket para ponerse al día.
+  const others = savings.pending.filter((p) => p.invoiceNumber !== invoice.number);
   const label = `#${invoice.number ?? '—'}`;
   const client = invoice.customer.company ?? invoice.customer.name ?? invoice.customer.email ?? 'the client';
   const amount = invoice.amount ? Number(invoice.amount.value) : 0;
   const currency = invoice.amount?.currency_code ?? 'MXN';
   const payment = savings.pending.find((p) => p.invoiceNumber === invoice.number);
 
+  const isMxn = currency === 'MXN';
+  // En USD no se propone la tarjeta: el IVA y el país los decide el usuario. La
+  // pregunta la agrega la app, porque con tarjetas Claude a veces no escribe nada.
+  const cfdiStep = isMxn ? 'issue_cfdi if possible, and ' : '';
+  const note =
+    !isMxn && !tax.cfdi
+      ? "Want to issue your CFDI to report this income? Tell me the VAT rate (0% or 16%) and your client's country. The rate depends on the service, so if you're not sure, check with an accountant."
+      : undefined;
+  const noCfdiQuestion = note
+    ? ' Do not propose issue_cfdi or ask about the CFDI in this message: the app adds that question after your cards. If the user later gives the VAT rate and country, propose issue_cfdi.'
+    : '';
+
   const facts = [
     `Invoice ${label} (id ${invoice.id}) from ${client} was just paid through PayPal: ${amount.toFixed(2)} ${currency}.`,
-    currency === 'MXN'
-      ? `The price includes 16% VAT: ${(amount - amount / (1 + IVA_RATE)).toFixed(2)} MXN of it is VAT.`
-      : 'It is not in MXN, so no CFDI can be issued for it yet.',
+    ...(isMxn ? [`The price includes 16% VAT: ${(amount - amount / (1 + IVA_RATE)).toFixed(2)} MXN of it is VAT.`] : []),
     tax.cfdi
       ? `The CFDI was already issued (folio ${tax.cfdi.folio}).`
-      : tax.status === 'received'
-        ? `We have the client's tax info (${tax.taxInfo?.name}, RFC ${tax.taxInfo?.rfc}): the CFDI can be issued with issue_cfdi.`
-        : `We don't have the client's tax info yet. Their link: ${taxLinkUrl(tax.token)}`,
+      : !isMxn
+        ? 'The client is abroad, so they need no tax info link and nothing is emailed to them, but the user may need to issue a CFDI in USD to report this income.'
+        : tax.status === 'received'
+          ? `We have the client's tax info (${tax.taxInfo?.name}, RFC ${tax.taxInfo?.rfc}): the CFDI can be issued with issue_cfdi.`
+          : `We don't have the client's tax info yet. Their link: ${taxLinkUrl(tax.token)}`,
     payment
-      ? `The payment is waiting for a set-aside decision (payment_id ${payment.id}); the current plan would set aside ${payment.proposal
-          .map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`)
-          .join(' and ')}.`
+      ? `The payment is waiting for a set-aside decision (payment_id ${payment.id}). ${planFacts(savings.plan)} ${proposalFacts(payment)}`
       : 'There is no set-aside decision pending for this payment.',
   ];
+  const title = `${client} paid invoice ${label}`;
+  if (!payment || !others.length) {
+    return {
+      title,
+      note,
+      event: `${facts.join(' ')} Propose only what applies to this invoice: ${cfdiStep}review_payment with set_aside if a decision is pending (with amounts you choose following the set-aside rules, or empty amounts to use the percentages).${isMxn ? ' If the tax info is missing, share the link instead.' : ''}${noCfdiQuestion}`,
+    };
+  }
+
+  // Hay más pagos pendientes: un solo ticket con el nuevo arriba y palomeado.
+  const lines = (await pendingPaymentLines(others)).map((l) => `- ${l}`).join('\n');
   return {
-    title: `${client} paid invoice ${label}`,
-    event: `${facts.join(' ')} Propose only what applies to this invoice: issue_cfdi if possible, and review_payment with set_aside if a decision is pending. If the tax info is missing, share the link instead.`,
+    title,
+    note,
+    event: `${facts.join(' ')} ${others.length} older payment(s) are also waiting for a set-aside decision:\n${lines}\nFirst write 2 or 3 short sentences for the user: what was just paid (and the CFDI or tax info link situation), then that you also included the ${others.length} older pending payment(s) so they can catch up. Then propose the cards: ${cfdiStep}for set-asides ONE review_payments card instead of review_payment, with this payment first and checked (payment_id ${payment.id}) and then the older ones, checking the ones you recommend and giving amounts per payment when the percentages don't cover it.${noCfdiQuestion}`,
   };
 }
 
@@ -51,9 +77,12 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
   if (handled.has(invoiceId)) return;
   handled.add(invoiceId);
 
+  // Claude tarda unos segundos: se avisa de inmediato que ya viene algo.
+  publish({ type: 'copilot.thinking', paypalEvent: 'COPILOT.THINKING', invoiceId, invoiceNumber });
+
   // Sin await: el webhook le responde a PayPal de inmediato.
   void paidInvoiceFacts(invoiceId)
-    .then(({ title, event }) => createSuggestion(title, event))
+    .then(({ title, event, note }) => createSuggestion(title, event, note))
     .then(
       (suggestion) =>
         publish({
@@ -66,7 +95,51 @@ export function onInvoicePaid(invoiceId: string, invoiceNumber: string | undefin
       (err: unknown) => {
         // Si falla (por ejemplo, se acabó el límite diario), los avisos normales siguen funcionando.
         handled.delete(invoiceId);
+        publish({ type: 'copilot.thinking', paypalEvent: 'COPILOT.THINKING', invoiceId, invoiceNumber, status: 'failed' });
         if (!(err instanceof ChatLimitError)) console.error('[copilot] No se pudo preparar la sugerencia:', err);
       },
     );
+}
+
+// El plan como lo ve Claude: nombres y % sugerido (0% = sin sugerencia fija).
+function planFacts(plan: SavingsBucket[]): string {
+  if (!plan.length) return 'The user has no set-asides yet.';
+  return `Their set-asides: ${plan.map((b) => (b.percent > 0 ? `${b.name} (default ${b.percent}%)` : `${b.name} (no default percent)`)).join(', ')}.`;
+}
+
+// Lo que apartarían los % del plan de un pago, o que no alcanza.
+function proposalFacts(p: PaymentReview): string {
+  const parts = p.proposal.filter((a) => Number(a.amount.value) > 0);
+  return parts.length
+    ? `With the percentages it would set aside ${parts.map((a) => `${a.amount.value} ${a.amount.currency_code} for ${a.name}`).join(' and ')}.`
+    : 'The percentages set aside nothing: suggest amounts.';
+}
+
+// Todos los pagos que esperan decisión, con el nombre del cliente, para que
+// Claude arme el ticket en una sola vuelta. null si no hay ninguno.
+export async function pendingPaymentsFacts(): Promise<string | null> {
+  const savings = await getSavings();
+  if (!savings.pending.length) return null;
+  const lines = await pendingPaymentLines(savings.pending);
+  return `The user pressed "Review all with AI" on the Savings screen. ${planFacts(savings.plan)} Payments waiting for a set-aside decision:\n${lines.map((l) => `- ${l}`).join('\n')}\nPropose ONE review_payments card with all of them (check the ones you recommend, short reason each, and amounts per payment following the set-aside rules when the percentages don't cover it). Write one short sentence before it.`;
+}
+
+// Un renglón por pago pendiente, con el nombre del cliente para que Claude no
+// tenga que buscarlo.
+async function pendingPaymentLines(pending: PaymentReview[]): Promise<string[]> {
+  // Las facturas solo dan el nombre del cliente; si fallan, se omite.
+  const invoices = await allInvoices().catch(() => []);
+  const clients = new Map(invoices.map((inv) => [inv.number, inv.customer.company ?? inv.customer.name ?? inv.customer.email]));
+  return pending.map((p) =>
+    [
+      `payment_id ${p.id}`,
+      p.invoiceNumber ? `invoice #${p.invoiceNumber}` : null,
+      p.invoiceNumber && clients.get(p.invoiceNumber) ? `client ${clients.get(p.invoiceNumber)}` : null,
+      `${p.amount.value} ${p.amount.currency_code}`,
+      p.date,
+      proposalFacts(p),
+    ]
+      .filter(Boolean)
+      .join(', '),
+  );
 }

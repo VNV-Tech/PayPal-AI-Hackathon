@@ -47,8 +47,20 @@ export interface NewInvoice {
 
 export type InvoiceAction = 'send' | 'remind' | 'cancel' | 'delete'
 
+// Pedidos de la lista que siguen en camino. Si dos partes de la app piden la
+// misma página a la vez (la pantalla y la guía), comparten la respuesta en vez
+// de ir dos veces a PayPal.
+const listInFlight = new Map<number, Promise<InvoicePage>>()
+
 export const invoicesApi = {
-  list: (page = 1) => api<InvoicePage>(`/invoices?page=${page}`),
+  list: (page = 1) => {
+    let req = listInFlight.get(page)
+    if (!req) {
+      req = api<InvoicePage>(`/invoices?page=${page}`).finally(() => listInFlight.delete(page))
+      listInFlight.set(page, req)
+    }
+    return req
+  },
   create: (input: NewInvoice) => api<Invoice>('/invoices', { method: 'POST', body: JSON.stringify(input) }),
   run: (id: string, action: InvoiceAction) =>
     action === 'delete'

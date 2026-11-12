@@ -1,9 +1,9 @@
 // Herramientas que Claude puede usar en el chat.
-// - Lectura (list_invoices, get_invoice, get_savings, get_tax_info_link): se
+// - Lectura (list_invoices, get_invoice, list_payments, get_savings, get_tax_info_link): se
 //   ejecutan al momento. get_tax_info_link puede crear el link, pero eso no
 //   cambia nada en PayPal ni le avisa al cliente.
 // - Acciones (create_invoice, send_invoice, send_reminder, cancel_invoice,
-//   update_savings_plan, review_payment, save_tax_info, issue_cfdi):
+//   update_savings_plan, review_payment, review_payments, save_tax_info, issue_cfdi):
 //   NUNCA se ejecutan directo. Se convierten en una propuesta que el usuario
 //   aprueba o rechaza desde una tarjeta en el chat.
 import type Anthropic from '@anthropic-ai/sdk';
@@ -20,13 +20,28 @@ import {
   remindInvoice,
   sendInvoice,
 } from '../paypal/invoices.js';
-import { decidePayment, findPendingPayment, getSavings, savePlan, savingsPlanSchema } from '../savings.js';
+import { MAX_HISTORY_DAYS, getPaymentsSince } from '../paypal/overview.js';
+import {
+  type CustomAllocations,
+  type PaymentReview,
+  type SavingsBucket,
+  customAllocations,
+  decidePayment,
+  decidePayments,
+  findPendingPayment,
+  getSavings,
+  paymentDecisions,
+  savePlan,
+  savingsPlanSchema,
+} from '../savings.js';
 import {
   CFDI_USES,
   TAX_REGIMES,
   createInvoiceWithTaxLink,
   describeTaxInfo,
   getOrCreateTaxRequest,
+  FOREIGN_COUNTRIES,
+  foreignCfdiSchema,
   issueCfdi,
   prepareCfdi,
   saveClientTaxInfo,
@@ -39,6 +54,22 @@ const invoiceIdInput = {
   properties: { invoice_id: { type: 'string', description: 'PayPal invoice id, e.g. INV2-ABCD-EFGH-IJKL-MNOP' } },
   required: ['invoice_id'],
   additionalProperties: false,
+} as const;
+
+// Montos a la medida por apartado (review_payment y cada pago de review_payments).
+const AMOUNTS_SCHEMA = {
+  type: 'array',
+  description:
+    'Specific amounts per set-aside, in the payment currency. Empty to use the plan percentages (or when skipping / leaving unchecked).',
+  items: {
+    type: 'object',
+    properties: {
+      set_aside: { type: 'string', description: 'Name of a set-aside in the plan, e.g. Electricity' },
+      amount: { type: 'number', description: 'Amount to set aside, e.g. 100' },
+    },
+    required: ['set_aside', 'amount'],
+    additionalProperties: false,
+  },
 } as const;
 
 export const TOOLS: Anthropic.Beta.BetaTool[] = [
@@ -123,31 +154,72 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     input_schema: invoiceIdInput,
   },
   {
+    name: 'list_payments',
+    description: `Payment history: money actually received through PayPal in the last N days (max ${MAX_HISTORY_DAYS}), newest first, with the payment date, transaction id, invoice number, client and what the user decided to set aside from it. Use it for questions like "when did Ana pay me?" or "give me the details of Juan's payment".`,
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        days: { type: 'integer', description: `How many days back to look, 1 to ${MAX_HISTORY_DAYS}. Use 31 unless the user asks for older payments.` },
+      },
+      required: ['days'],
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'get_savings',
     description:
-      "Get the user's savings for this month: their plan (percent per set-aside, e.g. taxes), what they collected via PayPal, payments still waiting for a set-aside decision, how much they set aside and what is left to spend. Set-asides are virtual: no money moves.",
+      "Get the user's savings: their plan (named set-asides like Taxes, Savings or Electricity, each with a default percent), what they collected via PayPal this month, payments still waiting for a set-aside decision, how much they set aside this month and in total so far per set-aside, and what is left to spend. Set-asides are virtual, like a notebook: no money moves.",
     strict: true,
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
     name: 'review_payment',
     description:
-      'Propose answering a pending payment from get_savings: set_aside applies the current plan to it, skip sets nothing aside this time. Requires user approval.',
+      'Propose answering a pending payment from get_savings: set_aside sets part of it aside, skip sets nothing aside this time. With an empty amounts list, set_aside uses the plan percentages. To split the payment with specific amounts (e.g. "put 100 in Electricity and 50 in Savings"), list them in amounts: each set-aside must already exist in the plan (create it first with update_savings_plan), use the payment currency, and the total cannot exceed the payment. Requires user approval.',
     strict: true,
     input_schema: {
       type: 'object',
       properties: {
         payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
         decision: { type: 'string', enum: ['set_aside', 'skip'] },
+        amounts: AMOUNTS_SCHEMA,
       },
-      required: ['payment_id', 'decision'],
+      required: ['payment_id', 'decision', 'amounts'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'review_payments',
+    description:
+      'Propose answering several pending payments from get_savings in ONE card that looks like a receipt, with a checkbox per payment. Check (set_aside true) the ones you recommend setting aside and leave the rest unchecked, each with a short reason (max 8 words). For each payment, amounts can list specific amounts per set-aside (same rules as review_payment); empty uses the plan percentages. The user can change the checkboxes before approving: checked payments get their amounts set aside, unchecked ones are skipped this time. Prefer this over several review_payment calls when 2 or more payments are pending. Requires user approval.',
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        payments: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              payment_id: { type: 'string', description: 'Payment id from get_savings pending list' },
+              set_aside: { type: 'boolean', description: 'Whether the checkbox starts checked' },
+              reason: { type: 'string', description: 'Short reason shown to the user, e.g. "Big payment, keep taxes safe"' },
+              amounts: AMOUNTS_SCHEMA,
+            },
+            required: ['payment_id', 'set_aside', 'reason', 'amounts'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['payments'],
       additionalProperties: false,
     },
   },
   {
     name: 'update_savings_plan',
     description:
-      'Propose replacing the whole savings plan (max 6 set-asides, percentages add up to 100 or less). Include every set-aside to keep, not only the changed one. It applies to payments answered from now on. Requires user approval.',
+      'Propose replacing the whole savings plan: use it to create, rename or delete set-asides (e.g. Savings, Subscriptions, Electricity) or change their default percent (max 6 set-asides, percentages add up to 100 or less; use 0 for a set-aside the user only fills with specific amounts). Include every set-aside to keep, not only the changed one; leaving one out deletes it (what was already set aside in it is kept in the history). It applies to payments answered from now on. Requires user approval.',
     strict: true,
     input_schema: {
       type: 'object',
@@ -199,9 +271,19 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'issue_cfdi',
     description:
-      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice in MXN whose client already sent their tax info, and emailing it to the client. The price charged in PayPal is treated as including 16% VAT. Test environment: the CFDI has no legal validity. Requires user approval.",
+      "Propose issuing the Mexican tax invoice (CFDI) for a PAID invoice. MXN invoice: the client must have sent their tax info, 16% VAT is treated as included in the price, and it is emailed to the client. USD invoice: the client is abroad, so no tax info link is needed and nothing is emailed (the user issues it to report the income and keeps the copy), but vat_rate and client_country are required and must come from the user: never choose or suggest them yourself, ask. Test environment: the CFDI has no legal validity. Requires user approval.",
     strict: true,
-    input_schema: invoiceIdInput,
+    input_schema: {
+      type: 'object',
+      properties: {
+        invoice_id: invoiceIdInput.properties.invoice_id,
+        vat_rate: { type: 'string', enum: ['0', '16'], description: 'USD invoices only. The percentage the user chose' },
+        client_country: { type: 'string', enum: Object.keys(FOREIGN_COUNTRIES), description: "USD invoices only. The client's country" },
+        client_tax_id: { type: 'string', description: "USD invoices only, optional. The client's foreign tax ID, if the user gave it" },
+      },
+      required: ['invoice_id'],
+      additionalProperties: false,
+    },
   },
 ];
 
@@ -212,6 +294,7 @@ const ACTION_TOOLS = new Set([
   'cancel_invoice',
   'update_savings_plan',
   'review_payment',
+  'review_payments',
   'save_tax_info',
   'issue_cfdi',
 ]);
@@ -238,7 +321,7 @@ function forModel(inv: InvoiceSummary) {
 }
 
 // Hasta 5 páginas (100 facturas): suficiente para la demo.
-async function allInvoices(): Promise<InvoiceSummary[]> {
+export async function allInvoices(): Promise<InvoiceSummary[]> {
   const first = await listInvoices(1);
   const rest = [];
   for (let p = 2; p <= Math.min(first.totalPages, 5); p++) rest.push(listInvoices(p));
@@ -261,12 +344,39 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
     const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
     return JSON.stringify(forModel(await getInvoice(id)));
   }
+  if (name === 'list_payments') {
+    const [{ invoices, payments }, decisions] = await Promise.all([
+      getPaymentsSince((input as { days: number }).days),
+      paymentDecisions(),
+    ]);
+    const byNumber = new Map(invoices.map((inv) => [inv.number, inv]));
+    return JSON.stringify({
+      count: payments.length,
+      payments: payments.slice(0, 100).map((p) => {
+        const inv = p.invoiceNumber ? byNumber.get(p.invoiceNumber) : undefined;
+        const d = decisions[p.id];
+        return {
+          payment_id: p.id,
+          date: p.date,
+          amount: money(p.amount.value, p.amount.currency_code),
+          invoice_number: p.invoiceNumber,
+          invoice_id: inv?.id ?? null,
+          client: inv ? clientLabel(inv.customer) : null,
+          set_aside: !d
+            ? 'not decided yet'
+            : d.status === 'declined'
+              ? 'skipped'
+              : d.allocations.map((a) => `${a.name}: ${money(a.amount.value, a.amount.currency_code)}`).join(', '),
+        };
+      }),
+    });
+  }
   if (name === 'get_savings') {
     const s = await getSavings();
     const fmt = (list: { value: string; currency_code: string }[]) => list.map((m) => money(m.value, m.currency_code));
     return JSON.stringify({
       month: s.month,
-      plan: s.plan.map((b) => ({ name: b.name, percent: b.percent })),
+      plan: s.plan.map((b) => ({ name: b.name, default_percent: b.percent })),
       collected: s.paid ? fmt(s.paid) : 'unavailable (PayPal did not return payments)',
       pending_payments: s.pending.map((p) => ({
         payment_id: p.id,
@@ -276,6 +386,7 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
         would_set_aside: p.proposal.map((a) => `${a.name}: ${money(a.amount.value, a.amount.currency_code)}`),
       })),
       set_aside_this_month: s.buckets.map((b) => ({ name: b.name, amount: fmt(b.amounts) })),
+      set_aside_total_so_far: s.buckets.map((b) => ({ name: b.name, amount: fmt(b.total) })),
       left_to_spend: fmt(s.available),
     });
   }
@@ -295,11 +406,23 @@ export async function runReadTool(name: string, input: unknown): Promise<string>
   throw new Error(`Unknown tool ${name}`);
 }
 
+// Un renglón con casilla en una tarjeta tipo ticket (review_payments).
+export interface ActionChoice {
+  id: string;
+  label: string; // "#0013 · Juan Hernán"
+  detail: string; // fecha y la razón que da la IA
+  amount: string;
+  setAside: { name: string; value: string; currency: string }[];
+  checked: boolean;
+}
+
 // Propuesta lista para mostrarse en una tarjeta y ejecutarse al aprobarla.
+// Si trae choices, execute recibe los ids que el usuario dejó palomeados.
 export interface PreparedAction {
   title: string;
   details: [string, string][];
-  execute: () => Promise<string>;
+  choices?: ActionChoice[];
+  execute: (selected?: string[]) => Promise<string>;
 }
 
 const TERMS_LABEL: Record<string, string> = {
@@ -318,6 +441,39 @@ const money = (value: number | string, currency: string) =>
 function clientLabel(c: { name?: string | null; company?: string | null; email?: string | null }) {
   const who = c.name && c.company ? `${c.name} (${c.company})` : (c.name ?? c.company);
   return [who, c.email].filter(Boolean).join(' · ');
+}
+
+type AmountInput = { set_aside: string; amount: number };
+
+// Reparte un pago: con montos de la IA (buscando los apartados por nombre) o,
+// sin montos, con los % del plan. Lanza Error con un mensaje para Claude si no
+// cuadra o si no queda nada que apartar.
+function splitPayment(plan: SavingsBucket[], payment: PaymentReview, amounts: AmountInput[]) {
+  let custom: CustomAllocations | undefined;
+  let split = payment.proposal;
+  if (amounts.length) {
+    custom = amounts.map((a) => {
+      const bucket = plan.find((b) => b.name.trim().toLowerCase() === a.set_aside.trim().toLowerCase());
+      if (!bucket) {
+        throw new Error(
+          `There is no set-aside called "${a.set_aside}". Existing ones: ${plan.map((b) => b.name).join(', ') || 'none'}. Create it first with update_savings_plan.`,
+        );
+      }
+      return { bucketId: bucket.id, amount: a.amount };
+    });
+    try {
+      split = customAllocations(plan, payment.amount, custom);
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Invalid amounts');
+    }
+  }
+  split = split.filter((a) => Number(a.amount.value) > 0);
+  if (!split.length) {
+    throw new Error(
+      `Nothing to set aside from payment ${payment.id}: the plan has no percentages. Give specific amounts per set-aside.`,
+    );
+  }
+  return { custom, split };
 }
 
 // Valida la propuesta y lee lo necesario para la tarjeta, sin cambiar nada en
@@ -388,25 +544,80 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
   }
 
   if (name === 'review_payment') {
-    const { payment_id, decision } = input as { payment_id: string; decision: 'set_aside' | 'skip' };
-    const payment = await findPendingPayment(payment_id);
+    const { payment_id, decision, amounts = [] } = input as {
+      payment_id: string;
+      decision: 'set_aside' | 'skip';
+      amounts?: AmountInput[];
+    };
+    const [payment, { plan }] = await Promise.all([findPendingPayment(payment_id), getSavings()]);
     const setAside = decision === 'set_aside';
+    const { custom, split } = setAside ? splitPayment(plan, payment, amounts) : { custom: undefined, split: [] };
     const amount = money(payment.amount.value, payment.amount.currency_code);
-    const allocations = payment.proposal.map((a) => `${a.name} ${money(a.amount.value, a.amount.currency_code)}`);
+    const allocations = split.map((a) => `${a.name} ${money(a.amount.value, a.amount.currency_code)}`);
     return {
       title: setAside ? 'Set aside from this payment' : 'Skip set-asides for this payment',
       details: [
         ['Payment', `${amount} · ${payment.date}`],
         ...(payment.invoiceNumber ? [['Invoice', `#${payment.invoiceNumber}`] as [string, string]] : []),
         ...(setAside
-          ? payment.proposal.map((a): [string, string] => [a.name, money(a.amount.value, a.amount.currency_code)])
+          ? split.map((a): [string, string] => [a.name, money(a.amount.value, a.amount.currency_code)])
           : [['Set aside', 'Nothing this time'] as [string, string]]),
       ],
       execute: async () => {
-        await decidePayment(payment_id, setAside);
+        await decidePayment(payment_id, setAside, custom);
         return setAside
           ? `Set aside from the ${amount} payment: ${allocations.join(', ')}.`
           : `Nothing set aside from the ${amount} payment.`;
+      },
+    };
+  }
+
+  if (name === 'review_payments') {
+    const { payments } = input as {
+      payments: { payment_id: string; set_aside: boolean; reason: string; amounts?: AmountInput[] }[];
+    };
+    if (!payments.length) throw new Error('No payments given. Call get_savings to see the pending ones.');
+    // Las facturas solo sirven para mostrar el nombre del cliente; si fallan, se omite.
+    const [summary, invoices] = await Promise.all([getSavings(), allInvoices().catch(() => [])]);
+    const byNumber = new Map(invoices.map((inv) => [inv.number, inv]));
+    const seen = new Set<string>();
+    // Montos a la medida de cada pago (por id), para guardarlos al aprobar.
+    const customs = new Map<string, CustomAllocations | undefined>();
+    const choices = payments.map((p): ActionChoice => {
+      const payment = summary.pending.find((x) => x.id === p.payment_id);
+      if (!payment) throw new Error(`Payment ${p.payment_id} is not waiting for a decision. Call get_savings again.`);
+      if (seen.has(payment.id)) throw new Error(`Payment ${payment.id} is listed twice.`);
+      seen.add(payment.id);
+      // Sin palomear y sin montos: no hace falta que haya algo que apartar.
+      const { custom, split } =
+        !p.set_aside && !p.amounts?.length
+          ? { custom: undefined, split: payment.proposal.filter((x) => Number(x.amount.value) > 0) }
+          : splitPayment(summary.plan, payment, p.amounts ?? []);
+      customs.set(payment.id, custom);
+      const inv = payment.invoiceNumber ? byNumber.get(payment.invoiceNumber) : undefined;
+      const client = inv && (inv.customer.company ?? inv.customer.name ?? inv.customer.email);
+      return {
+        id: payment.id,
+        label: [payment.invoiceNumber ? `#${payment.invoiceNumber}` : 'Payment', client].filter(Boolean).join(' · '),
+        detail: [payment.date, p.reason.trim().slice(0, 80)].filter(Boolean).join(' · '),
+        amount: money(payment.amount.value, payment.amount.currency_code),
+        setAside: split.map((a) => ({ name: a.name, value: a.amount.value, currency: a.amount.currency_code })),
+        checked: p.set_aside,
+      };
+    });
+    return {
+      title: 'Set aside from your payments',
+      details: [],
+      choices,
+      execute: async (selected = choices.filter((c) => c.checked).map((c) => c.id)) => {
+        const chosen = new Set(selected);
+        // Palomeado pero sin nada que apartar (plan en 0%): cuenta como saltado.
+        await decidePayments(
+          choices.map((c) => ({ paymentId: c.id, accept: chosen.has(c.id) && c.setAside.length > 0, custom: customs.get(c.id) })),
+        );
+        const kept = choices.filter((c) => chosen.has(c.id)).map((c) => c.label);
+        const skipped = choices.filter((c) => !chosen.has(c.id)).map((c) => c.label);
+        return `Set aside from ${kept.length} payment(s): ${kept.join(', ') || 'none'}. Skipped ${skipped.length}: ${skipped.join(', ') || 'none'}. (The user may have changed your selection.)`;
       },
     };
   }
@@ -441,25 +652,43 @@ export async function prepareAction(name: string, input: unknown): Promise<Prepa
   }
 
   if (name === 'issue_cfdi') {
-    const id = invoiceIdSchema.parse((input as { invoice_id: string }).invoice_id);
-    const preview = await prepareCfdi(id);
-    const info = preview.request.taxInfo;
+    const { invoice_id, vat_rate, client_country, client_tax_id } = input as {
+      invoice_id: string;
+      vat_rate?: string;
+      client_country?: string;
+      client_tax_id?: string;
+    };
+    const id = invoiceIdSchema.parse(invoice_id);
+    const foreign = vat_rate && client_country
+      ? foreignCfdiSchema.parse({ vatRate: vat_rate, country: client_country, taxId: client_tax_id || undefined })
+      : undefined;
+    const preview = await prepareCfdi(id, foreign);
+    const currency = preview.total.currency_code;
+    const rate = preview.foreign?.exchangeRate;
     return {
       title: 'Issue tax invoice (CFDI)',
       details: [
         ['Invoice', `#${preview.request.invoiceNumber ?? '—'}`],
-        ['Client', `${info.name} · ${info.rfc}`],
-        ['Subtotal', money(preview.subtotal, 'MXN')],
-        ['VAT 16%', money(preview.iva, 'MXN')],
-        ['Total', money(preview.total.value, 'MXN')],
-        ['Email to', info.email],
+        ['Client', preview.client],
+        ['Subtotal', money(preview.subtotal, currency)],
+        [`VAT ${preview.vatRate * 100}%`, money(preview.iva, currency)],
+        ['Total', money(preview.total.value, currency)],
+        ...(rate
+          ? ([
+              ['Exchange rate', `${rate.rate} MXN per USD (${rate.source}, ${rate.date})`],
+              ['Delivery', 'You keep the copy; not emailed to the client'],
+            ] as [string, string][])
+          : ([['Email to', preview.emailTo ?? '—']] as [string, string][])),
       ],
       execute: async () => {
-        const issued = await issueCfdi(id);
+        const issued = await issueCfdi(id, foreign);
         const cfdi = issued.cfdi!;
-        return `CFDI issued for invoice #${issued.invoiceNumber} (folio ${cfdi.folio}, UUID ${cfdi.uuid}). ${
-          cfdi.emailedTo ? `Emailed to ${cfdi.emailedTo}.` : 'The email could not be sent.'
-        } Test environment: no legal validity.`;
+        const delivery = cfdi.foreign
+          ? 'It was not emailed: the user can download it from Tax info on the Invoices page.'
+          : cfdi.emailedTo
+            ? `Emailed to ${cfdi.emailedTo}.`
+            : 'The email could not be sent.';
+        return `CFDI issued for invoice #${issued.invoiceNumber} (folio ${cfdi.folio}, UUID ${cfdi.uuid}). ${delivery} Test environment: no legal validity.`;
       },
     };
   }

@@ -3,7 +3,7 @@
 > Documento vivo del equipo. Explica **qué estamos haciendo, por qué, cómo funciona y qué falta**, y sobre todo **qué se puede cambiar del diseño**.
 > Cada tema va dos veces: primero simple (🍎) y luego técnico (🔧), para que cualquiera del equipo lo entienda.
 >
-> Última actualización: 27 de octubre de 2026 (tutorial de bienvenida).
+> Última actualización: 12 de noviembre de 2026 (video final con voz, público en YouTube; README con el video).
 
 ## Índice
 
@@ -22,6 +22,8 @@
 
 ### 🍎 En simple
 
+> **Enfoque desde el 4 nov:** *el copiloto da el primer paso cuando te pagan*. El caso principal es un freelancer mexicano con **clientes en el extranjero** que paga en dólares; los clientes en México quedan en segundo lugar. Motivo: dos freelancers dijeron que con clientes mexicanos prefieren la transferencia, porque PayPal cobra comisión. Sigue siendo una hipótesis, y falta que Natalia revise la historia.
+
 **VNV Copilot es un asistente de dinero para freelancers**: personas que cobran por su cuenta, como diseñadoras, programadores o fotógrafos.
 
 Con la app puedes:
@@ -29,11 +31,11 @@ Con la app puedes:
 - **Saber cómo vas:** cuánto te deben, cuánto cobraste este mes y quién ya se pasó de la fecha de pago.
 - **Platicar con una IA** que hace todo eso por ti. La regla de oro: **la IA nunca hace nada sin que tú lo apruebes.**
 - **Apartar dinero:** cada vez que te pagan, la app te pregunta si quieres guardar una parte, por ejemplo para impuestos.
-- **Aprender a usarla en un minuto:** la primera vez, un tutorial con el copiloto te enseña cada pantalla.
+- **Aprender a usarla en un minuto:** la primera vez, un tutorial con el copiloto te enseña cada pantalla. Y si después tienes dudas, **Zaytun te explica la app en el chat** (desde el 10 nov): qué hace cada pantalla y qué botón tocar ("What is the Savings screen for?"), con los nombres tal como salen en pantalla, aunque le escribas en español. Las instrucciones están en `systemPrompt()` de `server/src/ai/copilot.ts`. **Zaytun solo habla de la app y de tu dinero de freelancer** (desde el 10 nov): si le piden otra cosa (un programa, una receta, una tarea), dice en una frase amable que eso no le toca y ofrece algo de la app. Saludos y preguntas generales como "¿qué es un CFDI?" sí las contesta. Así se ven más profesionales las respuestas y no se gastan créditos.
 
 ### Por qué
 
-Es para el **PayPal AI Hackathon**. Se entrega el **12 de noviembre de 2026** (14:00 hora de CDMX) y el jurado lo revisa del 1 al 15 de diciembre.
+Es para el **PayPal AI Hackathon**. Se entrega el **12 de noviembre de 2026** (14:00 hora de CDMX) y el jurado lo revisa del 1 al 15 de diciembre. La demo, las cuentas de prueba y los créditos deben seguir activos hasta el **21 de diciembre** (anuncio de ganadores), y desde la entrega no se edita el repo ni el video.
 
 El jurado califica 5 cosas, **todas valen lo mismo**:
 
@@ -51,8 +53,8 @@ El premio al que apuntamos es **"Best Use of PayPal + AI"**.
 
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS 4 + React Router (carpeta `client/`).
 - **Backend:** Node.js + Express 5 + TypeScript + zod (carpeta `server/`).
-- **PayPal:** API REST de Invoicing v2 y Transaction Search (esta última con el SDK oficial `@paypal/paypal-server-sdk`, hecho por APIMatic), además de webhooks. **Solo Sandbox**: está bloqueado en el código para que nunca se use dinero real.
-- **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
+- **PayPal:** API REST de Invoicing v2 y Transaction Search (esta última con el SDK oficial `@paypal/paypal-server-sdk`, hecho por APIMatic: lo usan Home, Savings, el ticket de pagos y el historial de pagos del copiloto), además de webhooks. **Solo Sandbox**: está bloqueado en el código para que nunca se use dinero real.
+- **IA:** Claude (Anthropic) con *tool use*. La IA puede **leer** datos sola, pero cada **acción** se convierte en una propuesta que el usuario aprueba. Modelo: **Sonnet 5.5** (`ANTHROPIC_MODEL`), con caché de prompts: cada mensaje cuesta alrededor de 1 centavo de dólar, así que los ~$10 de créditos alcanzan para la revisión del jurado. El caché tiene dos puntos: uno fijo al final de las instrucciones, que comparten **todas** las pláticas (desde el 30 oct el primer mensaje de una plática nueva también lo lee, ~1 centavo menos), y el automático para la plática que va creciendo. El servidor anota los tokens de cada llamada en el log (`[claude] ...`).
 
 ---
 
@@ -92,7 +94,7 @@ flowchart LR
 
 **Cosas importantes que hay que saber:**
 
-- **No hay base de datos.** Las facturas se leen siempre directo de PayPal. Las conversaciones del chat viven en memoria y se borran al reiniciar el servidor. El plan de ahorro se guarda en un archivo (`server/data/savings.json`). Para la demo basta así.
+- **Base de datos chiquita (Neon).** Las facturas se leen siempre directo de PayPal. Los apartados y los datos fiscales (con la marca de "CFDI emitido") se guardan en **Neon**, un Postgres gratis, para que no se borren cuando Render se reinicia. Es una sola tabla, `app_store`, con una fila por tipo de dato. Sin la variable `DATABASE_URL` (en tu compu) se guardan en archivos de `server/data/`, como antes. Las conversaciones del chat y las sugerencias siguen en memoria y se borran al reiniciar: para la demo basta así.
 - **No hay login.** Cualquiera con el link puede usar la demo; es a propósito para que el jurado entre fácil. Por eso hay límites de uso (por ejemplo, 20 acciones por minuto).
 - **Solo Sandbox.** El servidor no arranca si alguien intenta usar PayPal real.
 
@@ -113,8 +115,13 @@ flowchart LR
 **3. Todo se actualiza solo**
 Cuando llega un webhook verificado, el servidor avisa a las pantallas abiertas (Server-Sent Events) y estas vuelven a pedir sus datos. En Invoices sale el mensaje: *"Invoice #0005 was just paid 🎉"*.
 
+**Zaytun, la mascota (8 nov)**
+El copiloto tiene cara: **Zaytun**, un Cinnyris (pájaro sol) dibujado por Vanessa. Es el mismo copiloto de dos formas: **flotando** en la esquina de todas las pantallas (menos en el chat) y en la **pestaña Copilot** para platicar. Cuando la IA prepara algo sola (por ejemplo, al llegar un pago), a Zaytun le sale un **globito** con "Zaytun has a suggestion" y un puntito rojo: al tocarlo se abre la sugerencia. Mientras lo piensa dice "Zaytun is on it". Reemplaza al aviso rectangular de antes. Su cara sale también en sus mensajes del chat y en la pestaña Copilot. **El tutorial y la guía los da Zaytun:** cada paso lleva su cara y su nombre arriba ("Zaytun · Step 1 of 14"), y se presenta en el paso 1 ("I'm a sunbird and your AI copilot"). Imagen: `client/public/zaytun.webp` (recorte de 256 px de la cabeza; el original se queda fuera del repo). Código: `client/src/components/Zaytun.tsx`.
+
 **4. Apartados de ahorro**
-Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set aside $100 for Taxes and $50 for Emergency fund?"*. Solo cuenta lo que el usuario acepta. **No se mueve dinero en PayPal**: es una cuenta para saber cuánto de lo cobrado no es para gastar.
+Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set aside $100 for Taxes and $50 for Emergency fund?"*. Solo cuenta lo que el usuario acepta. **No se mueve dinero**: es como una libreta para saber cuánto de lo cobrado no es para gastar. Desde el 8 nov, los apartados llevan el nombre que quieras (Ahorro, Luz, Suscripciones...) y cada pago se puede repartir con **montos a la medida** ("$100 a Luz, $50 a Ahorro"), a mano o pidiéndoselo al copiloto (siempre con tarjeta de aprobación). Cada apartado muestra lo **juntado desde el principio**, como en un banco. **El % del plan es opcional** (8 nov, idea de Víctor): si un apartado no tiene %, al llegar un pago **Zaytun propone montos** redondos (en total, ~10–20% del pago) y puede ofrecer crear un apartado nuevo. Para impuestos **nunca inventa** un monto: usa el % que pusiste o te pregunta.
+
+> Dato (8 nov): en México, desde el 25 sep 2019, PayPal no deja tener saldo guardado: lo que recibes se pasa solo a tu banco (CLABE). Lo dicen notas de prensa de 2019; la página oficial no se pudo abrir para confirmarlo. Por eso los apartados son virtuales y los textos ya no dicen que el dinero "se queda en PayPal".
 
 ---
 
@@ -125,8 +132,8 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 ### Dos modos: Business y Personal
 - **Archivos:** `client/src/lib/mode.ts` (qué pantallas tiene cada modo) y `client/src/index.css` (los colores).
 - **Para qué:** no mezclar dos cosas distintas, igual que PayPal separa cuentas personales y de negocio.
-  - 💼 **Business (morado):** cobrarle a tus clientes. Pantallas: Home, Invoices, Copilot.
-  - 🏠 **Personal (naranja):** organizar lo que te pagan. Pantallas: Home, Savings, Copilot.
+  - 💼 **Business (vino, `#882336`):** cobrarle a tus clientes. Pantallas: Home, Invoices, Copilot.
+  - 🏠 **Personal (amarillo, `#FCEE52`):** organizar lo que te pagan. Pantallas: Home, Savings, Copilot.
 - Se cambia con el interruptor de la barra de arriba. La app recuerda el último modo que usaste.
 - La base de la app (azul marino y blanco, estilo PayPal) es igual en los dos modos. Solo cambia el **color de acento**: botones, enlaces y detalles.
 
@@ -153,12 +160,15 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivo:** `client/src/pages/Overview.tsx`. Tiene **dos versiones**, una por modo.
 - **Para qué:** ver de un vistazo cómo vas y qué hacer después.
 - **Las dos versiones tienen el mismo orden:**
-  1. Una frase arriba que explica qué estás viendo.
-  2. Una **tarjeta grande azul marino** con el número más importante y **botones rápidos**.
+  1. Título y una frase de una línea; a la derecha, **Refresh** como icono chico (los números se actualizan solos).
+  2. Una **tarjeta grande del color del modo** con el número más importante y **botones rápidos**.
   3. Tarjetas o listas con el detalle.
-  4. "**Try asking the copilot**": ejemplos que **sí se pueden presionar**. Abren el chat con el texto ya escrito, pero no lo envían solos.
-- **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask the copilot", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
-- **Personal:** aviso de que los apartados son virtuales, **lo que te queda para gastar** (número grande), aviso si hay pagos por revisar, **lo apartado** este mes y los **últimos pagos** recibidos.
+  4. "**Try asking Zaytun**": tarjeta con ejemplos que **sí se pueden presionar** (en computadora, a la derecha de las listas). Abren el chat con el texto ya escrito, pero no lo envían solos.
+  5. Al final, el link para prender la guía (*"Want step-by-step hints? Turn on the guide"*), solo si está apagada.
+- **Business:** cobrado este mes (número grande), botones "New invoice" y "Ask Zaytun", **Waiting to be paid**, **Overdue** y las **últimas 5 facturas**.
+- **Personal:** **lo que te queda para gastar** (número grande, con el botón "Review N payments" si hay pagos por revisar), **lo apartado** este mes (los apartados viejos solo si recibieron algo este mes) y los **3 últimos pagos** recibidos (con "See all", que lleva a Invoices).
+- **Listas de tamaño fijo:** Home muestra siempre las **5 facturas** y los **3 pagos** más nuevos (`RECENT_INVOICES`, `RECENT_PAYMENTS` en `Overview.tsx`); lo nuevo entra arriba y lo viejo se ve en "See all". Así las tarjetas no cambian de tamaño y "Try asking Zaytun" (4 ejemplos en Business, 5 en Personal) se estira a la altura de lo que tiene al lado.
+- **9 nov, pantallas más limpias (aprobado por el equipo con un antes y después):** se quitaron la etiqueta "BUSINESS/PERSONAL", la nota de "virtual" en Home Personal (sigue en Savings) y el aviso "You got paid!" (lo dice el botón de la tarjeta). La tarjeta "Try asking Zaytun" se quitó en #52 y volvió tal cual a pedido del equipo.
 - **Estados:** cargando (bloques grises animados) y error (franja roja con "Try again").
 
 ### La guía: te acompaña en todo el proceso (sin IA, gratis)
@@ -183,8 +193,9 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivos:** `server/src/ai/proactive.ts` (cuándo y con qué datos), `createSuggestion` en `server/src/ai/copilot.ts`, el aviso en `client/src/components/Layout.tsx` y la tarjeta "From your copilot" en `client/src/pages/Overview.tsx`.
 - **🍎 En simple:** antes, la IA solo trabajaba si tú le escribías. Ahora, **cuando un cliente te paga**, el copiloto se da cuenta solo y te prepara lo que sigue:
   - *"Juan te pagó $1,000, que incluyen $137.93 de IVA. Ya tengo sus datos fiscales: ¿emito su factura? ¿Aparto $300 para impuestos?"*
-  - Te sale un aviso abajo a la derecha, **"Your copilot has a suggestion"**, y una tarjeta en Home. Con **Review** se abre en el chat con las tarjetas para aprobar.
+  - Claude tarda unos segundos en pensar, así que al instante sale un aviso abajo a la derecha, **"Your copilot is on it"** con puntitos que se mueven (evento en vivo `copilot.thinking`). Cuando está lista cambia a **"Your copilot has a suggestion"**, y aparece una tarjeta en Home. Si falla, el aviso se quita solo. Con **Review** se abre en el chat con las tarjetas para aprobar.
 - **Nunca hace nada solo:** sigue pidiendo tu aprobación para todo. La diferencia es que él da el primer paso.
+- **Si además tenías pagos sin responder** (30 oct): la misma sugerencia trae **un solo ticket** con el pago nuevo arriba y palomeado, y abajo los pendientes, para ponerte al día sin ir a otro lado. Si solo está el pago nuevo, queda igual que antes.
 - **🔧 En técnico:**
   - El webhook `INVOICING.INVOICE.PAID` llama a `onInvoicePaid`, que **no bloquea** la respuesta a PayPal.
   - `paidInvoiceFacts` junta los datos: la factura, el IVA, si ya hay datos fiscales o CFDI, y si el pago espera decisión de apartado.
@@ -193,9 +204,16 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
   - Una sugerencia por factura, aunque PayPal repita el aviso. Si se acaba el límite diario del chat, no pasa nada: los avisos normales siguen.
 - **Ideas para más momentos proactivos:** factura vencida → "¿le mando un recordatorio amable?"; cliente nuevo sin datos fiscales → "¿le pido sus datos?".
 
+### Varios pagos en una sola tarjeta (tipo ticket)
+- **🍎 En simple:** si tienes varios pagos esperando, aceptarlos uno por uno cansa (idea de Víctor, 30 oct). En **Savings** presionas **"Review all with AI"** (sale cuando hay 2 o más pagos pendientes), o le dices al copiloto *"Help me set aside money from my pending payments"*, y te arma **un ticket** con todos: cliente, fecha, monto y cuánto iría a cada apartado. Ya trae palomeados los que te recomienda, con una razón corta (por ejemplo *"Tiny amount, optional"*). Tú palomeas o despalomeas, ves el **total** cambiar abajo y apruebas una sola vez (**"Approve 3 of 5"**). Lo no palomeado se salta esta vez.
+- **Nunca hace nada solo:** la IA solo propone la selección; la última palabra es tuya.
+- **🔧 En técnico:** herramienta `review_payments` en `server/src/ai/tools.ts` (`payment_id`, `set_aside`, `reason` por pago). La propuesta trae `choices` y, al aprobar, el cliente manda `selected` (`POST /api/chat/actions/:id`). El servidor solo acepta ids que estaban en la tarjeta. Se guarda todo de un jalón con `decidePayments` en `server/src/savings.ts`: una consulta a PayPal y una escritura. Tarjeta: `PaymentTicket` en `client/src/pages/Copilot.tsx`.
+- **Por qué el botón es más rápido (~5 s contra ~23 s escribiéndolo):** `POST /api/copilot/review-payments` le manda a Claude los pagos pendientes ya listos (`pendingPaymentsFacts` en `server/src/ai/proactive.ts`, con el nombre del cliente) como `[App event]` con `effort: low`, así que arma el ticket en una sola vuelta sin tener que buscar. El chat lo abre con `/copilot?review=payments`. Tiene el mismo límite por minuto que el chat.
+
 ### Copilot (el chat)
 - **Archivo:** `client/src/pages/Copilot.tsx`
 - **Para qué:** pedir cosas en lenguaje normal.
+- **Historial de pagos** (30 oct): le puedes preguntar *"¿cuándo me pagó Juan?"* o *"dame los datos del pago de Test Buyer"* y contesta con la fecha, el número de transacción, la factura y lo que apartaste. No es "memoria": busca en PayPal cada vez (herramienta de solo lectura `list_payments`, hasta 93 días atrás). **Memoria entre pláticas no**, a propósito: la demo es pública y todos los jueces comparten la cuenta, así que verían las pláticas de otros, y cada mensaje costaría más.
 - **Qué tiene:**
   - Burbujas de conversación: las del usuario en azul a la derecha y las de la IA a la izquierda.
   - Saludo y sugerencias que cambian según el modo.
@@ -227,7 +245,11 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Nivel 2: emitir la factura.** Cuando la factura de PayPal ya está **pagada** y tenemos los datos del cliente, en la ventana **Tax info** aparece **Issue CFDI**. Pide confirmación, Facturama la sella y **le llega al cliente por correo** (PDF y XML). Tú la puedes descargar ahí mismo, y el cliente desde su link. El copiloto también la puede proponer, con tarjeta de aprobación.
 - **Nunca se emite sola:** siempre la aprueba el usuario, igual que todo lo demás.
 - **Es de prueba:** Facturama Sandbox con datos de prueba del SAT. Las facturas se ven reales (folio fiscal, sellos, QR), pero **no tienen validez fiscal**.
-- **Reglas fiscales de la demo (pendientes de revisar con la asesoría de finanzas):**
+- **Clientes en el extranjero (facturas en USD; 4 nov, decisión de Víctor):** al cliente no le sirve el CFDI, pero el freelancer puede necesitarlo para sus impuestos. No hay link ni correo. En **Tax info** el usuario elige el **IVA (0% o 16%, sin valor por defecto)**, el país y, si quiere, el número fiscal del cliente; la app agrega el tipo de cambio. El copiloto pregunta esos datos antes de poner la tarjeta y nunca los elige. Lo emitido se descarga (PDF y XML). Probado en Facturama sandbox.
+  - **Al pagar el cliente:** la sugerencia trae la pregunta del CFDI como texto fijo de la app, después de las tarjetas, porque Claude a veces solo pone las tarjetas. Para grabar el video, pagar con una cuenta de prueba **de Estados Unidos**: con una mexicana, PayPal muestra el cobro en pesos.
+  - **Por qué el IVA no es automático:** según blogs de contadores (sin fuente oficial), el 0% solo aplica a ciertos servicios (art. 29 de la Ley del IVA): software y asistencia técnica sí; diseño, consultoría o coaching, probablemente 16%. Además, un contador advierte que el pago debe venir directo del extranjero; no se sabe cómo aplica por PayPal.
+  - **🔧 Técnico:** `Currency: USD`, `CurrencyExchangeRate`, `Exportation: 01`, RFC `XEXX010101000`, régimen `616`, uso `S01`, código postal del emisor, `TaxResidence` y `TaxRegistrationNumber` (sin guiones). Tipo de cambio en `server/src/exchangeRate.ts`: Banxico (serie `SF60653`) con `BANXICO_TOKEN`, el más reciente con fecha **de hoy o anterior** (desde el 10 nov; antes salía uno con fecha de pasado mañana, porque Banxico fecha el FIX por su día de liquidación); sin él, referencia del BCE. Cualquier factura en USD se trata como cliente en el extranjero.
+- **Reglas fiscales de la demo (sin revisar: el equipo no tiene asesoría de finanzas por ahora; el README lo dice claro):**
   - El monto cobrado en PayPal **ya incluye IVA del 16%** (por ejemplo, $500 = $431.03 + $68.97 de IVA).
   - **Sin retenciones** de ISR o IVA (aplican, por ejemplo, cuando una persona física le factura a una empresa).
   - Una sola **clave de producto genérica** (`80101500`, servicios de consultoría) para todo.
@@ -241,11 +263,12 @@ Cada pago del mes aparece en Savings con la pregunta: *"You got paid $500. Set a
 - **Archivo:** `client/src/pages/Savings.tsx`
 - **Para qué:** decidir cuánto de lo cobrado guardar.
 - **Qué tiene:**
-  - Un aviso arriba: los apartados son **virtuales**, no se mueve dinero.
-  - Tarjetas "**You got paid…** Set aside…?" con **Set aside** / **Not this time**.
-  - **Collected** (cobrado del mes) y **Left to spend** (lo que queda para gastar).
-  - Una tarjeta por apartado con lo que llevas guardado.
-  - Botón **Edit plan**, que abre una ventana para cambiar nombres y porcentajes (hasta 6 apartados, máximo 100%).
+  - Un aviso de una línea arriba: los apartados son **virtuales**, no se mueve dinero.
+  - Tarjetas "**You got paid…** Set aside…?" con **Set aside** (usa los % del plan), **Choose amounts** (ventana para escribir cuánto va a cada apartado; no deja pasar del pago) y **Not this time**.
+  - Una sola tarjeta **Left to spend** (lo que queda para gastar) y debajo de dónde sale: cobrado del mes y lo apartado.
+  - Una tarjeta por apartado con lo **juntado desde el principio** ("Saved so far") y lo de este mes. La frase "Zaytun suggests…" sale una vez, arriba de todos.
+  - Los apartados que ya no están en el plan van aparte, en "**N past set-asides**": se ven abiertos si son 3 o menos y empiezan cerrados si hay más (en los dos casos se abren o cierran al tocar el título). Se cuenta por cantidad porque la app no guarda cuándo se quitó cada uno.
+  - Botón **Edit plan**, que abre una ventana para crear, renombrar o borrar apartados y su % sugerido (hasta 6 apartados, máximo 100%; 0% = "solo montos que elijas").
 
 ---
 
@@ -270,7 +293,7 @@ Esto es solo visual. Si algo sale mal, se regresa con un clic.
 | Qué | Dónde | Ejemplo |
 |---|---|---|
 | **Colores** de toda la app | `client/src/index.css` (dentro de `@theme`) | Cambiar el azul marino por otro |
-| **Color de cada modo** (morado / naranja) | `client/src/index.css`: `brand-*` en `@theme` es Business y `[data-mode='personal']` es Personal | Invertirlos, o usar otros colores |
+| **Color de cada modo** (vino / amarillo, desde el 8 nov) | `client/src/index.css`: `brand-*` en `@theme` es Business y `[data-mode='personal']` es Personal | Invertirlos, o usar otros colores |
 | **Tipografía** | Se instala con `npm install -w client @fontsource-variable/<letra>`, se carga en `client/src/main.tsx` y se nombra en `--font-sans` de `index.css` | Usar otra letra |
 | **Botones, tarjetas, etiquetas, ventanas** (todos a la vez) | `client/src/components/ui.tsx` | Botones cuadrados en lugar de redondos |
 | **Acomodo de cada pantalla**: orden, tamaños, espacios, columnas | `client/src/pages/*.tsx` | Poner Savings en dos columnas |
@@ -342,13 +365,15 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 
 | Nombre | Business | Personal | Dónde se usa |
 |---|---|---|---|
-| `navy-900` | `#001c64` | (igual) | Barra de arriba y tarjeta grande de Home |
-| `brand-900` | `#2e1065` | `#7c2d12` | Textos sobre fondos de acento suave |
-| `brand-800` | `#4c1d95` | `#9a3412` | Letras dentro de los círculos de inicial |
-| `brand-600` | `#6d28d9` | `#c2410c` | Botones principales, enlaces, modo activo |
-| `brand-500` | `#8b5cf6` | `#f97316` | Brillo de la tarjeta grande, bordes al pasar el mouse |
-| `brand-100` | `#ede9fe` | `#ffedd5` | Fondos suaves, etiquetas "info" |
-| `brand-50` | `#f5f3ff` | `#fff7ed` | Avisos y recuadros destacados |
+| `navy-900` | `#001c64` | (igual) | Ya casi no se usa (antes: barra de arriba y tarjeta grande) |
+| `brand-solid` | `#882336` | `#fcee52` | Barra de arriba, tarjeta grande de Home, aviso del copiloto, botones principales y globo del chat |
+| `on-brand` | `#ffffff` | `#001435` | Letra encima de `brand-solid` |
+| `brand-900` | `#4a0f1c` | `#4a4000` | Textos sobre fondos de acento suave |
+| `brand-800` | `#6b1a2a` | `#5c5000` | Letras dentro de los círculos de inicial |
+| `brand-600` | `#882336` | `#736400` | Enlaces, bordes de botones secundarios, barras de avance |
+| `brand-500` | `#b03a52` | `#fcee52` | Brillo de la tarjeta grande, bordes al pasar el mouse |
+| `brand-100` | `#f8dfe5` | `#fbf3a6` | Fondos suaves, etiquetas "info" |
+| `brand-50` | `#fcf1f3` | `#fefbe0` | Avisos y recuadros destacados |
 | `canvas` | `#f5f7fa` | (igual) | Fondo general |
 | `surface` | `#ffffff` | (igual) | Tarjetas |
 | `line` | `#e3e7ed` | (igual) | Bordes y bloques de "cargando" |
@@ -358,7 +383,9 @@ Los colores se usan por **nombre**, no por código. Si en `index.css` cambias `-
 | `warning` / `warning-bg` | `#a35d00` / `#fff4e0` | (igual) | Pendiente |
 | `danger` / `danger-bg` | `#c4002b` / `#fde8ec` | (igual) | Vencido, errores |
 
-> El naranja de los botones (`#c2410c`) es oscuro a propósito: con un naranja más claro, el texto blanco encima casi no se lee.
+> Dentro de la barra, la tarjeta grande y el aviso del copiloto (clase `on-brand-scope` en `index.css`), lo "blanco" se vuelve solo la letra correcta del modo: blanco sobre vino y azul marino sobre amarillo. Para un blanco de verdad ahí dentro se usa `bg-surface`.
+>
+> Colores elegidos el 8 nov (vino para Business, amarillo para Personal). El amarillo `#FCEE52` es muy claro: con letra blanca encima no se lee (contraste 1.2; lo mínimo recomendado es 4.5). Por eso los botones amarillos llevan letra azul marino (`on-brand`, contraste 15) y los textos y links del modo Personal usan un mostaza oscuro de la misma familia (`#736400`, contraste 5.9). El vino con letra blanca da 9.
 
 **De Figma al código:** si en Figma los colores, tamaños de letra y espaciados tienen **nombre** (por ejemplo "Primary / 600" o "Spacing / 24"), pasarlos al código es casi directo. Mientras más consistente sea Figma, más rápido se programa.
 
@@ -370,7 +397,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 
 **Generales**
 - ~~Menú que no sirve en celular, letra que no se cargaba, sin íconos, Home con 3 números sueltos, ejemplos que no se podían presionar~~ → **arreglado en el PR #16**.
-- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y los colores son de ejemplo (estilo PayPal + morado/naranja).
+- **No hay identidad propia:** el nombre es provisional, el logo es una "V" sencilla y desde el 8 nov toda la app toma el color del modo (vino o amarillo) en vez del azul marino estilo PayPal. El logo "V" pasó a azul marino muy oscuro (`#001435`) con punto amarillo, para verse bien en las dos barras.
 - **Sin modo oscuro.**
 - El modo **Personal** tiene poco todavía (solo Savings). Lo que le falta lo decidirá la asesoría de finanzas.
 
@@ -388,7 +415,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - La tabla en celular se desliza de lado.
 
 **Savings**
-- **El concepto confundía.** En las pruebas, Víctor pensó que la app había apartado dinero de verdad sin preguntarle. Ya hay un aviso de que es "virtual" en Home Personal y en Savings; falta ver si con eso basta.
+- **El concepto confundía.** En las pruebas, Víctor pensó que la app había apartado dinero de verdad sin preguntarle. Hay un aviso de que es "virtual" en Savings (en Home Personal se quitó el 9 nov para no saturar; el tutorial también lo explica); falta ver si con eso basta.
 - Los porcentajes de ejemplo (Taxes 20%, Emergency fund 10%) aparecen desde el inicio sin explicar de dónde salen.
 - "Set aside" y "Not this time" podrían explicarse mejor.
 
@@ -404,7 +431,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 2 | Chat con IA que pide aprobación | — | Víctor | ✅ Hecho |
 | 3 | Webhooks: todo se actualiza solo | 3–4 nov | Víctor | ✅ Hecho (adelantado) |
 | 4 | Modo personal (apartados) | 5–7 nov | Víctor | ✅ Hecho (adelantado) |
-| 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ⏳ Por empezar |
+| 5 | **Rediseño de la app** | Antes del video | **Vanessa** | ✅ En la app el 8 nov (colores vino y amarillo, logo y Zaytun). El 9 nov, pantallas más limpias (#52–#54), aprobadas por el equipo |
 | 5b | Tutorial de bienvenida (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide textos y aspecto |
 | 5c | Modos Business / Personal y Home nuevo (primera versión) | — | Víctor | ✅ Hecho; Vanessa decide desde el 28 oct |
 | 5d | Facturas fiscales nivel 1: pedir los datos (link + chat) | — | Víctor | ✅ Hecho |
@@ -415,32 +442,49 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5i | Que la guía y el copiloto no hablen al mismo tiempo: tutorial de bienvenida detallado y guía apagada por defecto | 29 oct | Víctor | ✅ PR #25 |
 | 5j | Que se vea bien en celular (facturas en tarjetas, tutorial que no tapa) | — | Víctor | ✅ PR #26 |
 | 6 | Publicar en Render | 8–9 nov | Víctor | ✅ Adelantado: https://vnv-copilot.onrender.com (28 oct) |
-| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis): hoy se pierden con cada reinicio (al publicar, al despertar o por mantenimiento) el plan de apartados, lo apartado, los datos fiscales, la marca de "CFDI emitido" y las pláticas. Facturas y pagos no (viven en PayPal) | Antes del 1 dic | Víctor | ⏳ Pendiente |
-| 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 29 oct | Víctor | ⏳ Pendiente |
-| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | ⏳ Pendiente |
-| 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | — | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 10–12 nov | Natalia + Víctor | ⏳ Pendiente |
+| 6b | Que los apartados y datos fiscales no se borren en Render (plan gratis) | 30 oct | Víctor | ✅ Se guardan en Neon (Postgres gratis). Las pláticas del copiloto siguen en memoria |
+| 6c | Prueba de pago completa en Render (factura → pago en Sandbox → Paid sola → sugerencia del copiloto) | 30 oct | Víctor | ✅ Pasó (factura #0014). La sugerencia tardaba unos segundos sin aviso: ahora sale "Your copilot is on it" al instante |
+| 6f | En el chat, los links (por ejemplo el de datos fiscales) salen como texto y no se pueden presionar | 30 oct | Víctor | ✅ Ahora se pueden presionar y abren en otra pestaña |
+| 6g | Varios pagos pendientes en una sola tarjeta tipo ticket, con casillas y la IA recomendando cuáles apartar | 30 oct | Víctor | ✅ Hecho; botón "Review all with AI" en Savings (~5 s) |
+| 6h | Historial de pagos en el chat (`list_payments`) y la sugerencia al pagar incluye los pagos pendientes en el mismo ticket | 30 oct | Víctor | ✅ Hecho |
+| 6k | Un cliente que ya dio sus datos fiscales no debe darlos otra vez: si llenaba el link de **una** factura, sus otras facturas que ya existían seguían "esperando" y el copiloto los pedía | 30 oct | Víctor | ✅ Ahora todas sus facturas pendientes quedan listas, y las atoradas se corrigen solas al arrancar |
+| 6l | CFDI en dólares para clientes en el extranjero | 4 nov | Víctor | ✅ Hecho, de prueba (excepción a "no más funciones"; decisión de Víctor). Probado en Render con cuenta de Estados Unidos (#0028). Token de Banxico puesto en local y en Render y probado el 8 nov (FIX oficial; la fecha se muestra como AAAA-MM-DD) |
+| 6m | Apartados como en la app del banco: nombres libres, montos a la medida por pago (a mano y con el copiloto) y total acumulado | 8 nov | Víctor | ✅ Hecho (última excepción a "no más funciones"; decisión de Víctor) |
+| 6d | Pulir cómo se ve en celular (lo que Víctor vio al probar) | 29 oct | Víctor | 🟡 Revisado el 8 nov a 390×844: nada se sale de lo ancho. Arreglado: ceros en dólares (antes "MX$0.00" junto a montos en USD) y Description en su propio renglón en "New invoice". Quedan detalles menores para cuando llegue el diseño de Vanessa: el texto del chat se corta, "Needs your approval" en dos renglones, "Set aside" solo en un renglón en Savings y "Refresh" ocupando un renglón en Home (este último arreglado el 9 nov: ahora es un icono) |
+| 6n | Moneda por defecto **USD** (en el formulario y en el copiloto; MXN se sigue pudiendo elegir) y paso 1 del tutorial con el nuevo enfoque (clientes en el extranjero en dólares o en México en pesos; ya no dice "keep their taxes in order") | 8 nov | Víctor | ✅ Hecho |
+| 6o | Pantallas más limpias: menos información repetida en Home y Savings, sin cambiar el diseño; "Try asking Zaytun" con más ejemplos y del alto de su vecina; listas de Home de tamaño fijo (5 facturas, 3 pagos) | 9 nov | Víctor | ✅ #52, #53 y #54, aprobado con un antes y después. Tutorial probado en celular y computadora |
+| 6p | **Diciembre:** Home ("Collected", "Left to spend") y "Recent payments" solo cuentan pagos del mes en curso. Si nadie paga en dic, el jurado ve $0 | Antes de entregar | Víctor | ⏳ Por decidir: pagar 1–2 facturas el 1 de dic o mostrar los últimos pagos aunque sean del mes pasado |
+| 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
+| 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
+| 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 9–12 nov | Natalia + Víctor | 🟡 README con el video y capturas (12 nov, #62). Devpost en borrador (7 nov). **Video final (12 nov): público en YouTube, <https://youtu.be/8-Zf7jrJ-nc> (2:27).** Es la **v4**, hecha fuera del repo en `~/Documentos/vnv-video/final/` (`src/Promo.jsx`): fondo blanco, palabras grandes una por una, la app en una ventana inclinada en 3D y el logo armándose. **Con voz** (la hermana de Víctor lee lo que sale en pantalla) sobre *Good Mornin' Miss Eliza*, de la Biblioteca de audio de YouTube, a volumen fijo de fondo. El archivo es `out/VNV-Copilot-FINAL.mp4`. Faltan, en Devpost: el link, las capturas, APIMatic y Render, marcar los premios y Submit |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
 
 | Fechas | Qué |
 |---|---|
-| 29 oct – 1 nov | Prueba de pago en Render, apartados con meta (máximo 1 día) y diseño de Vanessa |
-| 1 – 5 nov | AG Grid (si el equipo va por ese premio) y pulir |
-| 6 – 10 nov | README en inglés, video y Devpost |
+| 29 oct – 1 nov | ✅ Prueba de pago en Render y datos en Neon (30 oct). Diseño de Vanessa. **Desde el 31 oct: no más funciones nuevas** salvo que algo esté roto; las ideas van a "Ideas guardadas" |
+| 4 nov | ✅ README nuevo, CFDI en dólares y prueba completa con cuenta de Estados Unidos |
+| 5 – 8 nov | ✅ Diseño de Vanessa en la app (8 nov): colores vino y amarillo, logo y Zaytun. Guion borrador 2. **Desde el 8 nov no entra ninguna función nueva** |
+| 9 nov | ✅ Clip de prueba del video (estilo aprobado) y pantallas más limpias (#52–#54). AG Grid descartado |
+| 10 nov | ✅ Guion final, Zaytun explica pantallas y no se sale del tema (#56, #58), licencia VNV Tech (#57), arreglo de Banxico (#59), demo de Render lista y video grabado y armado (v2 es la base) |
+| 11 nov | ✅ Video v4 (música y texto) en dos versiones; textos y miniaturas de YouTube listos. En la noche: guion de pantalla pulido y narración con voz |
+| 12 nov | ✅ Video público en YouTube (<https://youtu.be/8-Zf7jrJ-nc>, con voz, 2:27) y README con el video (#62). Falta: Devpost (Submit antes de las 14:00 CDMX) y `dev` → `main` |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 
-**Lo que más pesa ahora** no son funciones nuevas: es **diseño** (Vanessa), **historia** (una frase clara) y **presentación** (el video).
+**Lo que más pesa ahora** no son funciones nuevas: es el **video** (una sola historia, Zaytun protagonista) y **Devpost**. El diseño de Vanessa ya está en la app.
 
 ### Preguntas abiertas para la asesoría
+
+> **4 nov:** el equipo no tiene asesoría de finanzas ni grupo de freelancers por ahora. Estas preguntas siguen sin respuesta; el README lo aclara y no se afirma que la app cumpla con el SAT.
 
 **Finanzas**
 - ¿Las facturas deben llevar IVA incluido en el precio, o sumarse aparte? ¿Cuándo aplican retenciones?
 - ¿Qué clave de producto/servicio del SAT conviene para un freelancer?
 - ¿Qué porcentajes tienen sentido para un freelancer en México? (impuestos, emergencias, otros)
-- ¿Los apartados deben reiniciarse cada mes o acumularse?
+- ~~¿Los apartados deben reiniciarse cada mes o acumularse?~~ Se acumulan (8 nov), y además se ve lo del mes.
 - ¿Qué más le serviría a un freelancer ver en Inicio?
 
 **Diseño** (decide Vanessa)
@@ -449,13 +493,25 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 - ¿Nombre final, logo y colores?
 
 ### Ideas guardadas para después (si sobra tiempo)
-- **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual.
-- **AWS Bedrock** para pagar la IA con créditos de AWS: en pausa hasta que AWS habilite Sonnet 5.5 en la cuenta (caso de soporte abierto). La librería `@anthropic-ai/bedrock-sdk` se probó en local, sin subir. El plan: un interruptor Anthropic directo / Bedrock por variable, sin quitar el directo.
+
+- **Facturas fiscales en otros países** (platicado el 4 nov): con intermediarios como Avalara, Sovos o Fonoa, no con una API por país. Pero cada país necesita sus reglas de impuestos, sus datos y su validación. Va en "What's next" del README; el cobro por PayPal ya es internacional.
+- **Zaytun con el chat encima de cualquier pantalla** (idea de Víctor, 8 nov): que al tocar a Zaytun se abra el chat como panel flotante, sin cambiar de pantalla, y quitar la pestaña Copilot. Se hizo la versión intermedia (Zaytun flota y abre la pestaña) porque la completa era rehacer el chat a 4 días de entregar (~5–6 h).
+- **Apartados con meta** (aprobada el 28 oct, versión chiquita de máximo 1 día): crear un apartado con meta (por ejemplo "Laptop: $15,000") con barrita de avance, meter o sacar dinero a mano, y que el copiloto proponga cuánto meter cuando te pagan, siempre con tarjeta de aprobación. Sigue siendo virtual. **Parte hecha el 8 nov:** montos a la medida por pago (a mano y con el copiloto) y total acumulado; falta la meta con barrita y sacar dinero.
+- ~~**AWS Bedrock** para pagar la IA con créditos de AWS~~: descartado el 30 oct (AWS contestó, pero hubo complicaciones). La IA sigue con Anthropic directo.
 - **Idioma del copiloto:** una vez contestó en español a una pregunta en inglés (los datos de las facturas están en español). Vigilar; si se repite, reforzar la instrucción.
-- **Seguridad, antes de usar Bedrock en Render:** crear en AWS IAM un usuario que solo pueda usar Bedrock, y usar sus llaves en vez de las de la cuenta principal.
-- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días: hay que activarla **entre el 1 y el 5 de noviembre** para que llegue al 15 de diciembre.
+- **Premio de AG Grid** ($5,000 el primer lugar): un tablero de "quién te debe" en el modo Business. Su prueba gratis dura 45 días, así que cualquier fecha desde el 6 de noviembre llega al 21 de diciembre (se había dicho que vencía el 5: era un error). **Descartado el 9 nov:** el video y Devpost no estaban listos y ya no entran funciones nuevas. Los premios de patrocinador solo dicen "mejor uso"; nos inscribimos en **APIMatic** (el SDK de Transaction Search da los números de la app) y **Render** (la demo vive ahí), y solo se puede ganar uno.
+- **Ver cuánto se pierde en el tipo de cambio** (idea de Víctor, 4 nov): mostrarle al freelancer cuántos pesos pierde al convertir sus dólares. Es un dolor concreto, pero a veces la mejor recomendación sería usar otro servicio y no PayPal. Se puede mencionar en el pitch como idea a futuro.
+- **App en español o inglés (botón ES/EN)** (idea de Víctor, 30 oct): el usuario es un freelancer mexicano, así que tiene sentido. **Cuándo:** después del rediseño de Vanessa, cuando los textos ya no cambien, y solo si sobra tiempo antes del video (~6–9 nov). **Por qué no antes:** son cientos de frases en todas las pantallas (~3–5 h con pruebas), el español es ~20–30% más largo y puede desbordar el diseño en celular, y si se traduce antes del rediseño se hace dos veces. El inglés se queda como idioma principal porque el jurado es internacional. **Mientras:** el copiloto ya entiende y contesta en español, y la página de datos fiscales del cliente ya está en español. Destacarlo en el README y el video (*"The copilot speaks Spanish"*).
+- **Cómo hacer el video** (tarea 7; acordado el 30 oct, falta que lo vean Natalia y Vanessa):
+  - **Claude:** el guion escena por escena (qué se ve, qué se dice y cuántos segundos, para no pasar de 3 minutos), **tomas limpias** de la app grabadas con el navegador automático (sin errores ni mouse temblando), subtítulos en inglés (`.srt`) y textos de pantalla. Si hace falta juntar clips por comandos, se usa `ffmpeg` (instalarlo con `sudo apt install ffmpeg`).
+  - **Natalia (o Víctor):** la **narración con voz** (una voz humana conecta más con el jurado) y la edición final en un editor sencillo y gratis (CapCut o Clipchamp): ritmo y música.
+  - **La toma del pago** ("te pagan → la IA reacciona"): Víctor paga a mano con la cuenta de prueba mientras Claude graba la app con el navegador automático (no hay OBS; ese plan cambió el 8–9 nov). Mientras se graba, prender el "despertador" de Render.
+  - **Estilo (9 nov):** el del clip de prueba en `~/Documentos/vnv-video/`: la app dentro de un celular en 3D, textos animados y acercamientos, hecho con Remotion.
+  - **Estilo final (11 nov):** cambió al de un video de referencia que trajo Víctor (un promo de un club universitario): fondo blanco, palabras enormes una tras otra, la app a pantalla completa en una ventana inclinada en 3D, círculo vino con punto amarillo para pasar de escena y el logo armándose al inicio y al final. **Solo música y texto**: se quitó la voz y los subtítulos. Los cortes caen en el ritmo de la canción.
+  - **Orden:** primero el guion; Natalia lo revisa antes de grabar.
+- **Ticket para emitir varios CFDI a la vez** (idea de Víctor, 30 oct): como el de apartados, pero para las facturas del SAT. Quedó para después del video: emitir un CFDI sella un documento y le escribe al cliente (no se puede "desaprobar"), y en grupo hay que mostrar bien cuáles salieron y cuáles fallaron (~45–60 min).
 - **Perfil fiscal compartido:** cada usuario llena sus datos fiscales al entrar (con "Ahora no"), y si tu cliente también usa la app y da permiso, la factura le llega sola sin pedirle nada. Necesita inicio de sesión (quizá "Log in with PayPal"), aviso de privacidad y base de datos.
-- Base de datos para que nada se pierda al reiniciar.
+- ~~Base de datos para que nada se pierda al reiniciar~~: hecho el 30 oct con Neon para apartados y datos fiscales. Falta, si sobra tiempo: guardar también las **pláticas y sugerencias del copiloto** (hoy viven en memoria y se borran al reiniciar Render).
 - Login real, si el proyecto sigue después del hackathon.
 
 ---
@@ -489,6 +545,41 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #25 | Tutorial de bienvenida detallado (14 pasos) y la guía empieza apagada: ya no habla junto con el copiloto |
 | #26 | Celular: cada factura es una tarjeta y el tutorial se acomoda para no tapar lo que explica |
 | #27 | Bitácora del 28 oct (noche), `CLAUDE.md` con Render, y planes al día |
+| #28 | Revisión de cierre del 28 oct: qué se borra en Render y pendientes |
+| #29 | (Vanessa, 29 oct) Pasó su rama a `main`; era una copia de `dev`, así que `main` quedó con lo del 28 oct. Sin diseño nuevo todavía |
+| #30 | Invoices pide la lista de facturas 1 vez en vez de 4 (la guía apagada ya no carga nada) |
+| #31 | Al pagar sale al instante "Your copilot is on it" mientras la IA prepara la sugerencia |
+| #32 | Links del chat que se pueden presionar, y apartados y datos fiscales guardados en **Neon** para que Render no los borre |
+| #33 | Varios pagos en una sola tarjeta tipo ticket, con casillas, totales y la IA recomendando cuáles apartar |
+| #34 | Botón "Review all with AI" en Savings: el ticket sale en ~5 s |
+| #35 | Historial de pagos en el chat, la sugerencia al pagar incluye los pagos pendientes, y caché compartido entre pláticas |
+| #36 | Bitácora del 30 oct, documentos al día, y un cliente da sus datos fiscales una sola vez (se completan todas sus facturas pendientes) |
+| #37 | Plan del video: Claude hace guion, tomas limpias y subtítulos; el equipo narra y edita |
+| #38 | Botón ES/EN guardado para después del rediseño; revisión final de documentos del 30 oct |
+| #39 | README nuevo con la historia "el copiloto da el primer paso cuando te pagan", para clientes en México y en el extranjero |
+| #40 | CFDI en dólares para clientes en el extranjero: el usuario elige el IVA y el país, con tipo de cambio automático |
+| #41 | Textos más claros del CFDI en dólares: el freelancer lo emite para reportar el ingreso y se queda con la copia |
+| #42 | Al recibir un pago en USD, la app siempre pregunta por el CFDI, incluso cuando el copiloto solo pone tarjetas |
+| #43 | Bitácora del 4 nov y documentos al día: nuevo enfoque, pendientes y corrección de la fecha de AG Grid |
+| #44 | Correo de Devpost: demo, cuentas de prueba y créditos activos hasta el 21 dic; no editar nada después de la entrega; limpieza de la demo movida al 11 nov |
+| #45 | Bitácora del 7 nov, Devpost en borrador (falta el video), primer borrador del guion y tope del chat en 50 al día |
+| #46 | Apartados con montos a la medida (a mano y con el copiloto), total acumulado y textos de "virtual" corregidos. También: USD por defecto, ceros en dólares, Description más ancho en celular y paso 1 del tutorial nuevo |
+| #47 | Colores nuevos: vino (`#882336`) para Business y amarillo (`#FCEE52`) para Personal, con letra oscura en lo amarillo. La barra de arriba y la tarjeta grande también toman el color del modo (adiós al azul marino estilo PayPal). Logo en azul marino muy oscuro con punto amarillo |
+| #48 | Zaytun, la mascota: flota en todas las pantallas, avisa con un globito y es la cara del copiloto en el chat y el tutorial |
+| #49 | % opcional en el plan: al llegar un pago Zaytun propone montos para cada apartado (también en el ticket "Review all"); nunca inventa el de impuestos |
+| #50 | Arreglo: la fecha del tipo de cambio de Banxico sale como AAAA-MM-DD (antes "10/11/2026", que se leía como 11 de octubre). Token de Banxico puesto y probado |
+| #51 | Bitácora del 8 nov, documentos al día y guion del video borrador 2 (Zaytun protagonista) |
+| #52 | Pantallas más limpias (Home y Savings): menos información repetida, sin cambiar el diseño. Aprobado con un antes y después; tutorial probado en celular y computadora |
+| #53 | "Past set-asides" abiertos si son 3 o menos (pedido del equipo) |
+| #54 | Regresó la tarjeta "Try asking Zaytun", con más ejemplos y del alto de lo que tiene al lado; listas de Home de tamaño fijo (5 facturas, 3 pagos, con "See all") |
+| #55 | Bitácora del 9 nov, estilo del video, aviso de diciembre y premios |
+| #56 | Zaytun explica las pantallas y qué botón tocar (nombres en inglés, como en la app). Guion del video borrador 3 |
+| #57 | Licencia: "VNV Tech (Víctor, Vanessa and Natalia)" |
+| #58 | Zaytun solo habla de la app y del dinero del freelancer; lo demás lo rechaza amable |
+| #59 | Arreglo: el tipo de cambio de Banxico usa la fecha de hoy o anterior (antes salía uno de pasado mañana) |
+| #60 | Bitácora del 10 nov, demo de Render, plan de diciembre y estado del video |
+| #61 | Bitácora del 11 nov: video final v4 (música y texto) y pendientes para entregar |
+| #62 | README con el video y capturas; bitácora del 12 nov (guion nuevo, narración con voz, video público) |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

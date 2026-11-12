@@ -28,10 +28,14 @@ export interface Savings {
   plan: PlanBucket[]
   paid: Money[] | null // null si PayPal no devolvió los pagos del mes
   pending: PaymentReview[] // pagos que esperan respuesta
-  // Lo apartado este mes. percent es null si el apartado ya no está en el plan.
-  buckets: { id: string; name: string; percent: number | null; amounts: Money[] }[]
+  // Lo apartado este mes y lo juntado desde el principio. percent es null si el
+  // apartado ya no está en el plan.
+  buckets: { id: string; name: string; percent: number | null; amounts: Money[]; total: Money[] }[]
   available: Money[]
 }
+
+// Montos a la medida para un pago: cuánto va a cada apartado.
+export type CustomAllocations = { bucketId: string; amount: number }[]
 
 export type PlanInput = { id?: string; name: string; percent: number }[]
 
@@ -40,6 +44,9 @@ export const MAX_BUCKETS = 6
 export const savingsApi = {
   get: () => api<Savings>('/savings'),
   savePlan: (buckets: PlanInput) => api<Savings>('/savings/plan', { method: 'PUT', body: JSON.stringify({ buckets }) }),
-  decide: (paymentId: string, decision: 'set_aside' | 'skip') =>
-    api<Savings>(`/savings/payments/${paymentId}`, { method: 'POST', body: JSON.stringify({ decision }) }),
+  decide: (paymentId: string, decision: 'set_aside' | 'skip', allocations?: CustomAllocations) =>
+    api<Savings>(`/savings/payments/${paymentId}`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, allocations }),
+    }),
 }

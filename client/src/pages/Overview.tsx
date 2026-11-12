@@ -1,14 +1,15 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, RefreshCw, Sparkles, Wallet } from 'lucide-react'
-import { Guide } from '../components/Guide'
-import { Badge, Button, Card, Notice, Skeleton } from '../components/ui'
+import { ArrowRight, CircleAlert, Clock, FilePlus2, type LucideIcon, PiggyBank, Sparkles, Wallet } from 'lucide-react'
+import { Guide, GuideToggle } from '../components/Guide'
+import { Badge, Button, Card, RefreshButton, Skeleton } from '../components/ui'
 import { type Suggestion, chatApi } from '../lib/chat'
 import { currentMonthName, formatDate, formatMoney } from '../lib/config'
 import { useLiveEvents } from '../lib/events'
 import { type Invoice, displayStatus, invoicesApi } from '../lib/invoices'
 import { useMode } from '../lib/mode'
 import { type RecentPayment, formatTotals, overviewApi, plural, sumTotals } from '../lib/overview'
+import { ZaytunAvatar } from '../components/Zaytun'
 import { type Savings, savingsApi } from '../lib/savings'
 
 // Pantalla de inicio. Cada modo tiene la suya: Business (cobrar a clientes) y
@@ -52,16 +53,25 @@ const loadSuggestions = () => chatApi.suggestions().then((r) => r.suggestions, (
 const loadBusiness = () => Promise.all([overviewApi.get(), invoicesApi.list(1), loadSuggestions()])
 const loadPersonal = () => Promise.all([savingsApi.get(), overviewApi.get(), loadSuggestions()])
 
+// Cuántos renglones muestra cada lista de Home (los más nuevos primero). Fijos
+// para que las tarjetas no cambien de tamaño; el resto se ve en See all.
+const RECENT_INVOICES = 5
+const RECENT_PAYMENTS = 3
+
+// Ejemplos para Zaytun: al presionarlos se abre el chat con el texto ya escrito.
 const BUSINESS_PROMPTS = [
   'Who still owes me money?',
   'Invoice Acme Corp 12,500 MXN for the website redesign, billing@acme.example',
   'Send a reminder for my overdue invoices',
+  'Show the payments I got this month',
 ]
 
 const PERSONAL_PROMPTS = [
   'How much have I set aside this month?',
   'Set aside 25% of every payment for taxes',
   'How much can I spend this month?',
+  'Split my last payment between my set-asides',
+  'Which set-aside has saved the most so far?',
 ]
 
 function BusinessHome() {
@@ -71,12 +81,7 @@ function BusinessHome() {
 
   return (
     <>
-      <HomeHeader
-        eyebrow="Business"
-        title="Good to see you"
-        description="Bill your clients and see who has paid. Every number comes from your PayPal account."
-        onRefresh={reload}
-      />
+      <HomeHeader title="Good to see you" description="Bill your clients and see who has paid." onRefresh={reload} />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
       <Guide title="Bill, get paid and send the CFDI" />
@@ -91,7 +96,7 @@ function BusinessHome() {
               New invoice
             </HeroLink>
             <HeroLink to="/copilot" icon={Sparkles}>
-              Ask the copilot
+              Ask Zaytun
             </HeroLink>
           </>
         }
@@ -124,7 +129,7 @@ function BusinessHome() {
             </p>
           ) : (
             <ul className="divide-y divide-line">
-              {page.invoices.slice(0, 5).map((inv) => (
+              {page.invoices.slice(0, RECENT_INVOICES).map((inv) => (
                 <InvoiceRow key={inv.id} invoice={inv} />
               ))}
             </ul>
@@ -132,6 +137,7 @@ function BusinessHome() {
         </Card>
         <TryAsking prompts={BUSINESS_PROMPTS} />
       </div>
+      <GuideToggle />
     </>
   )
 }
@@ -141,22 +147,15 @@ function PersonalHome() {
   const [savings, overview, suggestions] = data ?? [null, null, []]
   const setAside = savings ? sumTotals(savings.buckets.flatMap((b) => b.amounts)) : []
   const pending = savings?.pending.length ?? 0
+  // Los apartados que ya no están en el plan solo salen si recibieron algo este mes.
+  const buckets = savings?.buckets.filter((b) => b.percent !== null || b.amounts.length > 0) ?? []
 
   return (
     <>
-      <HomeHeader
-        eyebrow="Personal"
-        title="Your money"
-        description="Decide what part of each payment you keep for later, and see what's left to spend."
-        onRefresh={reload}
-      />
+      <HomeHeader title="Your money" description="See what's left to spend after your set-asides." onRefresh={reload} />
       {error && <LoadError message={error} onRetry={reload} />}
       <CopilotSuggestion suggestions={suggestions} />
       <Guide title="Keep part of every payment" />
-
-      <Notice className="mb-4">
-        Set-asides are <strong>virtual</strong>: your money stays in your PayPal account. They're a plan to help you budget.
-      </Notice>
 
       <Hero
         label={`Left to spend in ${currentMonthName()}`}
@@ -174,25 +173,11 @@ function PersonalHome() {
               {pending ? `Review ${plural(pending, 'payment')}` : 'My savings plan'}
             </HeroLink>
             <HeroLink to="/copilot" icon={Sparkles}>
-              Ask the copilot
+              Ask Zaytun
             </HeroLink>
           </>
         }
       />
-
-      {pending > 0 && (
-        <Link
-          to="/savings"
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-5 py-4 text-sm text-brand-900 hover:border-brand-500"
-        >
-          <Wallet aria-hidden className="size-5 shrink-0" />
-          <span className="flex-1">
-            <strong>You got paid!</strong> {pending === 1 ? 'One payment is' : `${pending} payments are`} waiting: do you
-            want to set part of it aside?
-          </span>
-          <ArrowRight aria-hidden className="size-4" />
-        </Link>
-      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -200,27 +185,28 @@ function PersonalHome() {
             <SectionTitle title={`Set aside in ${currentMonthName()}`} link={{ to: '/savings', label: 'Edit plan' }} />
             {!savings ? (
               <ListSkeleton />
-            ) : savings.buckets.length === 0 ? (
+            ) : buckets.length === 0 ? (
               <p className="py-6 text-sm text-ink-muted">
                 No set-asides yet. Add one, like Taxes, and every time you get paid you'll be asked how much to keep.
               </p>
             ) : (
               <ul className="divide-y divide-line">
-                {savings.buckets.map((b) => (
+                {buckets.map((b) => (
                   <BucketRow key={b.id} bucket={b} />
                 ))}
               </ul>
             )}
           </Card>
           <Card>
-            <SectionTitle title="Recent payments" />
+            {/* Solo los más nuevos, para que la columna no cambie de tamaño; los demás, en See all. */}
+            <SectionTitle title="Recent payments" link={{ to: '/invoices', label: 'See all' }} />
             {!overview ? (
               <ListSkeleton />
             ) : overview.recentPayments.length === 0 ? (
               <p className="py-6 text-sm text-ink-muted">No payments this month yet. They show up here the moment you get paid.</p>
             ) : (
               <ul className="divide-y divide-line">
-                {overview.recentPayments.map((p) => (
+                {overview.recentPayments.slice(0, RECENT_PAYMENTS).map((p) => (
                   <PaymentRow key={p.id} payment={p} />
                 ))}
               </ul>
@@ -229,32 +215,21 @@ function PersonalHome() {
         </div>
         <TryAsking prompts={PERSONAL_PROMPTS} />
       </div>
+      <GuideToggle />
     </>
   )
 }
 
-function HomeHeader({
-  eyebrow,
-  title,
-  description,
-  onRefresh,
-}: {
-  eyebrow: string
-  title: string
-  description: string
-  onRefresh: () => void
-}) {
+// Encabezado corto: el modo ya se ve arriba y los números se actualizan solos
+// (webhooks), así que Refresh queda como un icono chico.
+function HomeHeader({ title, description, onRefresh }: { title: string; description: string; onRefresh: () => void }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p className="text-xs font-bold tracking-wider text-brand-600 uppercase">{eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
-        <p className="mt-1 max-w-xl text-sm text-ink-muted">{description}</p>
+    <header className="mb-5 flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-ink-muted">{description}</p>
       </div>
-      <Button variant="ghost" onClick={onRefresh}>
-        <RefreshCw aria-hidden className="size-4" />
-        Refresh
-      </Button>
+      <RefreshButton onClick={onRefresh} />
     </header>
   )
 }
@@ -283,11 +258,9 @@ function CopilotSuggestion({ suggestions }: { suggestions: Suggestion[] }) {
       to={`/copilot?suggestion=${latest.id}`}
       className="mb-4 flex items-start gap-3 rounded-2xl border border-brand-100 bg-surface px-5 py-4 shadow-sm hover:border-brand-500"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600 text-white">
-        <Sparkles aria-hidden className="size-5" />
-      </span>
+      <ZaytunAvatar className="size-10" />
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-bold tracking-wider text-brand-600 uppercase">From your copilot</span>
+        <span className="block text-xs font-bold tracking-wider text-brand-600 uppercase">From Zaytun, your copilot</span>
         <span className="mt-0.5 block font-semibold text-ink">{latest.title}</span>
         {intro?.type === 'text' && <span className="mt-0.5 line-clamp-2 block text-sm text-ink-muted">{intro.text}</span>}
         <span className="mt-1 block text-xs font-semibold text-brand-600">
@@ -304,10 +277,10 @@ function Hero({ label, value, hint, actions }: { label: string; value: string | 
   return (
     <section
       data-tour="home-hero"
-      className="relative overflow-hidden rounded-3xl bg-navy-900 p-6 text-white shadow-lg sm:p-8"
+      className="on-brand-scope relative overflow-hidden rounded-3xl bg-brand-solid p-6 text-white shadow-lg sm:p-8"
     >
-      {/* Brillo del color del modo en la esquina. */}
-      <div aria-hidden className="absolute -top-24 -right-24 size-72 rounded-full bg-brand-500/40 blur-3xl" />
+      {/* Brillo suave en la esquina. */}
+      <div aria-hidden className="absolute -top-24 -right-24 size-72 rounded-full bg-surface/20 blur-3xl" />
       <div className="relative flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="text-sm font-medium text-white/70">{label}</p>
@@ -333,7 +306,7 @@ function HeroLink({ to, icon: Icon, primary, children }: { to: string; icon: Luc
     <Link
       to={to}
       className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-        primary ? 'bg-white text-navy-900 hover:bg-brand-50' : 'bg-white/10 text-white hover:bg-white/20'
+        primary ? 'bg-surface text-ink hover:bg-brand-50' : 'bg-white/10 text-white hover:bg-white/20'
       }`}
     >
       <Icon aria-hidden className="size-4" />
@@ -449,28 +422,14 @@ function PaymentRow({ payment }: { payment: RecentPayment }) {
   )
 }
 
-function BucketRow({ bucket }: { bucket: Savings['buckets'][number] }) {
-  return (
-    <li className="flex items-center gap-3 py-3">
-      <Initial text={bucket.name} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{bucket.name}</p>
-        <p className="text-xs text-ink-muted">
-          {bucket.percent !== null ? `${bucket.percent}% of the payments you accept` : 'No longer in your plan'}
-        </p>
-      </div>
-      <p className="text-sm font-semibold tabular-nums">{formatTotals(bucket.amounts)}</p>
-    </li>
-  )
-}
-
-// Ejemplos para el copiloto: al presionarlos se abre el chat con el texto ya escrito.
+// Ejemplos para Zaytun: al presionarlos se abre el chat con el texto ya escrito.
+// En computadora se estira a la altura de lo que tiene al lado (la nota queda abajo).
 function TryAsking({ prompts }: { prompts: string[] }) {
   return (
-    <Card className="h-fit bg-brand-50">
+    <Card className="flex flex-col bg-brand-50">
       <h2 className="flex items-center gap-2 font-semibold text-brand-900">
         <Sparkles aria-hidden className="size-4" />
-        Try asking the copilot
+        Try asking Zaytun
       </h2>
       <ul className="mt-3 space-y-2">
         {prompts.map((p) => (
@@ -484,7 +443,27 @@ function TryAsking({ prompts }: { prompts: string[] }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-ink-muted">It always asks before doing anything on your PayPal account.</p>
+      <p className="mt-auto pt-3 text-xs text-ink-muted">It always asks before doing anything on your PayPal account.</p>
     </Card>
   )
 }
+
+function BucketRow({ bucket }: { bucket: Savings['buckets'][number] }) {
+  return (
+    <li className="flex items-center gap-3 py-3">
+      <Initial text={bucket.name} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{bucket.name}</p>
+        <p className="text-xs text-ink-muted">
+          {bucket.percent === null
+            ? 'No longer in your plan'
+            : bucket.percent > 0
+              ? `${bucket.percent}% of the payments you accept`
+              : 'Amounts you choose with Zaytun'}
+        </p>
+      </div>
+      <p className="text-sm font-semibold tabular-nums">{formatTotals(bucket.amounts)}</p>
+    </li>
+  )
+}
+

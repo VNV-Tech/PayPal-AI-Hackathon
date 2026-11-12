@@ -85,6 +85,39 @@ async function loadMonth(now: Date): Promise<{ invoices: InvoiceSummary[]; payme
   return { invoices: invoices.value, payments };
 }
 
+const DAY_MS = 86_400_000;
+// Transaction Search acepta máximo 31 días por consulta.
+const SEARCH_WINDOW_DAYS = 31;
+export const MAX_HISTORY_DAYS = 93;
+
+// Pagos recibidos en los últimos `days` días (máximo 93), los más recientes
+// primero, para el historial del copiloto. Igual que el mes: suma los pagos de
+// facturas que la búsqueda todavía no muestra. También devuelve las facturas.
+export async function getPaymentsSince(
+  days: number,
+  now = new Date(),
+): Promise<{ invoices: InvoiceSummary[]; payments: ReceivedPayment[] }> {
+  const span = Math.min(Math.max(Math.round(days), 1), MAX_HISTORY_DAYS);
+  const start = new Date(now.getTime() - span * DAY_MS);
+  const windows: [Date, Date][] = [];
+  for (let from = start; from < now; from = new Date(from.getTime() + SEARCH_WINDOW_DAYS * DAY_MS)) {
+    windows.push([from, new Date(Math.min(from.getTime() + SEARCH_WINDOW_DAYS * DAY_MS, now.getTime()))]);
+  }
+  const [invoices, ...searched] = await Promise.all([
+    listAllInvoices(),
+    ...windows.map(([from, to]) => listPaymentsReceived(from, to)),
+  ]);
+  // Las ventanas se tocan en los bordes: mismo ID, mismo pago.
+  const byId = new Map(searched.flat().map((p) => [p.id, p]));
+  for (const p of await invoicePaymentsSince(invoices, start.toISOString().slice(0, 10))) {
+    if (!byId.has(p.id)) byId.set(p.id, p);
+  }
+  const payments = [...byId.values()].sort(
+    (a, b) => b.date.localeCompare(a.date) || (b.invoiceNumber ?? '').localeCompare(a.invoiceNumber ?? ''),
+  );
+  return { invoices, payments };
+}
+
 export async function getPaymentsThisMonth(now = new Date()): Promise<ReceivedPayment[] | null> {
   return (await loadMonth(now)).payments;
 }
