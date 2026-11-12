@@ -457,7 +457,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 9–12 nov | Natalia + Víctor | 🟡 README con el video y capturas (12 nov, #62). Devpost en borrador (7 nov). **Video final (12 nov): público en YouTube, <https://youtu.be/8-Zf7jrJ-nc> (2:27).** Es la **v4**, hecha fuera del repo en `~/Documentos/vnv-video/final/` (`src/Promo.jsx`): fondo blanco, palabras grandes una por una, la app en una ventana inclinada en 3D y el logo armándose. **Con voz** (la hermana de Víctor lee lo que sale en pantalla) sobre *Good Mornin' Miss Eliza*, de la Biblioteca de audio de YouTube, a volumen fijo de fondo. El archivo es `out/VNV-Copilot-FINAL.mp4`. Faltan, en Devpost: el link, las capturas, APIMatic y Render, marcar los premios y Submit |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 9–12 nov | Natalia + Víctor | 🟡 README con el video y capturas (12 nov, #62). Devpost en borrador (7 nov). **Video final (12 nov): público en YouTube, <https://youtu.be/_gVjjB18GOU> (2:27).** Es la **v4**, hecha fuera del repo en `~/Documentos/vnv-video/final/` (`src/Promo.jsx`): fondo blanco, palabras grandes una por una, la app en una ventana inclinada en 3D y el logo armándose. **Sin voz** (se grabó una versión narrada, pero ganó la de solo música), con *Good Mornin' Miss Eliza*, de la Biblioteca de audio de YouTube, a volumen fijo de fondo. El archivo es `out/VNV-Copilot-FINAL.mp4`. Faltan, en Devpost: el link, las capturas, APIMatic y Render, marcar los premios y Submit |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -470,7 +470,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 9 nov | ✅ Clip de prueba del video (estilo aprobado) y pantallas más limpias (#52–#54). AG Grid descartado |
 | 10 nov | ✅ Guion final, Zaytun explica pantallas y no se sale del tema (#56, #58), licencia VNV Tech (#57), arreglo de Banxico (#59), demo de Render lista y video grabado y armado (v2 es la base) |
 | 11 nov | ✅ Video v4 (música y texto) en dos versiones; textos y miniaturas de YouTube listos. En la noche: guion de pantalla pulido y narración con voz |
-| 12 nov | ✅ Video público en YouTube (<https://youtu.be/8-Zf7jrJ-nc>, con voz, 2:27) y README con el video (#62). Falta: Devpost (Submit antes de las 14:00 CDMX) y `dev` → `main` |
+| 12 nov | ✅ Video público en YouTube (<https://youtu.be/_gVjjB18GOU>, sin voz, 2:27) y README con el video (#62). Falta: Devpost (Submit antes de las 14:00 CDMX) y `dev` → `main` |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 

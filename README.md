@@ -2,11 +2,11 @@
 
 **The AI copilot that makes the first move when you get paid.** For Mexican freelancers billing clients at home and abroad through PayPal. It reads your money freely, proposes the next step, and never acts until you approve.
 
-**[Try the live demo](https://vnv-copilot.onrender.com)** · **[Watch the video (2:27)](https://youtu.be/8-Zf7jrJ-nc)** · Built by [VNV-Tech](https://github.com/VNV-Tech) for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/)
+**[Try the live demo](https://vnv-copilot.onrender.com)** · **[Watch the video (2:27)](https://youtu.be/_gVjjB18GOU)** · Built by [VNV-Tech](https://github.com/VNV-Tech) for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/)
 
 > PayPal and Facturama run in **sandbox only**: no real money and no legally valid tax documents. The demo is public, so please use test data only.
 
-[![Watch the VNV Copilot video on YouTube](https://img.youtube.com/vi/8-Zf7jrJ-nc/maxresdefault.jpg)](https://youtu.be/8-Zf7jrJ-nc)
+[![Watch the VNV Copilot video on YouTube](https://img.youtube.com/vi/_gVjjB18GOU/maxresdefault.jpg)](https://youtu.be/_gVjjB18GOU)
 
 | Business mode: who paid and who hasn't | Zaytun proposes, you approve | Personal mode: what's left to spend |
 | --- | --- | --- |
