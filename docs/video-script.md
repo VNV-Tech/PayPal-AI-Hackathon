@@ -1,14 +1,38 @@
-# Guion del video (borrador 3, 10 nov)
+# Guion del video
 
-> **11 nov: el video final ya no lleva voz.** Víctor trajo un video de
-> referencia y se rehízo en ese estilo (v4): fondo blanco, palabras grandes
-> una por una, la app en una ventana inclinada en 3D y **solo música y
-> texto**. Las frases de pantalla salen de este guion ("Money apps are
-> confusing. We wanted the opposite.", "Bill a client with one message",
-> "You didn't lift a finger", "Here's what to set aside", "Your tax invoice,
-> in dollars", "What's really in your hands", "Built on PayPal. Your approval
-> is built in.", "Made for Mexican freelancers paid in dollars… and maybe the
-> start of something bigger."). La narración de abajo queda como referencia.
+> **Video final (12 nov): <https://youtu.be/8-Zf7jrJ-nc>** (2:27, público).
+> Es la v4 (fondo blanco, palabras grandes una por una, la app en una ventana
+> inclinada en 3D), con música y **con voz**: la narración lee lo mismo que
+> sale en pantalla. El guion que vale es el de aquí abajo; el borrador 3, con
+> la narración vieja, queda al final solo como referencia.
+
+## Guion final (12 nov): lo que sale en pantalla y lo que dice la voz
+
+Entre paréntesis, el texto chico de cada escena.
+
+| # | Escena | En pantalla | La voz dice |
+| --- | --- | --- | --- |
+| 1 | Apertura | Money apps are confusing. We built the opposite. | Lo mismo |
+| 2 | Meet Zaytun | First time? Zaytun shows you around. | "Meet Zaytun. First time? Zaytun shows you around." |
+| 3 | Palabras grandes | Just ask. | Lo mismo |
+| 4 | Get paid | Bill a client with a single message. (Nothing happens until you approve it.) | Lo mismo; la letra chica, cuando sale la tarjeta de aprobación |
+| 5 | Palabras grandes | Get paid. | Lo mismo |
+| 6 | Your client pays | With PayPal, like always. | Lo mismo |
+| 7 | No refresh | Without lifting a finger. (PayPal webhooks update everything. Zaytun speaks first.) | "And without lifting a finger. Zaytun speaks first." |
+| 8 | Zaytun has a plan | Your month, already planned. (Taxes, savings, bills. You approve it. Zaytun does the rest.) | Lo mismo |
+| 9 | Palabras grandes | Client abroad? | Lo mismo |
+| 10 | Mexican tax invoice (CFDI) | Your tax invoice, in dollars. (Official Banxico exchange rate. One tap.) | "Your tax invoice, in dollars. With just one tap." |
+| 11 | Done | In seconds, not days. (Sandbox: test documents, no legal validity.) | "In seconds, not days." |
+| 12 | Palabras grandes | Now, breathe. | Lo mismo |
+| 13 | Personal mode | Taxes and bills first. The rest is yours. (Your disposable income, at a glance.) | "Taxes and bills first. The rest is yours." |
+| 14 | Galería | Everything in one place. On your laptop. On your phone. | Lo mismo |
+| 15 | Confianza | Built on PayPal. Your approval is built in. | Lo mismo |
+| 16 | Cierre | Simple. Beautiful. Made for Mexican freelancers paid in dollars… and maybe the start of something bigger. | Lo mismo |
+| 17 | Logo final | The AI makes the first move. You make the call. | "VNV Copilot. The AI makes the first move, you make the call." |
+
+---
+
+# Referencia: borrador 3 con narración (10 nov, ya no se usa)
 
 > **Cambios contra el borrador 2 (8 nov):** misma historia y mismas tomas,
 > pero la narración ya **no tiene tecnicismos**: se escribe para alguien que
