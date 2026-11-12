@@ -485,16 +485,41 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 - `live-desk.mjs` lanza Chrome con `--lang=en-US --disable-spell-checking` y apaga `spellcheck` en cada campo al enfocarlo.
 - Tempo medido con un script propio (envolvente de ataques + autocorrelación): Eliza 130 BPM, Glass 168.5 BPM.
 
+### 📅 12 de noviembre de 2026 (noche del 11 y madrugada)
+
+**🍎 En simple:** el video cambió dos veces más y **ya está en YouTube, público**: <https://youtu.be/8-Zf7jrJ-nc>. Primero pulimos las frases de pantalla (por ejemplo, *"You didn't lift a finger"* sonaba a regaño y quedó *"Without lifting a finger"*). Después tu hermana grabó la narración y **el video sí lleva voz**: lee lo mismo que sale en pantalla, con la música de fondo a un solo volumen. Ganó la versión con voz y *Good Mornin' Miss Eliza* (2:27). El README ya tiene el video y tres capturas. Falta Devpost y pasar todo a `main`.
+
+- **Guion nuevo en pantalla:** *"We built the opposite"*, *"First time? Zaytun shows you around."*, *"Bill a client with a single message."*, *"Without lifting a finger."*, *"Your month, already planned."* (chico: *"You approve it. Zaytun does the rest."*), *"In seconds, not days."* y *"Taxes and bills first. The rest is yours."* (chico: *"Your disposable income, at a glance."*). Solo cambió el texto: los cortes siguen en el ritmo de cada canción.
+- **Voz:** la grabó la hermana de Víctor con el celular. Se recortó frase por frase y cada una se puso en su escena; algunas se acomodaron con lo que pasa en pantalla (*"Nothing happens until you approve it"* cuando sale la tarjeta, *"With just one tap"* en el clic). El cierre de Miss Eliza se grabó aparte y lee también el lema.
+- **Dos problemas de sonido, arreglados:** se oían **pitidos** (la nota de voz traía unos tonos muy bajos y la primera limpieza les subió el volumen) y la música **"se quebraba"** al bajar y subir con cada frase. Ahora la música va a un solo volumen, de fondo.
+- **README (#62):** link del video, la miniatura que lleva a YouTube y tres capturas (`docs/img/`).
+- **YouTube:** público, licencia estándar (no Creative Commons: la música es de la Biblioteca de audio de YouTube y no nos toca regalarla), sin "estreno".
+
+**Decisiones del día:**
+- El video final es **con voz**, con Miss Eliza: `~/Documentos/vnv-video/final/out/VNV-Copilot-FINAL.mp4`. Se revierte lo de "sin voz" del 11 nov.
+- "Set-asides" se queda así en la app: cambiarlo a otra palabra (por ejemplo "pockets") era una hora de trabajo y la app ya no coincidiría con el video.
+
+**Lo aprendido:**
+- Una nota de voz de WhatsApp viene muy comprimida; para narrar, mejor la grabadora del celular y mandar el archivo.
+- Subirle el volumen a los silencios saca ruidos que no se oían. Mejor apagar lo que suena entre palabras.
+- Con voz, la música a volumen fijo suena más natural que bajarla y subirla en cada frase.
+- Hacer el video tarda ~3.5 min por versión, no 20: cambiar una frase sale barato.
+
+**🔧 En técnico:**
+- Texto: solo cambiaron los `title`/`sub` de `src/Promo.jsx` (respaldo en `Promo.antes-del-guion-nuevo.jsx.bak`); `render-guion5.sh` hace las dos versiones seguidas.
+- Voz: `voz-hermana.py` (numpy + ffmpeg) recorta cada frase por tiempos, la coloca con anclas por escena (`P[escena] + cuadros`), deja la música a −27 dB RMS (−29 en Miss Eliza) contra la voz a −17 y normaliza el pico final. No vuelve a renderizar: copia el video y cambia el audio.
+- Transcripción y tiempos con `faster-whisper` en la compu (el audio no sale a ningún servicio). Los pitidos eran tonos en ~1350 y ~3275 Hz a −50 dB que `loudnorm` subía en los silencios.
+
 ---
 
 ## ✅ ¿Qué te toca hacer a ti?
 
-**Mañana, 12 nov (Devpost cierra a las 14:00 CDMX):**
-- [ ] Decirle a Claude **qué canción ganó** (Miss Eliza o Glass Elevator).
-- [ ] Subir el video a **YouTube como Público**, con lo de `~/Documentos/youtube-video.txt` y una de las miniaturas. Pasarle el link a Claude.
-- [ ] Devpost: link del video, capturas, párrafos de APIMatic y Render, marcar premios y **Submit**.
+**Hoy, 12 nov (Devpost cierra a las 14:00 CDMX):**
+- [x] ~~Elegir canción~~ (Miss Eliza, con voz) · ~~Subir el video a YouTube como Público~~ (12 nov)
 - [ ] Aceptar el PR del README con el video; luego Claude pasa `dev` → `main`.
 - [ ] Cambiar Render para que publique desde `main`.
+- [ ] Devpost: link del video, capturas, párrafos de APIMatic y Render, marcar premios y **Submit** (antes, que tu hermana acepte la invitación).
+- [ ] Después de las 14:00: **no tocar** el repo ni el video hasta el 21 dic.
 - [x] ~~Voz~~ (ya no hace falta) · ~~Música~~ · ~~Video final~~ (11 nov)
 - [x] ~~Guion final~~ · ~~Limpieza de la demo~~ · ~~Qué hacer en diciembre~~ · ~~Grabar las tomas~~ (10 nov)
 
@@ -516,12 +541,12 @@ Día sin reunión: Vanessa y Natalia no pudieron. Vanessa pasó su rama a `main`
 
 **Con Claude:**
 - [x] ~~Grabar todas las tomas~~ (10 nov) · ~~Video final v4 con música~~ (11 nov)
-- [ ] Si gana Glass Elevator: rehacerla con las dos últimas correcciones (~20 min).
-- [ ] **Devpost:** borrador listo (7 nov); falta el link del video, las capturas, los párrafos de APIMatic y Render, marcar los premios y darle **Submit**.
+- [x] ~~Si gana Glass Elevator, rehacerla~~ (ganó Miss Eliza, con voz; 12 nov)
+- [ ] **Devpost:** borrador listo (7 nov); falta pegar el link del video (<https://youtu.be/8-Zf7jrJ-nc>), las capturas, los párrafos de APIMatic y Render, marcar los premios y darle **Submit**.
 - [x] ~~Grabación de prueba~~ (9 nov: clip de 12 s en `~/Documentos/vnv-video/`)
 - [x] ~~Pantallas más limpias~~ (9 nov, #52–#54)
-- [ ] Agregar al **README** el link del video y capturas.
-- [ ] **12 de noviembre:** README con el video, pasar todo a `main` y entregar antes de las 14:00 CDMX.
+- [x] ~~Agregar al README el link del video y capturas~~ (12 nov, #62)
+- [ ] **12 de noviembre:** pasar todo a `main` y entregar antes de las 14:00 CDMX (el README con el video ya está, #62).
 - [x] ~~AG Grid~~ (descartado el 9 nov)
 - [x] ~~Guion borrador 2 con Zaytun~~ (8 nov)
 - [x] ~~Revisar cómo se ve en celular (6d)~~ (8 nov; quedan detalles menores)

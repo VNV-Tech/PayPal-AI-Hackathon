@@ -3,7 +3,7 @@
 > Documento vivo del equipo. Explica **qué estamos haciendo, por qué, cómo funciona y qué falta**, y sobre todo **qué se puede cambiar del diseño**.
 > Cada tema va dos veces: primero simple (🍎) y luego técnico (🔧), para que cualquiera del equipo lo entienda.
 >
-> Última actualización: 11 de noviembre de 2026 (video final v4: fondo blanco, palabras grandes y música, sin voz).
+> Última actualización: 12 de noviembre de 2026 (video final con voz, público en YouTube; README con el video).
 
 ## Índice
 
@@ -457,7 +457,7 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 6e | Invoices pide la lista de facturas varias veces al abrir (4 en vez de 1): revisar | 30 oct | Víctor | ✅ Ahora 1: la guía no carga nada si está apagada y los pedidos iguales al mismo tiempo se comparten |
 | 6i | Dejar 3–4 pagos **sin responder** en Render antes de entregar, para que el jurado vea el ticket y el botón "Review all with AI" (un juez no puede pagar facturas: no tiene cuenta de prueba de PayPal). También una factura pagada en dólares, para que pruebe el CFDI en USD, y que las facturas de prueba "QA ..." (#0020–#0024) no estorben | 11 nov | Víctor | ⏳ Pendiente |
 | 6j | "Despertador" gratis (cron-job.org o UptimeRobot) para que Render no se duerma, **solo** mientras se graba el video y del 1 al 21 dic (504 h; despierta todo el mes gasta ~744 de las 750 horas gratis) | Video y 1–21 dic | Víctor | ⏳ Pendiente |
-| 7 | README en inglés, video de menos de 3 min, Devpost | 9–12 nov | Natalia + Víctor | 🟡 README al día (8 nov, con Zaytun). Devpost en borrador (7 nov): sin el video no deja mandarlo. **Video final (11 nov):** la **v4**, hecha fuera del repo en `~/Documentos/vnv-video/final/` (`src/Promo.jsx`): fondo blanco, palabras grandes una por una, la app en una ventana inclinada en 3D y el logo armándose. **Sin voz: solo música y texto.** Dos versiones listas: *Good Mornin' Miss Eliza* (`vnv-copilot-v4-eliza-4.mp4`, 2:26, la más pulida) y *Phillip Glass Elevator* (`vnv-copilot-v4-glass-2.mp4`, 2:17); las dos de la Biblioteca de audio de YouTube. Víctor elige con su familia y amigos. Faltan: subirlo a YouTube **público**, el README con el link y, en Devpost, el link, las capturas, APIMatic y Render y marcar los premios |
+| 7 | README en inglés, video de menos de 3 min, Devpost | 9–12 nov | Natalia + Víctor | 🟡 README con el video y capturas (12 nov, #62). Devpost en borrador (7 nov). **Video final (12 nov): público en YouTube, <https://youtu.be/8-Zf7jrJ-nc> (2:27).** Es la **v4**, hecha fuera del repo en `~/Documentos/vnv-video/final/` (`src/Promo.jsx`): fondo blanco, palabras grandes una por una, la app en una ventana inclinada en 3D y el logo armándose. **Con voz** (la hermana de Víctor lee lo que sale en pantalla) sobre *Good Mornin' Miss Eliza*, de la Biblioteca de audio de YouTube, a volumen fijo de fondo. El archivo es `out/VNV-Copilot-FINAL.mp4`. Faltan, en Devpost: el link, las capturas, APIMatic y Render, marcar los premios y Submit |
 | 8 | Pasar todo a `main` (lo que ve el jurado) | Antes de entregar | Víctor | ⏳ Pendiente |
 
 ### Calendario hasta la entrega
@@ -469,8 +469,8 @@ Hoy la página **funciona, pero es poco intuitiva**. Esta es una lista honesta p
 | 5 – 8 nov | ✅ Diseño de Vanessa en la app (8 nov): colores vino y amarillo, logo y Zaytun. Guion borrador 2. **Desde el 8 nov no entra ninguna función nueva** |
 | 9 nov | ✅ Clip de prueba del video (estilo aprobado) y pantallas más limpias (#52–#54). AG Grid descartado |
 | 10 nov | ✅ Guion final, Zaytun explica pantallas y no se sale del tema (#56, #58), licencia VNV Tech (#57), arreglo de Banxico (#59), demo de Render lista y video grabado y armado (v2 es la base) |
-| 11 nov | ✅ Video final v4 (música y texto, sin voz) en dos versiones; textos y miniaturas de YouTube listos |
-| 12 nov | Subir a YouTube, Devpost (Submit antes de las 14:00 CDMX), README con el video, `dev` → `main` |
+| 11 nov | ✅ Video v4 (música y texto) en dos versiones; textos y miniaturas de YouTube listos. En la noche: guion de pantalla pulido y narración con voz |
+| 12 nov | ✅ Video público en YouTube (<https://youtu.be/8-Zf7jrJ-nc>, con voz, 2:27) y README con el video (#62). Falta: Devpost (Submit antes de las 14:00 CDMX) y `dev` → `main` |
 | 11 nov | Pasar todo a `main` y entregar con un día de margen |
 | **12 nov, 14:00 CDMX** | **Cierre** |
 
@@ -579,6 +579,7 @@ Cada cambio entró con un **Pull Request** (PR) a `dev`, aprobado por Víctor.
 | #59 | Arreglo: el tipo de cambio de Banxico usa la fecha de hoy o anterior (antes salía uno de pasado mañana) |
 | #60 | Bitácora del 10 nov, demo de Render, plan de diciembre y estado del video |
 | #61 | Bitácora del 11 nov: video final v4 (música y texto) y pendientes para entregar |
+| #62 | README con el video y capturas; bitácora del 12 nov (guion nuevo, narración con voz, video público) |
 
 Para el detalle de la configuración inicial (ramas, candados, plugin de PayPal), ver [`guia-lo-que-se-hizo.md`](guia-lo-que-se-hizo.md).
 

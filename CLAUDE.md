@@ -165,20 +165,20 @@ Si una pantalla dice "Not found" tras cambios grandes, reiniciar `npm run dev`.
   pagar a propósito. Las "QA" #0020–#0024 se quedan (PayPal no borra pagadas).
 - **Saldo de Anthropic (8 nov): $14.65.** Alcanza hasta el 21 dic aun en el
   peor caso (~$10.50). Recargar solo si baja de ~$11 antes del 1 dic.
-- **Video final (11 nov):** la **v4** (`src/Promo.jsx`), en el estilo de un
-  video de referencia de Víctor: fondo blanco, palabras grandes, la app en
-  una ventana inclinada en 3D. **Sin voz: solo música y texto.** Todo fuera
-  del repo en `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo
-  rehacerlo). Dos versiones: `out/vnv-copilot-v4-eliza-4.mp4` (2:26, la más
-  pulida) y `out/vnv-copilot-v4-glass-2.mp4` (2:17; le faltan las dos últimas
-  correcciones). Víctor elige con su familia. Título, descripción y
-  miniaturas de YouTube en `~/Documentos/youtube-*`. Falta: subirlo
-  **público**, Devpost y Submit.
+- **Video final (12 nov): público en YouTube,
+  <https://youtu.be/8-Zf7jrJ-nc>** (2:27). Es la **v4** (`src/Promo.jsx`):
+  fondo blanco, palabras grandes, la app en una ventana inclinada en 3D.
+  **Con voz** (la hermana de Víctor lee lo que sale en pantalla) sobre
+  *Good Mornin' Miss Eliza* a volumen fijo. Todo fuera del repo en
+  `~/Documentos/vnv-video/final/` (`LEEME.md` dice cómo rehacerlo); el
+  archivo subido es `out/VNV-Copilot-FINAL.mp4`. El guion final está en
+  `docs/video-script.md`. El README ya trae el video y capturas
+  (`docs/img/`). Falta: Devpost y Submit.
 - **Premios de patrocinador:** solo dicen "mejor uso". APIMatic (SDK de
   Transaction Search) es el más defendible; Render, más débil. Explicarlos en
   Devpost y marcar las casillas de premios al dar Submit.
 - **Pendiente de Víctor:** que su hermana acepte la invitación de Devpost.
-- **Devpost:** proyecto en borrador con todo menos el video (sin él no deja
-  dar Submit). Textos fuera del repo en `~/Documentos/devpost-*.txt`.
+- **Devpost:** proyecto en borrador; falta pegar el link del video y dar
+  Submit. Textos fuera del repo en `~/Documentos/devpost-*.txt`.
 - Premio de AG Grid: **descartado** (9 nov): el video y Devpost no estaban
   listos y ya no entran funciones nuevas.
